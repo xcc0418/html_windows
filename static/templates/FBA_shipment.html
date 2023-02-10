@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+.button_item{
+width:100px;
+height:40px;
+border:1px solid black;
+margin:auto;
+}
+.msg_item{
+    width:200px;
+    height:40px;
+    border:1px solid black;
+    margin:auto;
+}
+.button{
+	float:left;
+	width:100px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.button_control{
+	float:left;
+	width:40px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.input_item{
+    float: left;
+    width: 110px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.background_control{
+     height: 40px;
+     background-color:rgb(220, 220, 220);
+     margin:10px 0px 0px 0px;
+}
+#input_control1{
+margin:0px 0px 0px 0px;
+}
+#input_control2{
+margin:-41px 0px 0px 220px;
+}
+#input_control3{
+margin:-41px 0px 0px 600px;
+}
+#input_control4{
+margin:-41px 0px 0px 820px;
+}
+#button_control1{
+margin:-41px 0px 0px 450px;
+}
+#button_control2{
+margin:-41px 0px 0px 1050px;
+}
+#clear_control{
+margin:-41px 0px 0px 1200px;
+}
+#table_control{
+overflow-x:scroll;
+width:1200px;
+white-space:nowrap;
+}
+.list_control1{
+    height: 40px;
+    width:80px;
+}
+.list_control2{
+    height: 40px;
+    width:100px;
+}
+.list_control3{
+    height: 40px;
+    width:100px;
+}
+.list_control4{
+    height: 40px;
+    width:200px;
+}
+.list_control5{
+    height: 40px;
+    width:100px;
+}
+.list_control6{
+    height: 40px;
+    width:80px;
+}
+.list_control7{
+    height: 40px;
+    width:80px;
+}
+.list_control{
+    height: 40px;
+    width:80px;
+}
+
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>FBA出货</title>
+</head>
+<body>
+  <div class="FBA_shipment">
+     <div class="shipment_control">
+        <div class="msg_item" id="input_control1">
+            <input class="input_item" type="text"  placeholder="   货件单号" name="FBA_data" autocomplete="off" id="FBA_id">
+        </div>
+        <div class="msg_item" id="input_control2">
+            <input type="submit" value="-" class="button_control" onclick="minus_box()">
+            <input class="input_item" type="text"  placeholder="   装箱数量" name="box_num" autocomplete="off" id="box_num">
+            <input type="submit" value="+" class="button_control" onclick="add_box()">
+        </div>
+        <div class="button_item" id="button_control1">
+            <button class="button" onclick="get_FBA()">下载装箱清单</button>
+        </div>
+         <div class="msg_item" id="input_control3">
+             <input class="input_item" type="text"  placeholder="   FNSKU或箱号" name="index_data" autocomplete="off" id="index_data">
+         </div>
+         <div class="msg_item" id="input_control4">
+             <input type="submit" value="<<" class="button_control" onclick="up_box()">
+             <input class="input_item" type="text"  placeholder="   箱号" name="box_name" autocomplete="off" id="box_name">
+             <input type="submit" value=">>" class="button_control" onclick="next_box()">
+         </div>
+        <div class="button_item" id="button_control2">
+            <button class="button" onclick="shipment_order()">提交</button>
+        </div>
+        <div class="button_item" id="clear_control">
+            <button class="button" onclick="clear_html()">清空</button>
+        </div>
+     </div>
+     <div class="table_list">
+         <div class="background_control">
+             <span id="background_control"></span>
+         </div>
+         <table class="table_control" id="table_control">
+             <thead class="header_item" id="control_item1" data-fnsku="{{ msg['data_fnsku'] }}">
+
+             </thead>
+         </table>
+     </div>
+  </div>
+</body>
+<script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    function get_FBA(){
+    var fba = document.getElementById('FBA_id').value;
+    var box_num = document.getElementById('box_num').value;
+    if (fba != undefined && box_num != undefined){
+    var data = {data: JSON.stringify({'fba': fba, 'box_num': box_num})};
+    $.ajax({
+            headers:{Accept: "application/json; charset=utf-8"},
+			type: 'POST',
+			url: '/get_fba',
+			dataType: 'json',
+			data: data,
+			success: function(msg){
+			if (msg['msg'] == 'success'){
+			var id = msg['data'].length;
+			create_header(box_num);
+			for (var k = 1; k <= id; k++){
+			var dict_data = msg['data'][k-1];
+			var tr = document.createElement("tr");
+            tr.className = "list_control";
+            tr.id = "list_" + dict_data['fnsku'];
+			var str = "";
+			var text_id = "id" + k;
+			var str_id = create_control(["list_control1", k, text_id, 0]);
+			var text_msku = dict_data['msku'] + k;
+			var str_msku = create_control(["list_control2", dict_data['msku'], text_msku, 0]);
+			var text_fnsku = dict_data['fnsku'] + k;
+			var str_fnsku = create_control(["list_control3", dict_data['fnsku'], text_fnsku, 0]);
+			var text_name = dict_data['name'] + k;
+			var str_name = create_control(["list_control4", dict_data['name'], text_name, 0]);
+			var text_sku = dict_data['sku'] + k;
+			var str_sku = create_control(["list_control5", dict_data['sku'], text_sku, 0]);
+			var text_num_shipment = dict_data['num_shipment'] + k;
+			var str_num_shipmen = create_control(["list_control6", dict_data['num_shipment'], text_num_shipment, 0]);
+			var text_num_in = "text_num_in" + k;
+			var str_num_in = create_control(["list_control7", 0, text_num_in, 0]);
+			str = str_id + str_msku + str_fnsku + str_name + str_sku + str_num_shipmen + str_num_in;
+			for (var i = 1; i <= parseInt(box_num); i++){
+			var control = "list_control";
+			var control_id = dict_data['fnsku'] + i;
+			var str_control = create_control([control, 0, control_id, 1]);
+			str = str + str_control;
+			}
+			tr.innerHTML = str;
+	        document.getElementById("control_item1").appendChild(tr);
+			}
+			}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus === 'timeout') {
+                alert('请求超时，请重试！');
+            }
+            }
+			})
+    }
+    if (fba == undefined && box_num == undefined){
+    alert('请先输入货件单号和装箱数量');
+    }
+    }
+
+    function create_control(msg_data){
+	var msg = msg_data;
+	var str = "";
+	if (msg_data[3] == 1){
+	str = "<th class="+ msg[0] +" contenteditable=\"true\"><div class=\"header_text\"><span id="+ msg[2] +">"+ msg[1] +"</span></div></th>";
+	}
+	if (msg_data[3] == 0){
+	str = "<th class="+ msg[0] +"><div class=\"header_text\"><span id="+ msg[2] +">"+ msg[1] +"</span></div></th>";
+	}
+	return str
+	}
+
+	function create_header(length){
+	var tr = document.createElement("tr");
+    tr.className = "list_control";
+    tr.id = "list_header";
+    var str_1 = create_control(['list_control1', '序号', 'control_header1', 0]);
+    var str_2 = create_control(['list_control2', 'MSKU', 'control_header2', 0]);
+    var str_3 = create_control(['list_control3', 'FNSKU', 'control_header3', 0]);
+    var str_4 = create_control(['list_control4', '品名', 'control_header4', 0]);
+    var str_5 = create_control(['list_control5', 'SKU', 'control_header5', 0]);
+    var str_6 = create_control(['list_control6', '装箱数量', 'control_header6', 0]);
+    var str_7 = create_control(['list_control7', '已装箱数量', 'control_header7', 0]);
+    var str_header = str_1 +  str_2 + str_3 + str_4 + str_5 + str_6 + str_7;
+    console.log(str_header)
+    for (var i = 1; i <= parseInt(length); i++){
+        var control = "list_control";
+        var control_text = "第" + i + "箱";
+        var control_id = "control_header" + parseInt(i+7);
+        var str_control = create_control([control, control_text, control_id, 1]);
+        str_header = str_header + str_control;
+        }
+    console.log(str_header)
+    tr.innerHTML = str_header;
+	document.getElementById("control_item1").appendChild(tr);
+	return str_header
+	}
+
+    function get_number(){
+    var data_fnsku = document.getElementById("data_fnsku");
+    var list_fnsku = data_fnsku.getAttribute("data-fnsku");
+    var box_num = document.getElementById('box_num').value;
+    var data_num = [];
+    var list_order_num = [];
+    for (int i = 0; i < list_fnsku.length; i++){
+    var list_num = [];
+    var order_num = document.getElementById("control_header6").innerHTML;
+    list_order_num.push(order_num);
+    for (int k = 0; k < parseInt(box_num); k++){
+    var control_id = list_fnsku[i] + k;
+    var num = document.getElementById(control_id).innerHTML;
+    list_num.push(num);
+    }
+    data_num.push(list_num);
+    }
+    var data = {data: JSON.stringify({'data_num': data_num, 'list_fnsku': list_fnsku,  'list_order_num': list_order_num})};
+    $.ajax({
+            headers:{Accept: "application/json; charset=utf-8"},
+
+			type: 'POST',
+			url: '/get_number',
+			dataType: 'json',
+			data: data,
+			success: function(msg){
+			if (msg['msg'] == 'success'){
+			alert('装箱清单生成成功');
+			}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus === 'timeout') {
+                alert('请求超时，请重试！');
+            }
+            }
+			})
+    }
+
+    function get_fnsku(){
+    var index = document.getElementById("index_data").innerHTML;
+    var data = {data: JSON.stringify({'index': index})};
+    $.ajax({
+            headers:{Accept: "application/json; charset=utf-8"},
+			type: 'POST',
+			url: '/FBA_shipment/get_fnsku',
+			dataType: 'json',
+			data: data,
+			success: function(msg){
+			if (msg['msg'] == 'success'){
+			sum_order(msg['data']['fnsku'], msg['data']['num']);
+			}
+			if (msg['msg'] == 'error'){
+			alert(msg['data']);
+			}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus === 'timeout') {
+                alert('请求超时，请重试！');
+            }
+            }
+			})
+    }
+
+    function sum_order(fnsku, num){
+    var id = fnsku + 7;
+    var sum_order = document.getElementById(id).innerHTML;
+    sum_order += parseInt(num);
+    document.getElementById(id).innerHTML = sum_order;
+    }
+
+    function next_box(){
+    if (confirm('是否切换下一箱装箱信息')){
+
+    }
+    }
+
+    function change_box(){
+
+    }
+
+	function clear(){
+	var div = document.getElementById('control_item1');
+    div.parentNode.removeChild(div);
+	}
+
+</script>
+</html>

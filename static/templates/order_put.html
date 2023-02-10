@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+.put_control{
+    background-color:white;
+}
+.method_item{
+    width:110px;
+    height:40px;
+    border:1px solid black;
+    margin:0px 0px 0px 0px;
+}
+.method{
+    width:100px;
+    height:40px;
+    outline:none;
+    border:none;
+    font-size:28;
+    background-color:white;
+}
+.button_item{
+    width:100px;
+    height:40px;
+    border:1px solid black;
+    margin:auto;
+}
+.msg_item{
+    width:200px;
+    height:40px;
+    border:1px solid black;
+    margin:auto;
+}
+.button{
+	float:left;
+	width:86px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.input_item{
+    float: left;
+    width: 110px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.background_control{
+     height: 40px;
+     background-color:rgb(220, 220, 220);
+     margin:10px 0px 0px 0px;
+}
+#input_control1{
+ margin:-41px 0px 0px 120px;
+}
+#input_control2{
+ margin:-41px 0px 0px 440px;
+}
+#clear_control{
+ margin:-41px 0px 0px 680px;
+}
+.list_control1{
+    height: 40px;
+    width:200px;
+    text-align: center;
+}
+.list_control2{
+    height: 40px;
+    width:400px;
+    text-align: center;
+}
+.list_control3{
+    height: 40px;
+    width:200px;
+    text-align: center;
+}
+.list_control4{
+    height: 40px;
+    width:200px;
+    text-align: center;
+}
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="put">
+    <div class="put_control">
+        <div class="method_item" id="method_control">
+            <select class="method" id="method_value">
+                <option value="SKU">SKU</option>
+                <option value="FNSKU">FNSKU</option>
+                <option value="PDD/ZX">PDD/ZX</option>
+            </select>
+        </div>
+        <div class="msg_item" id="input_control1">
+            <input class="input_item" type="text" name="index_data" autocomplete="off" id="order" onkeydown="myFunction()">
+            <input type="submit" value="搜索" class="button" onclick="get_order()">
+        </div>
+        <div class="button_item" id="input_control2">
+            <button class="button" onclick="put_order()">入库</button>
+        </div>
+        <div class="button_item" id="clear_control">
+            <button class="button" onclick="clear_html()">清空</button>
+        </div>
+    </div>
+    <div class="table_list">
+        <div class="background_control">
+            <span id="background_control"></span>
+        </div>
+        <div class="table_item" id="data_database">
+            <table class="table_control">
+                <thead class="header_item" id="control_item">
+                <tr class="list_control">
+                    <th class="list_control1" id="header_control1" >
+                        <div class="header_text">
+                            <span>SKU/FNSKU</span>
+                        </div>
+                    </th>
+                    <th class="list_control2" id="header_control2" >
+                        <div class="header_text">
+                            <span>品名</span>
+                        </div>
+                    </th>
+                    <th class="list_control3" id="header_control3" >
+                        <div class="header_text">
+                            <span>入库数量</span>
+                        </div>
+                    </th>
+                    <th class="list_control4" id="header_control4" >
+                        <div class="header_text">
+                            <span>入库状态</span>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+            </table>
+            <table class="table_control" id="table_control">
+                <thead class="header_item" id="control_item1">
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    var list_order = []
+
+    function get_order(){
+    var order = document.getElementById('order').value;
+    var index = document.getElementById('method_value').value;
+    if (order != undefined){
+    console.log(list_order.indexOf(order))
+    if (list_order.indexOf(order) == -1){
+    var data = {data: JSON.stringify({'index': index, 'order': order})};
+    $.ajax({
+            headers:{Accept: "application/json; charset=utf-8"},
+			type: 'POST',
+			url: '/get_order',
+			dataType: 'json',
+			data: data,
+			success: function(msg){
+				if (msg['msg'] == 'success'){
+				document.getElementById('order').value = '';
+				list_order.push(order);
+				var th_list = document.createElement("thead");
+                th_list.className = "header_item";
+                th_list.id = "control_item1";
+                document.getElementById("table_control").appendChild(th_list);
+                var tr = document.createElement("tr");
+                tr.className = "list_control"
+				var name = msg['data']['name'];
+				var order_str = create_control(['list_control1',order, 0]);
+				var name_str = create_control(['list_control2', name, 0]);
+				var num_str = create_control(['list_control3', 1, 1, order]);
+				var index_str = create_control(['list_control4', index, 0]);
+				var str = order_str + name_str + num_str + index_str
+				tr.innerHTML = str;
+	            document.getElementById("control_item1").appendChild(tr);
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus === 'timeout') {
+                alert('请求超时，请重试！');
+            }
+            }
+		})
+	}
+	if (list_order.indexOf(order) != -1){
+	document.getElementById('order').value = '';
+	var num = document.getElementById(order).innerHTML;
+	document.getElementById(order).innerHTML = parseInt(num) + 1;
+	}
+    }
+    }
+
+    function myFunction() {
+    if(event.keyCode==13) {
+    document.getElementById("button_fnsku").click();
+    }
+    }
+
+    function create_control(msg_data){
+	var msg = msg_data;
+	console.log(msg);
+	if (msg[2] == 1){
+	var str = "<th class="+ msg[0] +"><div class=\"header_text\"><span id="+ msg[3] +">"+ msg[1] +"</span></div></th>";
+	return str
+	}
+	if (msg[2] == 0){
+	var str = "<th class="+ msg[0] +"><div class=\"header_text\"><span>"+ msg[1] +"</span></div></th>";
+	return str
+	}
+	}
+
+    function put_order(){
+    if (confirm('是否将物料入库')){
+    var data = {}
+    for (var i = 0; i < list_order.length; i++){
+    data[list_order[i]] = int(document.getElementById(list_order[i]).innerHTML)
+    }
+    var data_json = {data: JSON.stringify(data)}
+     $.ajax({
+            headers:{Accept: "application/json; charset=utf-8"},
+			type: 'POST',
+			url: '/shipment',
+			dataType: 'json',
+			data: data,
+			success: function(msg){
+				if (msg['msg'] == 'success'){
+				alert('出库成功');
+				}
+				if (msg['msg'] == 'error'){
+				alert('出库失败');
+				}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus === 'timeout') {
+                alert('请求超时，请重试！');
+            }
+            }
+			})
+    }
+
+	function clear(){
+	var div = document.getElementById('control_item1');
+    div.parentNode.removeChild(div);
+    list_order = [];
+	}
+
+</script>
+</html>

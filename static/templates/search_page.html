@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+.search_control{
+    background-color:white;
+}
+.method_item{
+    width:110px;
+    height:40px;
+    border:1px solid black;
+    margin:0px 0px 0px 0px;
+}
+.method{
+    width:100px;
+    height:40px;
+    outline:none;
+    border:none;
+    font-size:28;
+    background-color:white;
+}
+.msg_item{
+    width:200px;
+    height:40px;
+    border:1px solid black;
+    margin:auto;
+}
+.file_item{
+    width:300px;
+    height:40px;
+    border:1px solid white;
+    margin:auto;
+}
+.button_item{
+    width:100px;
+    height:40px;
+    border:1px solid black;
+    margin:auto;
+}
+.button{
+	float:left;
+	width:86px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.input_item{
+    float: left;
+    width: 110px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.file_input{
+    float: left;
+    width: 200px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.background_control{
+     height: 40px;
+     background-color:rgb(220, 220, 220);
+     margin:10px 0px 0px 0px;
+}
+#background_control{
+ height: 38px;
+ text-align: center;
+}
+#input_control1{
+ margin:-41px 0px 0px 120px;
+}
+#input_control2{
+ margin:-41px 0px 0px 680px;
+}
+#input_control3{
+ margin:-41px 0px 0px 900px;
+}
+#input_control4{
+ margin:-41px 0px 0px 1300px;
+}
+#button_control{
+ margin:-41px 0px 0px 1130px;
+}
+#clear_control{
+ margin:-41px 0px 0px 440px;
+}
+.list_control1{
+    height: 40px;
+    width:200px;
+    text-align: center;
+}
+.list_control2{
+    height: 40px;
+    width:200px;
+    text-align: center;
+}
+.list_control3{
+    height: 40px;
+    width:400px;
+    text-align: center;
+}
+.list_control4{
+    height: 40px;
+    width:200px;
+    text-align: center;
+}
+.list_control5{
+    height: 40px;
+    width:200px;
+    text-align: center;
+}
+.list_control6{
+    height: 40px;
+    width:200px;
+    text-align: center;
+}
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="search">
+    <div class="search_control">
+        <div class="method_item" id="method_control">
+            <select class="method" id="method_value">
+                <option value="箱号">箱号</option>
+                <option value="FNSKU">FNSKU</option>
+                <option value="位置">位置</option>
+            </select>
+        </div>
+        <div class="msg_item" id="input_control1">
+            <input class="input_item" type="text" name="index_data" autocomplete="off" id="index_data">
+            <input type="submit" value="搜索" class="button" onclick="get_msg()">
+        </div>
+        <div class="button_item" id="clear_control">
+            <button class="button" onclick="clear_html()">清空</button>
+        </div>
+        <div class="msg_item" id="input_control2">
+            <input class="input_item" type="text" placeholder="  箱号" name="pa_name" autocomplete="off" id="pa_name">
+        </div>
+        <div class="msg_item" id="input_control3">
+            <input class="input_item" type="text" placeholder="  位置" name="location" autocomplete="off" id="location">
+        </div>
+        <div class="button_item" id="button_control">
+            <button class="button" onclick="change_location()">更改存放位置</button>
+        </div>
+        <div class="file_item" id="input_control4">
+            <input type="file" name="file" class="file_input" id="file_name">
+            <input type="submit" value="上传" class="button" onclick="upload()">
+        </div>
+    </div>
+    <div class="table_list">
+        <div class="background_control">
+            <span id="background_control"></span>
+        </div>
+        <div class="table_item" id="data_database">
+            <table class="table_control">
+                <thead class="header_item" id="control_item">
+                <tr class="list_control">
+                    <th class="list_control1" id="header_control1" >
+                        <div class="header_text">
+                            <span>箱号</span>
+                        </div>
+                    </th>
+                    <th id="header_control2" class="list_control2">
+                        <div class="header_text">
+                            <span>FNSKU</span>
+                        </div>
+                    </th>
+                    <th id="header_control3" class="list_control3">
+                        <div class="header_text">
+                            <span>品名</span>
+                        </div>
+                    </th>
+                    <th id="header_control4" class="list_control4">
+                        <div class="header_text">
+                            <span>装箱数量</span>
+                        </div>
+                    </th>
+                    <th id="header_control5" class="list_control5">
+                        <div class="header_text">
+                            <span>状态</span>
+                        </div>
+                    </th>
+                    <th id="header_control6" class="list_control6">
+                        <div class="header_text">
+                            <span>位置</span>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+            </table>
+            <table class="table_control" id="table_control">
+                <thead class="header_item" id="control_item1">
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    function get_msg(){
+    var index = document.getElementById('method_value').value;
+    var index_data = document.getElementById('index_data').value;
+    var data = {
+    data: JSON.stringify({'index': index, 'index_data': index_data})};
+    clear_html();
+    $.ajax({
+            headers:{Accept: "application/json; charset=utf-8"},
+			type: 'POST',
+			url: '/search_msg',
+			dataType: 'json',
+			data: data,
+			success: function(msg){
+				if (msg['msg'] == 'success'){
+                new_control(msg['data'], index)
+				}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus === 'timeout') {
+                alert('请求超时，请重试！');
+            }
+            }
+		})
+	}
+
+	function new_control(dict_msg, index){
+	if (index == 'FNSKU'){
+	var num_all = dict_msg['库存数量'];
+	var num_location = dict_msg['装箱总数量'];
+	var background = document.getElementById("background_control");
+	background.innerHTML = "库存数量: " + num_all + "     装箱总数量: "+ num_location;
+	}
+	var th_list = document.createElement("thead");
+	th_list.className = "header_item";
+	th_list.id = "control_item1";
+	document.getElementById("table_control").appendChild(th_list);
+	for (var i=0; i<dict_msg['data_list'].length; i++){
+	var tr = document.createElement("tr");
+	tr.className = "list_control"
+	var pa_name = dict_msg['data_list'][i]['箱号'];
+	var fnsku = dict_msg['data_list'][i]['fnsku'];
+	var name = dict_msg['data_list'][i]['品名'];
+	var num = dict_msg['data_list'][i]['装箱数量'];
+	var statues = dict_msg['data_list'][i]['装箱状态'];
+	var location = dict_msg['data_list'][i]['装箱位置'];
+	var pa_name_str = create_control(['list_control1', pa_name]);
+	var fnsku_str = create_control(['list_control2', fnsku]);
+	var name_str = create_control(['list_control3', name]);
+	var num_str = create_control(['list_control4', num]);
+	var statues_str = create_control(['list_control5', statues]);
+	var location_str = create_control(['list_control6', location]);
+	var str = pa_name_str + fnsku_str + name_str + num_str + statues_str + location_str;
+	console.log(str)
+	tr.innerHTML = str;
+	document.getElementById("control_item1").appendChild(tr);
+	}
+	document.getElementById('fnsku').value = '';
+	}
+
+	function create_control(msg_data){
+	var msg = msg_data;
+	console.log(msg);
+	var str = "<th class="+ msg[0] +"><div class=\"header_text\"><span>"+ msg[1] +"</span></div></th>";
+	return str
+	}
+
+    function change_location(){
+    if (confirm('是否更改装箱位置')){
+    var pa_name = document.getElementById('pa_name').value;
+    var location = document.getElementById('location').value;
+    var data = {
+    data: JSON.stringify({'pa_name': pa_name, 'location': location})};
+    $.ajax({
+            headers:{Accept: "application/json; charset=utf-8"},
+			type: 'POST',
+			url: '/change_location',
+			dataType: 'json',
+			data: data,
+			success: function(msg){
+				if (msg['msg'] == 'success'){
+                alert('位置更改成功');
+				}
+				if (msg['msg'] == 'error'){
+                alert('位置更改失败');
+				}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus === 'timeout') {
+                alert('请求超时，请重试！');
+            }
+            }
+		})
+    }
+    }
+
+    function upload(){
+        var filename = document.getElementById('file_name').files[0];
+        if (filename != undefined){
+        var formFile = new FormData();
+        formFile.append("action", "UploadVMKImagePath");
+        formFile.append("file", filename);
+        var data = formFile;
+        $.ajax({
+            headers:{Accept: "application/json; charset=utf-8"},
+			type: 'POST',
+			url: '/uploader',
+			dataType: 'json',
+			data: data,
+			cache: false,
+            processData: false,
+            contentType: false,
+			success: function(msg){
+				if (msg['msg'] == 'success'){
+                alert('位置更改成功');
+				}
+				if (msg['msg'] == 'error'){
+                alert('位置更改失败');
+				}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus === 'timeout') {
+                alert('请求超时，请重试！');
+            }
+            }
+		})
+		if (filename == undefined){
+		alert('请先获取文件路径');
+		}
+	}
+    }
+
+	function clear_html(){
+    var div = document.getElementById('control_item1');
+    div.parentNode.removeChild(div);
+    var background = document.getElementById("background_control");
+	}
+
+</script>
+</html>

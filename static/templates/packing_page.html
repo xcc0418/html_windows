@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+.item_list{
+    background-color:white;
+}
+.method {
+    width:100px;
+    height:40px;
+    outline:none;
+    border:none;
+    background-color:white;
+}
+.box_search2{
+    width:400px;
+    height:40px;
+    border:1px solid black;
+    margin:auto;
+}
+.box_search1{
+    width:310px;
+    height:40px;
+    border:1px solid black;
+}
+.input_po{
+    float: left;
+    width: 300px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.input_fnsku{
+    float: left;
+    width: 200px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.button{
+	float:left;
+	width:96px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.button_item{
+    width:100px;
+    height:40px;
+    border:1px solid black;
+}
+#button_control1{
+     margin:0px 0px 0px 0px;
+}
+#button_control4{
+     margin:-40px 0px 0px 860px;
+}
+#button_control3{
+     margin:-42px 0px 0px 260px;
+}
+#button_control2{
+     margin:-42px 0px 0px 130px;
+}
+#box_control1{
+     margin:-42px 0px 0px 450px;
+}
+#box_control2{
+     margin:-42px 0px 0px 990px;
+}
+.background_control{
+     height: 40px;
+     background-color:rgb(220, 220, 220);
+     margin:10px 0px 0px 0px;
+}
+.list_control1{
+    height: 40px;
+    width:200px;
+}
+.list_control2{
+    height: 40px;
+    width:200px;
+}
+.list_control3{
+    height: 40px;
+    width:400px;
+}
+.list_control4{
+    height: 40px;
+    width:100px;
+}
+.list_control4{
+    height: 40px;
+    width:100px;
+}
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="pick_item">
+    <div class="box_item">
+        <div class="item_list">
+<!--            <form action="/get_pa" method="get">-->
+            <div class="button_item" id="button_control1" data-database="{{ pa_name }}">
+                <button class="button" onclick="get_pa()">开始装箱</button>
+            </div>
+<!--            </form>-->
+            <div class="button_item" id="button_control4">
+                <select class="method" id="method_value">
+                    <option value="添加物料">添加物料</option>
+                    <option value="删减物料">删减物料</option>
+                </select>
+            </div>
+            <div class="button_item" id="button_control2">
+                <button class="button" onclick="pack_pa()">结束装箱</button>
+            </div>
+            <div class="button_item" id="button_control3">
+                <button class="button" onclick="clear_html()">清空</button>
+            </div>
+            <div class="box_search1" id="box_control1">
+                <input type="text" placeholder="  FNSKU" class="input_fnsku" autocomplete="off" name="fnsku_value"  onkeydown="myFunction()" id="fnsku">
+                <input type="submit" value="装箱" class="button" id="button_fnsku" onclick="get_fnsku()">
+            </div>
+            <div class="box_search2" id="box_control2">
+                <input class="input_po" type="text" placeholder="  箱号" name="po_name" autocomplete="off" id="pa_name">
+                <input type="submit" value="搜索" class="button" onclick="pa_msg()">
+            </div>
+        </div>
+    </div>
+    <div class="table_list">
+        <div class="background_control"></div>
+        <div class="table_item" id="data_database">
+            <table class="table_control">
+                <thead class="header_item" id="control_item">
+                <tr class="list_control">
+                    <th class="header_control1" id="list_control1" >
+                        <div class="header_text">
+                            <span>箱号</span>
+                        </div>
+                    </th>
+                    <th id="header_control2" class="list_control2">
+                        <div class="header_text">
+                            <span>FNSKU</span>
+                        </div>
+                    </th>
+                    <th id="header_control3" class="list_control3">
+                        <div class="header_text">
+                            <span>品名</span>
+                        </div>
+                    </th>
+                    <th id="header_control4" class="list_control4">
+                        <div class="header_text">
+                            <span>装箱数量</span>
+                        </div>
+                    </th>
+                    <th id="header_control5" class="list_control5">
+                        <div class="header_text">
+                            <span>状态</span>
+                        </div>
+                    </th>
+                </tr>
+                <tr class="list_control">
+                    <th class="list_control1">
+                        <div class="header_text">
+                            <span id="span_1">
+
+                            </span>
+                        </div>
+                    </th>
+                    <th class="list_control2">
+                        <div class="header_text">
+                            <span id="span_2">
+
+                            </span>
+                        </div>
+                    </th>
+                    <th class="list_control3">
+                        <div class="header_text">
+                            <span id="span_3">
+
+                            </span>
+                        </div>
+                    </th>
+                    <th class="list_control4">
+                        <div class="header_text">
+                            <span id="span_4">
+
+                            </span>
+                        </div>
+                    </th>
+                    <th class="list_control5">
+                        <div class="header_text">
+                            <span id="span_5">
+
+                            </span>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    function get_pa(){
+    var url = "/get_pa";
+    $.ajax({
+    url: url,
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "GET",
+    success: function(data){
+    var data = JSON.parse(data);
+    console.log(data)
+    if (data.success){
+    var pa_name = data['success']
+    document.getElementById("span_1").innerHTML = pa_name;
+    document.getElementById("span_5").innerHTML = "正在装箱";
+    document.getElementById("span_4").innerHTML = 0;
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus === 'timeout') {
+                alert('请求超时，请重试！');
+            }
+            }
+    })
+    }
+
+    function myFunction() {
+      if(event.keyCode==13) {
+      document.getElementById("button_fnsku").click();
+      }
+      }
+
+    function get_fnsku(){
+    var url = "/get_fnsku"
+    var fnsku_value = document.getElementById('fnsku').value;
+    var num = document.getElementById('span_4').innerHTML;
+    var pa_name = document.getElementById('span_1').innerHTML;
+    var fnsku_put = document.getElementById('span_2').innerHTML;
+    var statues = document.getElementById('span_5').innerHTML;
+    var method_value = document.getElementById('method_value').value;
+    var data = {
+    data: JSON.stringify({'fnsku_value': fnsku_value, 'pa_name': pa_name})};
+    if (fnsku_put.type == undefined){
+    fnsku_put = fnsku_value;
+    }
+    document.getElementById('fnsku').value = '';
+    $.ajax({
+    url: url,
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "POST",
+    dataType: 'json',
+    data: data,
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    var fnsku = msg['data']['fnsku'];
+    if (fnsku == fnsku_put){
+    var name = msg['data']['品名'];
+    var num_input = msg['data']['装箱数量'];
+    document.getElementById("span_2").innerHTML = fnsku;
+    document.getElementById("span_3").innerHTML = name;
+    if (statues == '正在装箱'){
+    document.getElementById("span_4").innerHTML = parseInt(num) + num_input;
+    }
+    if (statues == '已打包'){
+    if (method_value == '添加物料'){
+    document.getElementById("span_4").innerHTML = parseInt(num) + num_input;
+    }
+    if (method_value == '删减物料'){
+    document.getElementById("span_4").innerHTML = parseInt(num) - num_input;
+    }
+    }
+    }
+    if (fnsku != fnsku_put){alert('输入FNSKU前后不一致，请重试！');}
+    }
+    if (msg['msg'] == 'error'){alert(msg['data']);}
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus === 'timeout') {
+                alert('请求超时，请重试！');
+            }
+            }
+    })
+    }
+
+    function clear_html(){
+    if (confirm('是否清空界面信息')){
+    document.getElementById("span_5").innerHTML = '';
+    document.getElementById("span_1").innerHTML = '';
+    document.getElementById("span_2").innerHTML = '';
+    document.getElementById("span_3").innerHTML = '';
+    document.getElementById("span_4").innerHTML = '';
+    document.getElementById('fnsku').value = '';
+    document.getElementById('pa_name').value = '';
+    }
+    }
+
+    function pa_msg(){
+    var url = "/pa_msg";
+    var pa = document.getElementById('pa_name').value;
+    var data = {data: JSON.stringify({'pa_name': pa})};
+    $.ajax({
+    url: url,
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "POST",
+    dataType: 'json',
+    data: data,
+    success: function(data){
+    console.log(data)
+    if (data['msg'] == 'success'){
+    var pa_name = data['data']['箱号'];
+    var fnsku = data['data']['fnsku'];
+    var name = data['data']['品名'];
+    var num = data['data']['装箱数量'];
+    var statues = data['data']['装箱状态'];
+    document.getElementById("span_1").innerHTML = pa_name;
+    document.getElementById("span_5").innerHTML = statues;
+    document.getElementById("span_4").innerHTML = num;
+    document.getElementById("span_2").innerHTML = fnsku;
+    document.getElementById("span_3").innerHTML = name;
+    }
+    if (data['msg'] == 'error'){alert(data['data']);}
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus === 'timeout') {
+                alert('请求超时，请重试！');
+            }
+            }
+    })
+    }
+
+    function pack_pa(){
+    if (confirm('是否结束装箱')){
+    var pa_name = document.getElementById("span_1").innerHTML;
+    var fnsku = document.getElementById("span_2").innerHTML;
+    var name = document.getElementById("span_3").innerHTML;
+    var num = document.getElementById("span_4").innerHTML;
+    var statues = document.getElementById("span_5").innerHTML;
+    var data = {data: JSON.stringify({'pa_name': pa_name, 'fnsku': 'fnsku', 'name': name, 'num': num, 'statues': statues})}
+    $.ajax({
+    url: url,
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "POST",
+    dataType: 'json',
+    data: data,
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    alert('装箱成功');
+    clear_html();
+    download_pdf(msg['data']['filename'], pa_name)
+    }
+    if (msg['msg'] == 'error'){
+    alert('装箱失败，请重试');
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus === 'timeout') {
+                alert('请求超时，请重试！');
+            }
+            }
+    })
+    }
+    }
+
+    function download_pdf(filename, pa){
+    pa_name = "+ pa_name +" + ".pdf";
+    var div = document.createElement("div");
+    div.className = "download_button";
+    var str = "<a href="+ filename +" download="+ pa_name +">下载</a>";
+    div.innerHTML = str;
+	document.getElementById("layui_id").appendChild(div);
+    }
+
+</script>
+</body>
+</html>
+
+<!--var data = document.getElementById('box_control2').getAttribute('data-database');-->
+<!--    var pa = document.getElementById('button_control1').getAttribute('data-database');-->
+<!--    var fnsku_msg = document.getElementById('box_control1').getAttribute('data-database');-->
+<!--    var msg_error = document.getElementById('box_control1').getAttribute('data-error');-->
+<!--    console.log(fnsku_msg)-->
+<!--    var myGeocode = data.split(',');-->
+<!--    if (myGeocode.length > 1){-->
+<!--    console.log(myGeocode)-->
+<!--    var pa_name = myGeocode[0];-->
+<!--    var fnsku = myGeocode[1];-->
+<!--    var name = myGeocode[2];-->
+<!--    var num = myGeocode[3];-->
+<!--    var statue = myGeocode[4];-->
+<!--    document.getElementById("span_1").innerHTML = pa_name;-->
+<!--    document.getElementById("span_2").innerHTML = fnsku;-->
+<!--    document.getElementById("span_3").innerHTML = name;-->
+<!--    document.getElementById("span_4").innerHTML = num;-->
+<!--    document.getElementById("span_5").innerHTML = statue;-->
+<!--    }-->
+<!--    if (pa.length > 13){-->
+<!--    var pa_name = pa;-->
+<!--    var fnsku = "";-->
+<!--    var name = "";-->
+<!--    var num = 0;-->
+<!--    var statue = "正在装箱";-->
+<!--    document.getElementById("span_1").innerHTML = pa_name;-->
+<!--    document.getElementById("span_2").innerHTML = fnsku;-->
+<!--    document.getElementById("span_3").innerHTML = name;-->
+<!--    document.getElementById("span_4").innerHTML = num;-->
+<!--    document.getElementById("span_5").innerHTML = statue;-->
+<!--    }-->
+<!--    if (fnsku_msg.length > 22){-->
+<!--    var msg = fnsku_msg.split(',');-->
+<!--    console.log(msg)-->
+<!--    var pa_name = msg[0];-->
+<!--    var fnsku = msg[1];-->
+<!--    var name = msg[2];-->
+<!--    var num = msg[3];-->
+<!--    var statue = "正在装箱";-->
+<!--    document.getElementById("span_1").innerHTML = pa_name;-->
+<!--    document.getElementById("span_2").innerHTML = fnsku;-->
+<!--    document.getElementById("span_3").innerHTML = name;-->
+<!--    document.getElementById("span_4").innerHTML = num;-->
+<!--    document.getElementById("span_5").innerHTML = statue;-->
+<!--    }-->
+<!--    if(fnsku_msg.length == 22){-->
+<!--    alert(" + fnsku_msg + ");-->
+<!--    }-->
+<!--    function myFunction() {-->
+<!--      if(event.keyCode==13) {-->
+<!--      document.getElementById("button_fnsku").click();-->
+<!--      }-->
+<!--    }-->
+<!--    if (msg_error > 9){-->
+<!--    alert(" + msg_error + ");-->
+<!--    }-->
+
+
+<!--    function write_span(pa_name, fnsku, name, num , statue){-->
+<!--    var tr = document.createElement("tr");-->
+<!--    tr.className = "list_control";-->
+<!--    var str = "<th class=\"list_control_1\"><div class=\"header_text\"><span name=\"pa_name\" id=\"span_1\">"+ pa_name +"</span></div></th><th class=\"list_control_2\"><div class=\"header_text\"><span name=\"fnsku\" id=\"span_2\">"+ fnsku +"</span></div></th><th class=\"list_control_3\"><div class=\"header_text\"><span name=\"name\" id=\"span_3\">"+ name +"</span></div></th><th class=\"list_control_4\"><div class=\"header_text\"><span name=\"num\" id=\"span_4\">"+ num +"</span></div></th><th class=\"list_control_5\"><div class=\"header_text\"><span name=\"statue\" id=\"span_5\">"+ statue +"</span></div></th>";-->
+<!--    tr.innerHTML = str;-->
+<!--	document.getElementById("control_item").appendChild(tr);-->
+<!--    }-->
+<!--    write_span(pa_name, fnsku, name, num , statue)-->
+<!--    var now = new Date();-->
+<!--    var year = now.getFullYear();-->
+<!--    var month = mow.getMonth()+1;-->
+<!--    var date = now.getDate();-->
+<!--    var hour = now.getHours();-->
+<!--    var minute = now.getMinutes();-->
+<!--    var second = now.getSeconds();-->
+<!--    var pa_name = "PA" + "year[2:]" + "month" + "date" + "hour" + "minute" + "second";-->
+<!--    var str = "<th class=\"list_control_1\"><div class=\"header_text\"><span name=\"pa_name\">"+ pa_name +"</span></div></th><th class=\"list_control_2\"><div class=\"header_text\"><span name=\"fnsku\">"+ fnsku +"</span></div></th><th class=\"list_control_3\"><div class=\"header_text\"><span name=\"name\">"+ name +"</span></div></th><th class=\"list_control_4\"><div class=\"header_text\"><span name=\"num\">"+ num +"</span></div></th><th class=\"list_control_5\"><div class=\"header_text\"><span name=\"statue\">"+ statue +"</span></div></th>";-->
+<!--    var myGeocode = list_pa;-->
+<!--    var pa_name = myGeocode[0];-->
+<!--    var fnsku = myGeocode[1];-->
+<!--    var name = myGeocode[2];-->
+<!--    var num = myGeocode[3];-->
+<!--    var statue = myGeocode[4];-->
