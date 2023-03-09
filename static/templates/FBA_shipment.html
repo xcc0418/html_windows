@@ -31,6 +31,10 @@ margin:auto;
 	border:none;
 	outline:none;/*取消边框和外边框将按钮边框去掉*/
 }
+.download_item{
+width:100px;
+height:40px;
+}
 .input_item{
     float: left;
     width: 110px;
@@ -55,55 +59,118 @@ margin:-41px 0px 0px 220px;
 margin:-41px 0px 0px 600px;
 }
 #input_control4{
-margin:-41px 0px 0px 820px;
+margin:-41px 0px 0px 920px;
 }
 #button_control1{
 margin:-41px 0px 0px 450px;
 }
 #button_control2{
-margin:-41px 0px 0px 1050px;
+margin:-41px 0px 0px 1150px;
+}
+#button_control3{
+margin:-41px 0px 0px 1300px;
+}
+#file_control{
+margin:-41px 0px 0px 1450px;
 }
 #clear_control{
-margin:-41px 0px 0px 1200px;
+margin:-41px 0px 0px 1600px;
 }
-#table_control{
-overflow-x:scroll;
-width:1200px;
-white-space:nowrap;
+#download_control{
+margin:-41px 0px 0px 1750px;
 }
-.list_control1{
-    height: 40px;
-    width:80px;
+.table_control{
+width: 1000px;
 }
+.table_item{
+width: 1700px;
+height: 770px;
+overflow: auto;
+}
+td,th {
+        box-sizing: border-box;/* 设置表格样式 */
+        border: 1px solid #DDDDDD;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-align: center;
+        background: #F4F4F5;
+        height: 40px;
+    }
+thead tr th{
+            position: sticky;
+            top: 0;
+        }
+.list_control1, th:first-child{
+      position: sticky;
+      left: 0; /* 固定第一行，前7列 */
+      z-index:1;
+    }
 .list_control2{
-    height: 40px;
-    width:100px;
-}
+      position: sticky;
+      left: 40px;
+      z-index:1;
+    }
 .list_control3{
-    height: 40px;
-    width:100px;
+      position: sticky;
+      left: 337px;
+      z-index:1;
 }
 .list_control4{
-    height: 40px;
-    width:200px;
+      position: sticky;
+      left: 455px;
+      z-index:1;
 }
 .list_control5{
-    height: 40px;
-    width:100px;
+      position: sticky;
+      left: 1024px;
+      z-index:1;
 }
 .list_control6{
-    height: 40px;
-    width:80px;
+      position: sticky;
+      left: 1086px;
+      z-index:1;
 }
 .list_control7{
-    height: 40px;
-    width:80px;
+      position: sticky;
+      left: 1160px;
+      z-index:1;
 }
-.list_control{
-    height: 40px;
-    width:80px;
+th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(5), th:nth-child(6), th:nth-child(7){
+            z-index:2;/* 置第一行的显示优先级高于前7列的其它行 */
+        }
+.header_text1{
+    height: 40px;/* 设置表格高、宽 */
+    width:34px;
 }
-
+.header_text2{
+    height: 40px;
+    width:291px;
+}
+.header_text3{
+    height: 40px;
+    width:112px;
+}
+.header_text4{
+    height: 40px;
+    width:563px;
+}
+.header_text5{
+    height: 40px;
+    width:56px;
+}
+.header_text6{
+    height: 40px;
+    width:68px;
+}
+.header_text7{
+    height: 40px;
+    width:68px;
+}
+.header_text{
+    height: 40px;
+    width:68px;
+}
 </style>
 <head>
     <meta charset="UTF-8">
@@ -124,39 +191,64 @@ white-space:nowrap;
             <button class="button" onclick="get_FBA()">下载装箱清单</button>
         </div>
          <div class="msg_item" id="input_control3">
-             <input class="input_item" type="text"  placeholder="   FNSKU或箱号" name="index_data" autocomplete="off" id="index_data">
+             <input class="input_item" type="text"  placeholder="   FNSKU或箱号" name="index_data" autocomplete="off" id="index_data" onkeydown="myFunction()">
+             <button class="button_control" id="get_fnsku" onclick="get_fnsku()"></button>
          </div>
          <div class="msg_item" id="input_control4">
              <input type="submit" value="<<" class="button_control" onclick="up_box()">
-             <input class="input_item" type="text"  placeholder="   箱号" name="box_name" autocomplete="off" id="box_name">
+             <input class="input_item" type="text"  placeholder="   选择箱子" name="box_name" autocomplete="off" id="box_name">
              <input type="submit" value=">>" class="button_control" onclick="next_box()">
          </div>
         <div class="button_item" id="button_control2">
             <button class="button" onclick="shipment_order()">提交</button>
         </div>
+         <div class="button_item" id="button_control3">
+            <button class="button" onclick="save_table()">保存</button>
+        </div>
+         <div class="button_item" id="file_control">
+            <input type="file" name="file" id="files" style="display:none" onchange="upload_file();">
+            <input type="button" value="导入" id="import" class="button">
+        </div>
         <div class="button_item" id="clear_control">
             <button class="button" onclick="clear_html()">清空</button>
+        </div>
+        <div class="download_item" id="download_control">
         </div>
      </div>
      <div class="table_list">
          <div class="background_control">
              <span id="background_control"></span>
          </div>
+     <div class="table_item">
          <table class="table_control" id="table_control">
-             <thead class="header_item" id="control_item1" data-fnsku="{{ msg['data_fnsku'] }}">
+             <thead class="header_item" id="control_item1">
 
              </thead>
          </table>
      </div>
+     </div>
   </div>
 </body>
-<script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="../JavaScript/jquery-3.0.0.min.js"></script>
+<script src="../JavaScript/axios.min.js"></script>
+<script src="https://cdn.bootcss.com/xlsx/0.11.9/xlsx.core.min.js"></script>
 <script>
+
+    $("#import").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
+        $("#files").click();
+    });
+
     function get_FBA(){
+    var table_control = document.getElementById('control_item1');
+    if (table_control.getElementsByTagName('tr')[0]){
+    alert('请勿重复下载');
+    }
+    else{
     var fba = document.getElementById('FBA_id').value;
     var box_num = document.getElementById('box_num').value;
-    if (fba != undefined && box_num != undefined){
+    console.log(fba);
+    console.log(box_num);
+    if (fba && box_num){
     var data = {data: JSON.stringify({'fba': fba, 'box_num': box_num})};
     $.ajax({
             headers:{Accept: "application/json; charset=utf-8"},
@@ -167,6 +259,7 @@ white-space:nowrap;
 			success: function(msg){
 			if (msg['msg'] == 'success'){
 			var id = msg['data'].length;
+			document.getElementById('box_name').value = '第1箱';
 			create_header(box_num);
 			for (var k = 1; k <= id; k++){
 			var dict_data = msg['data'][k-1];
@@ -175,24 +268,24 @@ white-space:nowrap;
             tr.id = "list_" + dict_data['fnsku'];
 			var str = "";
 			var text_id = "id" + k;
-			var str_id = create_control(["list_control1", k, text_id, 0]);
+			var str_id = create_control(["list_control1", 'header_text1', k, text_id, 0]);
 			var text_msku = dict_data['msku'] + k;
-			var str_msku = create_control(["list_control2", dict_data['msku'], text_msku, 0]);
-			var text_fnsku = dict_data['fnsku'] + k;
-			var str_fnsku = create_control(["list_control3", dict_data['fnsku'], text_fnsku, 0]);
+			var str_msku = create_control(["list_control2", 'header_text2', dict_data['msku'], text_msku, 0]);
+			var text_fnsku = dict_data['fnsku'];
+			var str_fnsku = create_control(["list_control3", 'header_text3', dict_data['fnsku'], text_fnsku, 0]);
 			var text_name = dict_data['name'] + k;
-			var str_name = create_control(["list_control4", dict_data['name'], text_name, 0]);
+			var str_name = create_control(["list_control4", 'header_text4', dict_data['name'], text_name, 0]);
 			var text_sku = dict_data['sku'] + k;
-			var str_sku = create_control(["list_control5", dict_data['sku'], text_sku, 0]);
-			var text_num_shipment = dict_data['num_shipment'] + k;
-			var str_num_shipmen = create_control(["list_control6", dict_data['num_shipment'], text_num_shipment, 0]);
-			var text_num_in = "text_num_in" + k;
-			var str_num_in = create_control(["list_control7", 0, text_num_in, 0]);
+			var str_sku = create_control(["list_control5", 'header_text5', dict_data['sku'], text_sku, 0]);
+			var text_num_shipment = "order_num" + k;
+			var str_num_shipmen = create_control(["list_control6", 'header_text6', dict_data['num_shipment'], text_num_shipment, 0]);
+			var text_num_in = "text_num_in" + dict_data['fnsku'];
+			var str_num_in = create_control(["list_control7", 'header_text7', 0, text_num_in, 0]);
 			str = str_id + str_msku + str_fnsku + str_name + str_sku + str_num_shipmen + str_num_in;
 			for (var i = 1; i <= parseInt(box_num); i++){
 			var control = "list_control";
 			var control_id = dict_data['fnsku'] + i;
-			var str_control = create_control([control, 0, control_id, 1]);
+			var str_control = create_control([control, 'header_text', 0, control_id, 1]);
 			str = str + str_control;
 			}
 			tr.innerHTML = str;
@@ -207,44 +300,46 @@ white-space:nowrap;
             }
 			})
     }
-    if (fba == undefined && box_num == undefined){
+    else{
     alert('请先输入货件单号和装箱数量');
+    }
     }
     }
 
     function create_control(msg_data){
 	var msg = msg_data;
 	var str = "";
-	if (msg_data[3] == 1){
-	str = "<th class="+ msg[0] +" contenteditable=\"true\"><div class=\"header_text\"><span id="+ msg[2] +">"+ msg[1] +"</span></div></th>";
+	if (msg_data[4] == 1){
+	str = "<td class="+ msg[0] +"><div class="+ msg[1] +"><span id="+ msg[3] +" contenteditable=\"true\">"+ msg[2] +"</span></div></td>";
 	}
-	if (msg_data[3] == 0){
-	str = "<th class="+ msg[0] +"><div class=\"header_text\"><span id="+ msg[2] +">"+ msg[1] +"</span></div></th>";
+	if (msg_data[4] == 0){
+	str = "<td class="+ msg[0] +"><div class="+ msg[1] +"><span id="+ msg[3] +">"+ msg[2] +"</span></div></td>";
+	}
+	if (msg_data[4] == 2){
+	str = "<th class="+ msg[0] +"><div class="+ msg[1] +"><span id="+ msg[3] +">"+ msg[2] +"</span></div></th>";
 	}
 	return str
 	}
 
 	function create_header(length){
 	var tr = document.createElement("tr");
-    tr.className = "list_control";
+    tr.className = "list_header";
     tr.id = "list_header";
-    var str_1 = create_control(['list_control1', '序号', 'control_header1', 0]);
-    var str_2 = create_control(['list_control2', 'MSKU', 'control_header2', 0]);
-    var str_3 = create_control(['list_control3', 'FNSKU', 'control_header3', 0]);
-    var str_4 = create_control(['list_control4', '品名', 'control_header4', 0]);
-    var str_5 = create_control(['list_control5', 'SKU', 'control_header5', 0]);
-    var str_6 = create_control(['list_control6', '装箱数量', 'control_header6', 0]);
-    var str_7 = create_control(['list_control7', '已装箱数量', 'control_header7', 0]);
+    var str_1 = create_control(['list_control1', 'header_text1', '序号', 'control_header1', 2]);
+    var str_2 = create_control(['list_control2', 'header_text2', 'MSKU', 'control_header2', 2]);
+    var str_3 = create_control(['list_control3', 'header_text3', 'FNSKU', 'control_header3', 2]);
+    var str_4 = create_control(['list_control4', 'header_text4', '品名', 'control_header4', 2]);
+    var str_5 = create_control(['list_control5', 'header_text5', 'SKU', 'control_header5', 2]);
+    var str_6 = create_control(['list_control6', 'header_text6', '装箱数量', 'control_header6', 2]);
+    var str_7 = create_control(['list_control7', 'header_text7', '已装箱数量', 'control_header7', 2]);
     var str_header = str_1 +  str_2 + str_3 + str_4 + str_5 + str_6 + str_7;
-    console.log(str_header)
     for (var i = 1; i <= parseInt(length); i++){
         var control = "list_control";
         var control_text = "第" + i + "箱";
         var control_id = "control_header" + parseInt(i+7);
-        var str_control = create_control([control, control_text, control_id, 1]);
+        var str_control = create_control([control, 'header_text', control_text, control_id, 2]);
         str_header = str_header + str_control;
         }
-    console.log(str_header)
     tr.innerHTML = str_header;
 	document.getElementById("control_item1").appendChild(tr);
 	return str_header
@@ -253,14 +348,14 @@ white-space:nowrap;
     function get_number(){
     var data_fnsku = document.getElementById("data_fnsku");
     var list_fnsku = data_fnsku.getAttribute("data-fnsku");
-    var box_num = document.getElementById('box_num').value;
+    var box_num = document.getElementById("box_num").value;
     var data_num = [];
     var list_order_num = [];
-    for (int i = 0; i < list_fnsku.length; i++){
+    for (var i = 0; i < list_fnsku.length; i++){
     var list_num = [];
     var order_num = document.getElementById("control_header6").innerHTML;
     list_order_num.push(order_num);
-    for (int k = 0; k < parseInt(box_num); k++){
+    for (var k = 0; k < parseInt(box_num); k++){
     var control_id = list_fnsku[i] + k;
     var num = document.getElementById(control_id).innerHTML;
     list_num.push(num);
@@ -270,7 +365,6 @@ white-space:nowrap;
     var data = {data: JSON.stringify({'data_num': data_num, 'list_fnsku': list_fnsku,  'list_order_num': list_order_num})};
     $.ajax({
             headers:{Accept: "application/json; charset=utf-8"},
-
 			type: 'POST',
 			url: '/get_number',
 			dataType: 'json',
@@ -288,8 +382,14 @@ white-space:nowrap;
 			})
     }
 
+    function myFunction() {
+      if(event.keyCode==13) {
+      document.getElementById("get_fnsku").click();
+      }
+      }
+
     function get_fnsku(){
-    var index = document.getElementById("index_data").innerHTML;
+    var index = document.getElementById("index_data").value;
     var data = {data: JSON.stringify({'index': index})};
     $.ajax({
             headers:{Accept: "application/json; charset=utf-8"},
@@ -299,10 +399,23 @@ white-space:nowrap;
 			data: data,
 			success: function(msg){
 			if (msg['msg'] == 'success'){
+			console.log(msg)
 			sum_order(msg['data']['fnsku'], msg['data']['num']);
+			if (index.length == 14){
+			var list_pa = document.getElementById("background_control").innerHTML;
+			change_box(1);
+			if (list_pa){
+			document.getElementById("background_control").innerHTML = list_pa + '-' +index;
+			}
+			else{
+			document.getElementById("background_control").innerHTML = index;
+			}
+			}
+			document.getElementById("index_data").value = '';
 			}
 			if (msg['msg'] == 'error'){
 			alert(msg['data']);
+			document.getElementById("index_data").value = '';
 			}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -314,26 +427,297 @@ white-space:nowrap;
     }
 
     function sum_order(fnsku, num){
-    var id = fnsku + 7;
-    var sum_order = document.getElementById(id).innerHTML;
+    var box_name = document.getElementById('box_name').value;
+    var box_num = 0;
+    if (box_name.length == 3){
+    box_num = box_name.substring(1, 2);
+    }
+    else{
+    box_num = box_name.substring(1, 3);
+    }
+    var id = "text_num_in" + fnsku;
+    console.log(id)
+    var sum_order = parseInt(document.getElementById(id).innerHTML);
     sum_order += parseInt(num);
     document.getElementById(id).innerHTML = sum_order;
+    var fnsku_id = fnsku + parseInt(box_num);
+    var order_num = parseInt(document.getElementById(fnsku_id).innerHTML);
+    document.getElementById(fnsku_id).innerHTML = parseInt(num) + order_num;
+    }
+
+    function shipment_order(){
+    if (confirm('是否提交当前表格信息')){
+    var list_data = get_table();
+    var shipment_id = document.getElementById('FBA_id').value;
+    var box_num = document.getElementById('box_num');
+	var list_pa = document.getElementById("background_control").innerHTML;
+	console.log(list_pa)
+	list_pa = list_pa.split("-");
+    data_msg = {data: JSON.stringify({'list_data': list_data, 'shipment_id': shipment_id, 'box_num': box_num, 'list_pa': list_pa})};
+    $.ajax({
+            headers:{Accept: "application/json; charset=utf-8"},
+			type: 'POST',
+			url: '/FBA_shipment/shipment_order',
+			dataType: 'json',
+			data: data_msg,
+			success: function(msg){
+			if (msg['msg'] == 'success'){
+			alert('提交成功');
+			clear()
+			download_pdf(msg['data']['filename'], shipment_id, msg['data']['time_data'])
+			}
+			if (msg['msg'] == 'error'){
+            alert(msg['data']);
+            }
+            }
+			})
+    }
+    }
+
+    function save_table(){
+    if (confirm('是否保存当前表格信息')){
+    var list_data = get_table();
+    var shipment_id = document.getElementById('FBA_id').value;
+    var box_num = document.getElementById('box_num');
+	var list_pa = document.getElementById("background_control").innerHTML;
+	console.log(list_pa)
+	list_pa = list_pa.split("-");
+    data_msg = {data: JSON.stringify({'list_data': list_data, 'shipment_id': shipment_id, 'box_num': box_num, 'list_pa': list_pa})};
+    $.ajax({
+            headers:{Accept: "application/json; charset=utf-8"},
+			type: 'POST',
+			url: '/FBA_shipment/save_table',
+			dataType: 'json',
+			data: data_msg,
+			success: function(msg){
+			if (msg['msg'] == 'success'){
+			alert('提交成功');
+			clear()
+			download_pdf(msg['data']['filename'], shipment_id, msg['data']['time_data'])
+			}
+			if (msg['msg'] == 'error'){
+            alert(msg['data']);
+            }
+            }
+			})
+    }
     }
 
     function next_box(){
-    if (confirm('是否切换下一箱装箱信息')){
-
+    if (confirm('是否切换下一箱')){
+    change_box(1)
     }
     }
 
-    function change_box(){
-
+    function change_box(index){
+    var box_num = document.getElementById('box_num').value;
+    var box_name = document.getElementById('box_name').value;
+    var num = 0;
+    if (box_name.length == 3){
+    num = box_name.substring(1, 2);
     }
+    else{
+    num = box_name.substring(1, 3);
+    }
+    if (parseInt(box_num) == parseInt(num)){
+    alert('当前已经是最后一个箱子了');
+    }
+    if (parseInt(num) == 1 && index == 2){
+    alert('当前已经是第一个箱子了');
+    }
+    else{
+    if (index == 1){
+    document.getElementById('box_name').value = "第" + (parseInt(num) + 1) + "箱";
+    }
+    if (index == 2){
+    document.getElementById('box_name').value = "第" + (parseInt(num) - 1) + "箱";
+    }
+    }
+    }
+
+    function up_box(){
+    if (confirm('是否切换上一箱')){
+    change_box(2)
+    }
+    }
+
+    function get_table(){
+    var tabObj = document.getElementById('table_control');
+    var data = [];
+    for(var i=0,rows=tabObj.rows.length; i<rows; i++){
+    for(var j=0,cells=tabObj.rows[i].cells.length; j<cells; j++){
+        if(!data[i]){
+        data[i] = new Array();
+        }
+        data[i][j] = tabObj.rows[i].cells[j].getElementsByTagName('span')[0].innerHTML;
+    }
+    }
+    return data;
+    }
+
+
+    function download_pdf(filename, shipment_id, time_data){
+    var pa_name = shipment_id + "上传装箱信息" + time_data + ".xlsx";
+    var str = "<a href="+ filename +" download="+ pa_name +">下载</a>";
+	document.getElementById("download_control").innerHTML = str;
+    }
+
+	function clear_html(){
+	if (confirm('是否清空当前表格信息')){
+	clear();
+    }
+	}
 
 	function clear(){
 	var div = document.getElementById('control_item1');
-    div.parentNode.removeChild(div);
+	for (var i=1; i > 0; i++){
+	var tr = document.querySelector('tr');
+	if (tr){
+    div.removeChild(tr);
+    }
+    else{
+    break;
+    }
+    }
+    document.getElementById("download_control").innerHTML = '';
+	document.getElementById("background_control").innerHTML = '';
+	document.getElementById("FBA_id").value = '';
+	document.getElementById("box_num").value = '';
+	document.getElementById("box_name").value = '';
+	document.getElementById("index_data").value = '';
 	}
+
+    function upload_file(){
+    var formData = new FormData();
+    formData.append("myfile", document.getElementById("files").files[0]);
+    $.ajax({
+        url: "/FBA_shipment/upload_file",
+        type: "POST",
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function(msg) {
+            if (msg['msg'] == 'success') {
+            alert("上传成功！");
+            clear();
+            create_table(msg['data']['list_data'], msg['data']['list_num'], msg['data']['fba_id'], msg['data']['box_num'])
+            }
+            if (msg['msg'] == 'error') {
+                alert(data.msg);
+            }
+        },
+        error: function(){
+            alert("上传失败！");
+        }
+    });
+    }
+
+    function add_box(){
+    if (confirm('是否增加一箱')){
+    var list_data = get_table();
+    var shipment_id = document.getElementById('FBA_id').value;
+    var box_num = document.getElementById('box_num');
+	var list_pa = document.getElementById("background_control").innerHTML;
+	console.log(list_pa)
+	list_pa = list_pa.split("-");
+    data_msg = {data: JSON.stringify({'list_data': list_data, 'shipment_id': shipment_id, 'box_num': box_num, 'list_pa': list_pa})};
+    $.ajax({
+            headers:{Accept: "application/json; charset=utf-8"},
+			type: 'POST',
+			url: '/FBA_shipment/add_box',
+			dataType: 'json',
+			data: data_msg,
+			success: function(msg){
+			if (msg['msg'] == 'success'){
+			clear();
+			create_table(msg['data']['list_data'], msg['data']['list_num'], msg['data']['fba_id'], msg['data']['box_num'])
+			if (msg['data']['list_pa']){
+			var str_pa = msg['data']['list_pa'][0]
+			for (var i = 1; i<msg['data']['list_pa'].length; i++){
+			str_pa = str_pa + '-' +msg['data']['list_pa'][i];
+			}
+			document.getElementById("background_control").innerHTML = str_pa;
+			}
+			}
+			if (msg['msg'] == 'error'){
+            alert(msg['data']);
+            }
+            }
+			})
+    }
+    }
+
+    function minus_box(){
+    if (confirm('是否删除一箱')){
+    var list_data = get_table();
+    var shipment_id = document.getElementById('FBA_id').value;
+    var box_num = document.getElementById('box_num');
+	var list_pa = document.getElementById("background_control").innerHTML;
+	console.log(list_pa)
+	list_pa = list_pa.split("-");
+    data_msg = {data: JSON.stringify({'list_data': list_data, 'shipment_id': shipment_id, 'box_num': box_num, 'list_pa': list_pa})};
+    $.ajax({
+            headers:{Accept: "application/json; charset=utf-8"},
+			type: 'POST',
+			url: '/FBA_shipment/minus_box',
+			dataType: 'json',
+			data: data_msg,
+			success: function(msg){
+			if (msg['msg'] == 'success'){
+			clear();
+			create_table(msg['data']['list_data'], msg['data']['list_num'], msg['data']['fba_id'], msg['data']['box_num'])
+			if (msg['data']['list_pa']){
+			var str_pa = msg['data']['list_pa'][0]
+			for (var i = 1; i<msg['data']['list_pa'].length; i++){
+			str_pa = str_pa + '-' +msg['data']['list_pa'][i];
+			}
+			document.getElementById("background_control").innerHTML = str_pa;
+			}
+			}
+			if (msg['msg'] == 'error'){
+            alert(msg['data']);
+            }
+            }
+			})
+    }
+    }
+
+    function create_table(list_data, list_num, fba_id, box_num){
+    document.getElementById('box_name').value = '第1箱';
+    document.getElementById('FBA_id').value = fba_id;
+    document.getElementById('box_num').value = box_num;
+    create_header(box_num);
+    for (var k = 1; k <= list_data.length; k++){
+    var dict_data = list_data[k-1];
+    var tr = document.createElement("tr");
+    tr.className = "list_control";
+    tr.id = "list_" + dict_data['fnsku'];
+    var str = "";
+    var text_id = "id" + k;
+    var str_id = create_control(["list_control1", 'header_text1', k, text_id, 0]);
+    var text_msku = dict_data['msku'] + k;
+    var str_msku = create_control(["list_control2", 'header_text2', dict_data['msku'], text_msku, 0]);
+    var text_fnsku = dict_data['fnsku'];
+    var str_fnsku = create_control(["list_control3", 'header_text3', dict_data['fnsku'], text_fnsku, 0]);
+    var text_name = dict_data['name'] + k;
+    var str_name = create_control(["list_control4", 'header_text4', dict_data['name'], text_name, 0]);
+    var text_sku = dict_data['sku'] + k;
+    var str_sku = create_control(["list_control5", 'header_text5', dict_data['sku'], text_sku, 0]);
+    var text_num_shipment = "order_num" + k;
+    var str_num_shipmen = create_control(["list_control6", 'header_text6', dict_data['num_shipment'], text_num_shipment, 0]);
+    var text_num_in = "text_num_in" + dict_data['fnsku'];
+    var str_num_in = create_control(["list_control7", 'header_text7', msg['data']['list_num'][k-1][0], text_num_in, 0]);
+    str = str_id + str_msku + str_fnsku + str_name + str_sku + str_num_shipmen + str_num_in;
+    for (var i = 1; i <= parseInt(box_num); i++){
+    var control = "list_control";
+    var control_id = dict_data['fnsku'] + i;
+    var str_control = create_control([control, 'header_text', list_num[k-1][i], control_id, 1]);
+    str = str + str_control;
+    }
+    tr.innerHTML = str;
+    document.getElementById("control_item1").appendChild(tr);
+    }
+    }
 
 </script>
 </html>

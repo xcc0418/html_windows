@@ -128,19 +128,19 @@ body {
 			<ul class="contents_data">
 				<li class="first_item">仓库工具</li>
 				<li class="contents_li">
-					<a class="contents_a" href="../static/templates/FBA_shipment.html" target="function_main" onclick="add_div(1, '../static/templates/FBA_shipment.html')">
+					<a class="contents_a" href="../static/templates/FBA_shipment.html" target="_blank">
 						<span class="contents_e1" id="contents_list1">FBA出货</span></a></li>
 				<li class="contents_li">
-					<a class="contents_a" href="../static/templates/packing_page.html" target="function_main" onclick="add_div(2, '../static/templates/packing_page.html')">
+					<a class="contents_a" href="../static/templates/packing_page.html" target="_blank">
 						<span class="contents_e2" id="contents_list2">物料装箱</span></a></li>
 				<li class="contents_li">
-					<a class="contents_a" href="../static/templates/search_page.html" target="function_main" onclick="add_div(3, '../static/templates/search_page.html')">
+					<a class="contents_a" href="../static/templates/search_page.html" target="_blank">
 						<span class="contents_e3" id="contents_list3">物料信息查询</span></a></li>
 				<li class="contents_li">
-					<a class="contents_a" href="../static/templates/order_shipment.html" target="function_main" onclick="add_div(4, '../static/templates/order_shipment.html')">
+					<a class="contents_a" href="../static/templates/order_shipment.html" target="_blank">
 						<span class="contents_e4" id="contents_list4">物料出库</span></a></li>
 				<li class="contents_li">
-					<a class="contents_a" href="../static/templates/order_put.html" target="function_main" onclick="add_div(5, '../static/templates/order_put.html')">
+					<a class="contents_a" href="../static/templates/order_put.html" target="_blank">
 						<span class="contents_e5" id="contents_list5">物料入库</span></a></li>
 			</ul>
 		</div>
@@ -159,8 +159,6 @@ body {
 		div.className = "label_tag";
 		div.id = "slick_list" + tag_id;
 		var div_id = "slick_list" + tag_id;
-<!--		div.onmouseout= myClickhide(span_id)-->
-<!--		div.onmouseover= myClickshow(span_id)-->
 		var str = "<div class=\"tag\" onmouseout=\"myClickhide('" + span_id + "')\" onmouseover=\"myClickshow('" + span_id + "')\"><a class=\"tag_home\" href= " + hre_link + " target=\"function_main\"><span class=\"tag_name\">"+ e.innerHTML +"</span></a><span class=\"tag_home_del\" id="+ span_id +" onclick=\"del_div('slick_list" + tag_id + "')\"> x </span></div>";
 		div.innerHTML = str;
 		document.getElementById("layui_id").appendChild(div);

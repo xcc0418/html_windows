@@ -1,9 +1,14 @@
 import pymysql
-import os
 import json
 import global_var
-import openpyxl
 import datetime
+import time
+import hashlib
+import urllib
+import requests
+import base64
+from Crypto.Cipher import AES
+import openpyxl
 
 
 def get_msg(index, index_data):
@@ -31,7 +36,9 @@ def get_msg(index, index_data):
             else:
                 msg = {'箱号': i[0], 'fnsku': i[1], '品名': name[0][0], '装箱数量': i[2], '装箱状态': i[11], '装箱位置': '这箱还没有匹配位置'}
             data_msg.append(msg)
-        num_all = find_storage(index_data)
+        # num_all = find_storage(index_data)
+        quantity_msg = Quantity()
+        num_all = quantity_msg.get_warehouse_num(index_data)
         return {'库存数量': num_all, '装箱总数量': num_location, 'data_list': data_msg}
     if index == '位置':
         sql = "select * from `storage`.`warehouse` where `存放位置` = '%s' and 状态 = '已打包'" % index_data
@@ -162,3 +169,183 @@ def func(sql, m='r'):
     py.close()
     return data
 
+class Quantity (object):
+    def __init__(self):
+        self.app_id = "ak_nEfE94OSogf3x"
+        app_secret = "g2BcerjK4fWmhGZoetCJHeVqJmHEmfLt3gWFjDrBLB1yxiapgUKH6kOVs2N9JH7SFuBKuOF8K/CrNNSeFO1KKtsL05z24j" \
+                     "+AdWTW+V4op5QxDkmlTllvlprT8FfjctDdNDGrwHvBvE6s9h0pO0dNgopBAYiA7oosPzQhDF1A6XC1X/cZZmgBy3XRHyEv" \
+                     "xTT40xzwVGish53R8dZt3YIxNtKSgrBloo/CRQsV01yU40nyQR9L9oML32VT0C16jBrxcoWthlGDwfBn+CtVUvws4imyZi" \
+                     "+sG/CqZQeaVLkBCqLCgqw1VK4/a4jZws6HO3FMeBgvuf0aS5euNmfhkudQmg=="
+        querystring = {"appId": f"{self.app_id}", "appSecret": f"{app_secret}"}
+        url = "https://openapi.lingxing.com/api/auth-server/oauth/access-token"
+        payload = ""
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        response = requests.post (url, data=payload, headers=headers, params=querystring)
+        result = json.loads (response.text)
+        # print(response.text)
+        self.access_token = result['data']['access_token']
+        self.refresh_token = result['data']['refresh_token']
+        self.time = datetime.datetime.now ().strftime ("%Y-%m-%d")
+        self.time = datetime.datetime.strptime (self.time, "%Y-%m-%d")
+        # self.time = "2021-12-06"
+        self.start_time = self.time - datetime.timedelta (days=1)
+        self.time = self.time.strftime ("%Y-%m-%d")
+        self.start_time = self.start_time.strftime ("%Y-%m-%d")
+        # self.start_time = '2022-03-07'
+        print (self.time, self.start_time)
+
+    def sql(self):
+        self.connection = pymysql.connect (host='3354n8l084.goho.co',  # 数据库地址
+                                           port=24824,
+                                           user='test_user',  # 数据库用户名
+                                           password='a123456',  # 数据库密码
+                                           db='storage',  # 数据库名称
+                                           charset='utf8',
+                                           cursorclass=pymysql.cursors.DictCursor)
+        # 使用 cursor() 方法创建一个游标对象 cursor
+        self.cursor = self.connection.cursor ()
+
+    def sql_close(self):
+        self.cursor.close ()
+        self.connection.close ()
+
+    def get_sign(self, body):
+        apikey = "ak_nEfE94OSogf3x"
+        # body = {"access_token": self.access_token,
+        #         "timestamp": int(time.time()),
+        #         "start_date": f"{self.start_time}",
+        #         "end_date": f"{self.time}",
+        #         "app_key": apikey}
+        # print(body)
+        # bb = sign().get_sign(apikey, body)
+        # print(bb)
+
+        # 目标md5串
+        str_parm = ''
+        # 将字典中的key排序
+        for p in sorted (body):
+            # 每次排完序的加到串中
+            # if body[p]:
+            # str类型需要转化为url编码格式
+            if isinstance (body[p], str):
+                str_parm = str_parm + str (p) + "=" + str (urllib.parse.quote (body[p])) + "&"
+                # print(str(urllib.parse.quote(body[p])))
+                continue
+            str_parm = str_parm + str (p) + "=" + str (body[p]).replace (" ", "") + "&"
+            # print(str(body[p]).replace(" ",""))
+        # 加上对应的key
+        str_parm = str_parm.rstrip ('&')
+        # print("字符串拼接:", str_parm)
+
+        # 转换md5串
+        if isinstance (str_parm, str):
+            # 如果是unicode先转utf-8
+            parmStr = str_parm.encode ("utf-8")
+            # parmStr = str_parm
+            m = hashlib.md5 ()
+            m.update (parmStr)
+            md5_sign = m.hexdigest ()
+            # print(m.hexdigest())
+            md5_sign = md5_sign.upper ()
+            # print("MD5加密:", md5_sign)
+        eg = EncryptDate(apikey)  # 这里密钥的长度必须是16的倍数
+        res = eg.encrypt(md5_sign)
+        # print("AES加密:", res)
+        # print(eg.decrypt(res))
+        return res
+
+    def get_warehouse_num(self, sku):
+        # 生成sign签名
+        # API接口路径
+        url = "https://openapi.lingxing.com/erp/sc/routing/data/local_inventory/inventoryDetails"
+        body = {"access_token": self.access_token,
+                "timestamp": int(time.time()),
+                "app_key": "ak_nEfE94OSogf3x", "offset": 0, "length": 400
+               }
+        # "wid": "2156,1489,2382,1490,1461,1488,1476,1477,1399,1478,414", "offset": 0, "length": 400
+        res = self.get_sign(body)
+        # res = ''
+        querystring = {"access_token": self.access_token,
+                       "timestamp": int(time.time()),
+                       "app_key": self.app_id,
+                       "sign": res
+                       }
+        payload = {"wid": "", "offset": 0, "length": 400}
+        payload = json.dumps(payload)
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "bearer {{access_token}}"
+        }
+        response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
+        result1 = json.loads(response.text)
+        num_total = 0
+        # print(result1)
+        # 判断数据是否正常获取
+        if result1['code'] == 0 and result1['message'] == "success":
+            # print(len(result1['data']))
+            # 获取库存明细数据条数
+            length = result1['total']
+            # length = 620
+            # print(length)
+            i = int(length/400)
+            # print(i)
+            # 以四百条数据为一页分页查询
+            for k in range(0, i+1):
+                # 分页查询
+                payload = {"wid": '', "offset": k*400, "length": 400}
+                if k == i:
+                    body['length'] = length-k*400
+                    payload['length'] = length-k*400
+                body['offset'] = k*400
+                print(payload)
+                res = self.get_sign(body)
+                querystring['sign'] = res
+                payload = json.dumps(payload)
+                response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
+                result = json.loads(response.text)
+                # print(result)
+                # print(result['data'][0])
+                for q in result['data']:
+                    if len(sku) == 10:
+                        if q['fnsku'] == sku:
+                            print(q)
+                            num_total += q['product_total']
+                    else:
+                        if q['sku'] == sku:
+                            print(q)
+                            num_total += q['product_total']
+        else:
+            print(result1)
+        print(num_total)
+        return num_total
+
+
+######## AES-128-ECS 加密
+class EncryptDate:
+    def __init__(self, key):
+        self.key = key.encode("utf-8")  # 初始化密钥
+        self.length = AES.block_size  # 初始化数据块大小
+        self.aes = AES.new(self.key, AES.MODE_ECB)  # 初始化AES,ECB模式的实例
+        # 截断函数，去除填充的字符
+        self.unpad = lambda date: date[0:-ord(date[-1])]
+
+    def pad(self, text):
+        """
+        #填充函数，使被加密数据的字节码长度是block_size的整数倍
+        """
+        count = len(text.encode('utf-8'))
+        add = self.length - (count % self.length)
+        entext = text + (chr(add) * add)
+        return entext
+
+    def encrypt(self, encrData):  # 加密函数
+        res = self.aes.encrypt(self.pad(encrData).encode("utf8"))
+        msg = str(base64.b64encode(res), encoding="utf8")
+        return msg
+
+    def decrypt(self, decrData):  # 解密函数
+        res = base64.decodebytes(decrData.encode("utf8"))
+        msg = self.aes.decrypt(res).decode("utf8")
+        return self.unpad(msg)

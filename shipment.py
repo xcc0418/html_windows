@@ -1,10 +1,19 @@
-import pymysql
 import os
-import json
 import global_var
-import openpyxl
-import time
 import shutil
+import requests
+import json
+import time
+import hashlib
+import urllib
+import base64
+import datetime
+import pymysql
+from Crypto.Cipher import AES
+import openpyxl
+from shutil import copy
+from openpyxl.styles import PatternFill
+from openpyxl.styles import Alignment
 
 
 def func(sql, m='r'):
@@ -29,8 +38,17 @@ def func(sql, m='r'):
 def get_order_msg(index, order):
     try:
         if index == "SKU":
-            name = func("SELECT `品名` FROM `data_read`.`listing` where `SKU`='%s'" % order)
-            return {'SKU': order, 'name': name[0][0]}
+            if order.find('GC') >= 0:
+                quantity_msg = Quantity()
+                product_id = quantity_msg.get_warehouse_num(order)
+                product_name = quantity_msg.get_product(product_id, order)
+                return {'FNSKU': order, 'name': product_name}
+            else:
+                name = func("SELECT `品名` FROM `data_read`.`listing` where `SKU`='%s'" % order)
+                if name[0]:
+                    return {'FNSKU': order, 'name': name[0][0]}
+                else:
+                    return {'FNSKU': order, 'name': '-'}
         if index == "FNSKU":
             name = func("SELECT `品名` FROM `data_read`.`listing` where `FNSKU`='%s'" % order)
             if name[0]:
@@ -198,41 +216,17 @@ def uploading_pdd(list_sku, list_num):
 
 
 def download_fab(sid, boxs):
-    # 地址1
-    upload_url1 = "https://erp.lingxing.com/api/fba_shipment/showShipment_v2?search_field=shipment_id&search_value=%s&shipment_status[]=WORKING" % sid
-    # 请求头1
-    headers1 = {"User-Agent": "Mozilla/5.0",
-                "Referer": "https://erp.lingxing.com/fbaCargo"}
-    res1 = global_var.s.get(upload_url1, headers=headers1)
-    r2 = json.loads(res1.text)
-    print(r2)
-    r3 = r2['msg']
-    r4 = int(r2['data']['total'])
-    if r4 > 1:
-        return [False, "货件单号不唯一，当前只下载第一个。\n请仔细检查货件单号。"]
-    list1 = []
-    list1 = r2['data']['list']
-    if list1:
-        dict1 = list1[0]
-        id_shipment = dict1['id']
-        item_list = dict1['item_list']
-        item_num = len(item_list)
-
-        # 地址2
-        upload_url2 = "https://erp.lingxing.com/api/fba_shipment/downloadPackingList?id=%s&type=2&box_num=%d" % (
-            id_shipment, int(boxs))
-        # 请求头2
-        headers2 = {"User-Agent": "Mozilla/5.0",
-                    "Referer": "https://erp.lingxing.com/fbaCargo"}
-        res2 = global_var.s.get(upload_url2, headers=headers2, stream=False)
-        with open('./static/装箱信息单/上传装箱信息.xlsx', 'wb') as q:
-            q.write(res2.content)
-        print("装箱清单下载完成")
+    quantity = Quantity()
+    msg = quantity.create_excl(sid, boxs)
+    # msg = True
+    if msg:
         return [True, "装箱清单下载完成"]
+    else:
+        return [False, False]
 
 
 def read_excl():
-    path = "./static/装箱信息单/上传装箱信息.xlsx"
+    path = "./static/装箱信息单/上传装箱信息.xlsx"#C:/装箱信息单/上传装箱信息单.xlsx， ./static/装箱信息单/上传装箱信息.xlsx
     wb = openpyxl.load_workbook(path)
     wb_sheet = wb.active
     row = wb_sheet.max_row
@@ -252,60 +246,541 @@ def read_excl():
     return list_data, list_fnsku
 
 
-def write_excl(list_fnsku, list_pa, box_num, shipment_id):
-    path = "./上传装箱信息.xlsx"
-    if os.path.exists (r'./上传装箱信息.xlsx') == False:
-        return "error", "上传装箱信息文件丢失，请重新下载装箱信息。"
+def read_upload_excl(path):
+    wb = openpyxl.load_workbook(path)
+    wb_sheet = wb.active
+    row = wb_sheet.max_row
+    column = wb_sheet.max_column
+    column1 = column
+    list_data = []
+    list_num = []
+    fba_id = wb_sheet.cell(row=1, column=1).value
+    for i in range(column, 0, -1):
+        cell_value1 = wb_sheet.cell(row=3, column=i).value
+        if cell_value1:
+            column1 = i
+            break
+    box_num = wb_sheet.cell(row=1, column=2).value
+    list_pa = []
+    k = 2
+    if wb_sheet.cell(row=2, column=1).value.find('PA') >= 0:
+        k = 3
+        for i in range(1, column):
+            list_pa.append(wb_sheet.cell(row=1, column=i).value)
+    for i in range(k, row+1):
+        id = wb_sheet.cell(row=i, column=1).value
+        if id:
+            msku = wb_sheet.cell(row=i, column=2).value
+            fnsku = wb_sheet.cell(row=i, column=3).value
+            name = wb_sheet.cell(row=i, column=4).value
+            sku = wb_sheet.cell(row=i, column=5).value
+            num = wb_sheet.cell(row=i, column=6).value
+            list_data.append({'id': id, 'msku': msku, 'fnsku': fnsku, 'name': name, 'sku': sku, 'num_shipment': num})
+            dict_num = []
+            for j in range(7, column1+1):
+                dict_num.append(wb_sheet.cell(row=i, column=j).value)
+            list_num.append(dict_num)
+    return list_data, fba_id, box_num, list_num, list_pa
+
+
+def submmit(list_data, shipment_id, list_pa):
+    # print("not finish")
+    # change_excl(list_data)
+    path = "./static/装箱信息单/上传装箱信息.xlsx"
     wb = openpyxl.load_workbook(path)
     sheet = wb[wb.sheetnames[0]]
-    row = sheet.max_row
-    column = sheet.max_column
-    if int(box_num) < 15:
-        column1 = 6 + int(box_num)
-    else:
-        column1 = column
-    row1 = row - 30
-    print ("该表有%d行" % row1)
-    print ("该表有", column1, "列")
-
-    count = 4
+    count = 3
     finish_code = 0
-    # sheet.delete_cols(7)
-    for item in list_fnsku:
-        print (item)
-        long = len(item)
-        total = 0
-        for t in range(0, long):
-            total = total + int(item[t])
-        if total < int(item[4]):
-            finish_code = 0
-            break
-        elif total > int(item[4]):
-            finish_code = 0
-            break
+    message = ''
+    for i in range(0, len(list_data)):
+        if count >= 4:
+            long = len(list_data[i])
+            total = 0
+            for t in range(7, long):
+                total = total + int(list_data[i][t])
+            if total < int(list_data[i][5]):
+                message = "%s号货物总数量不足，没有完全装箱！" % list_data[i][3]
+                finish_code = 0
+                break
+            elif total > int(list_data[i][5]):
+                message = "%s号货物总数量超出申报量，请仔细检查！" % list_data[i][3]
+                finish_code = 0
+                break
+            else:
+                for c in range(7, len(list_data[i]) + 1):
+                    sheet.cell(row=count, column=c, value=list_data[i][(c - 1)])
+                count = count + 1
         else:
-            for c in range(7, column1 + 1):
-                sheet.cell(row=count, column=c, value=item[(c - 7)])
+            for c in range(7, len(list_data[i]) + 1):
+                sheet.cell(row=count, column=c, value=list_data[i][(c - 1)])
             count = count + 1
         finish_code = 1
     if finish_code:
         # 更新数据库
-        flag = 1
         if list_pa:
             for i in list_pa:
                 state = "已出货"
                 func("UPDATE `storage`.`warehouse` SET `状态` = '%s' WHERE `箱号` = '%s'" % (state, str(i)), 'w')
-        if flag == 0:
-            wb.save ("上传装箱信息.xlsx")
+            wb.save("./static/装箱信息单/上传装箱信息.xlsx")
             # 可以自动上传后，下面的内容就不必了
-            time1 = time.strftime("%Y_%m_%d", time.localtime ())
-            if os.path.exists('C:/装箱信息单'):
-                shutil.copyfile('./上传装箱信息.xlsx',
-                                 'C:/装箱信息单/%s上传装箱信息%s.xlsx' % (shipment_id, time1))
-            else:
-                os.makedirs('C:/装箱信息单')
-                shutil.copyfile('./上传装箱信息.xlsx',
-                                 'C:/装箱信息单/%s上传装箱信息%s.xlsx' % (shipment_id, time1))
-            return True, "提交完成，文件在C盘的<装箱信息单>文件夹。"
-            # # 更新数据库
+        time1 = time.strftime("%Y_%m_%d", time.localtime())
+        shutil.copyfile('./static/装箱信息单/上传装箱信息.xlsx',
+                        './static/装箱信息单/%s上传装箱信息%s.xlsx' % (shipment_id, time1))
+        return True, ['../装箱信息单/%s上传装箱信息%s.xlsx' % (shipment_id, time1), time1]
+    else:
+        return False, message
 
+
+def change_excl(list_data, fba_id, box_num, list_pa=None):
+    time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    path = f"./static/装箱信息单/{fba_id}_{time_now}装箱信息.xlsx"
+    if os.path.exists(r'./static/装箱信息单/上传装箱信息.xlsx') == False:
+        return False, "上传装箱信息文件丢失，请重新下载装箱信息。"
+    wb = openpyxl.Workbook()
+    sheet = wb.active
+    sheet.append([fba_id, box_num])
+    if list_pa:
+        sheet.append(list_pa)
+    for i in list_data:
+        sheet.append(i)
+    wb.save(path)
+    return True, [f"../装箱信息单/{fba_id}_{time_now}装箱信息.xlsx", time_now]
+
+
+# python实现sign签名
+class sign:
+    def get_time(self):
+        t1 = time.time()
+        t = int(t1)
+        return t
+
+    def get_str(self, t, apikey):
+        st = str(t)
+        c = st + apikey
+        return c
+
+    def get_md5(self, c):
+        md5 = hashlib.md5()
+        md5.update(c.encode('UTF-8'))
+        m = md5.hexdigest()
+        return m
+
+    def get_sign(self, apikey, body):
+        s = sign()
+        t = s.get_time()
+        stt = s.get_str(t, apikey)
+        m = s.get_md5(stt)
+        # body['sign'] = m
+        return m
+
+
+######## AES-128-ECS 加密
+class EncryptDate:
+    def __init__(self, key):
+        self.key = key.encode("utf-8")  # 初始化密钥
+        self.length = AES.block_size  # 初始化数据块大小
+        self.aes = AES.new(self.key, AES.MODE_ECB)  # 初始化AES,ECB模式的实例
+        # 截断函数，去除填充的字符
+        self.unpad = lambda date: date[0:-ord(date[-1])]
+
+    def pad(self, text):
+        """
+        #填充函数，使被加密数据的字节码长度是block_size的整数倍
+        """
+        count = len(text.encode('utf-8'))
+        add = self.length - (count % self.length)
+        entext = text + (chr(add) * add)
+        return entext
+
+    def encrypt(self, encrData):  # 加密函数
+        res = self.aes.encrypt(self.pad(encrData).encode("utf8"))
+        msg = str(base64.b64encode(res), encoding="utf8")
+        return msg
+
+    def decrypt(self, decrData):  # 解密函数
+        res = base64.decodebytes(decrData.encode("utf8"))
+        msg = self.aes.decrypt(res).decode("utf8")
+        return self.unpad(msg)
+
+
+class Quantity(object):
+    def __init__(self):
+        self.app_id = "ak_nEfE94OSogf3x"
+        app_secret = "g2BcerjK4fWmhGZoetCJHeVqJmHEmfLt3gWFjDrBLB1yxiapgUKH6kOVs2N9JH7SFuBKuOF8K/CrNNSeFO1KKtsL05z24j" \
+                     "+AdWTW+V4op5QxDkmlTllvlprT8FfjctDdNDGrwHvBvE6s9h0pO0dNgopBAYiA7oosPzQhDF1A6XC1X/cZZmgBy3XRHyEv" \
+                     "xTT40xzwVGish53R8dZt3YIxNtKSgrBloo/CRQsV01yU40nyQR9L9oML32VT0C16jBrxcoWthlGDwfBn+CtVUvws4imyZi" \
+                     "+sG/CqZQeaVLkBCqLCgqw1VK4/a4jZws6HO3FMeBgvuf0aS5euNmfhkudQmg=="
+        querystring = {"appId": f"{self.app_id}", "appSecret": f"{app_secret}"}
+        url = "https://openapi.lingxing.com/api/auth-server/oauth/access-token"
+        payload = ""
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        response = requests.post(url, data=payload, headers=headers, params=querystring)
+        result = json.loads(response.text)
+        # print(response.text)
+        self.access_token = result['data']['access_token']
+        self.refresh_token = result['data']['refresh_token']
+        self.time = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.time = datetime.datetime.strptime(self.time, "%Y-%m-%d")
+        # self.time = "2021-12-06"
+        self.start_time = self.time - datetime.timedelta(days=1)
+        self.time = self.time.strftime("%Y-%m-%d")
+        self.start_time = self.start_time.strftime("%Y-%m-%d")
+        # self.start_time = '2022-03-07'
+        print(self.time, self.start_time)
+
+    def sql(self):
+        self.connection = pymysql.connect(host='3354n8l084.goho.co',  # 数据库地址
+                                          port=24824,
+                                          user='test_user',  # 数据库用户名
+                                          password='a123456',  # 数据库密码
+                                          db='storage',  # 数据库名称
+                                          charset='utf8',
+                                          cursorclass=pymysql.cursors.DictCursor)
+        # 使用 cursor() 方法创建一个游标对象 cursor
+        self.cursor = self.connection.cursor()
+
+    def sql_close(self):
+        self.cursor.close()
+        self.connection.close()
+
+    def get_sign(self, body):
+        apikey = "ak_nEfE94OSogf3x"
+        # body = {"access_token": self.access_token,
+        #         "timestamp": int(time.time()),
+        #         "start_date": f"{self.start_time}",
+        #         "end_date": f"{self.time}",
+        #         "app_key": apikey}
+        # print(body)
+        # bb = sign().get_sign(apikey, body)
+        # print(bb)
+
+        # 目标md5串
+        str_parm = ''
+        # 将字典中的key排序
+        for p in sorted(body):
+            # 每次排完序的加到串中
+            # if body[p]:
+            # str类型需要转化为url编码格式
+            if isinstance(body[p], str):
+                str_parm = str_parm + str(p) + "=" + str(urllib.parse.quote(body[p])) + "&"
+                # print(str(urllib.parse.quote(body[p])))
+                continue
+            # if isinstance(body[p], list):
+            #     print(json.dumps(body[p]))
+            #     str_parm = str_parm + str(p) + "=" + json.dumps(body[p]) + "&"
+            str_parm = str_parm + str(p) + "=" + str(body[p]).replace(" ", "") + "&"
+            # print(str(body[p]).replace(" ",""))
+        # 加上对应的key
+        str_parm = str_parm.rstrip('&')
+        # print("字符串拼接:", str_parm)
+
+        # 转换md5串
+        if isinstance(str_parm, str):
+            # 如果是unicode先转utf-8
+            parmStr = str_parm.encode("utf-8")
+            # parmStr = str_parm
+            m = hashlib.md5()
+            m.update(parmStr)
+            md5_sign = m.hexdigest()
+            # print(m.hexdigest())
+            md5_sign = md5_sign.upper()
+            # print("MD5加密:", md5_sign)
+        eg = EncryptDate(apikey)  # 这里密钥的长度必须是16的倍数
+        res = eg.encrypt(md5_sign)
+        # print("AES加密:", res)
+        # print(eg.decrypt(res))
+        return res
+
+    def create_excl(self, fba_shipment, box_num):
+        url = "https://openapi.lingxing.com/erp/sc/data/fba_report/shipmentList"
+        body = {"access_token": self.access_token,
+                "timestamp": int(time.time()),
+                "app_key": self.app_id,
+                "shipment_id": fba_shipment,
+                "sid": '462', "start_date": f"{self.start_time}", "end_date": f"{self.time}"
+                }
+        res = self.get_sign(body)
+        querystring = {"access_token": self.access_token,
+                       "timestamp": int(time.time()),
+                       "app_key": self.app_id,
+                       "sign": res
+                       }
+        payload = {"start_date": f"{self.start_time}", "shipment_id": fba_shipment, "sid": '462',
+                   "end_date": f"{self.time}"}
+        payload = json.dumps(payload)
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "bearer {{access_token}}"
+        }
+        response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
+        result1 = json.loads(response.text)
+        #print(result1)
+        # 判断数据是否正常获取
+        list_sku = []
+        if result1['code'] == 0 and result1['message'] == 'success':
+            # 判断查询的FBA号是否符合装箱出货要求
+            for k in result1['data']['list']:
+                if k['is_closed'] == 0 and k['shipment_status'] == 'WORKING' and k['shipment_id'] == fba_shipment:
+                    for i in k['item_list']:
+                        # # 根据fnsku获取sku和品名
+                        list_msg = self.fnsku_to_sku(i['fnsku'])
+                        list_sku.append([i['msku'], i['fnsku'], list_msg[1], list_msg[0], i['quantity_shipped']])
+        else:
+            return False
+        #print(list_sku)
+        self.excl_test(list_sku, box_num, fba_shipment)
+        # wb.save('C:/装箱信息单/上传装箱信息单.xlsx')
+        return './static/装箱信息单/上传装箱信息.xlsx'
+
+    def fnsku_to_sku(self, fnsku):
+        # API接口路径
+        list_sid = [400, 1587, 1588, 273, 461, 272, 2463, 463, 821, 822, 3294, 2638, 2637, 2636, 974, 973, 972, 971,
+                    462, 3000]
+        # list_sid = json.dumps(list_sid)
+        url = "https://openapi.lingxing.com/erp/sc/routing/fba/shipment/getFbaProductList"
+        body = {"access_token": self.access_token,
+                "timestamp": int(time.time()),
+                "app_key": self.app_id,
+                "search_field": 'fnsku',
+                "offset": 0,
+                "length": 20,
+                "sids": list_sid,
+                "search_value": fnsku
+                }
+        # print ("生成sign签名参数:", body)
+        # 生成sign签名
+        res = self.get_sign(body)
+        querystring = {"access_token": self.access_token,
+                       "timestamp": int(time.time()),
+                       "app_key": self.app_id,
+                       "sign": res
+                       }
+        payload = {"search_field": 'fnsku', "search_value": fnsku, "sids": list_sid, "offset": 0, "length": 20
+                   }
+        payload = json.dumps(payload)
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "bearer {{access_token}}"
+        }
+        response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
+        result1 = json.loads(response.text)
+        list_sku = []
+        # 判断数据是否正常获取
+        #print (result1)
+        if result1['code'] == 0 and result1['message'] == 'success':
+            for i in result1['data']:
+                if i['fnsku'] == fnsku and i['sku']:
+                    list_sku = [i['sku'], i['local_name']]
+                    break
+        if list_sku:
+            return list_sku
+        else:
+            return [False, False]
+
+    def excl_test(self, list_sku, box_num, shipment_id):
+        # 复制模板表格
+        copy('C:/装箱信息单/上传装箱信息模板.xlsx', './static/装箱信息单/上传装箱信息.xlsx')
+        wb = openpyxl.load_workbook('./static/装箱信息单/上传装箱信息.xlsx')
+        wb_sheet = wb.active
+        alignment = Alignment(horizontal="center")
+        # 插入行
+        for i in range(4, len(list_sku) + 4):
+            if i > 4:
+                wb_sheet.insert_rows(4)
+        # 修改单元格格式并写入表头
+        for i in range(1, int(box_num) + 8):
+            # 设置单元格输入对齐方式：居中
+            for k in range(4, 3 + len(list_sku)):
+                wb_sheet.cell(row=k, column=i).alignment = alignment
+            # 设置单元格背景颜色：灰色
+            wb_sheet.cell (row=4 + len (list_sku), column=i).fill = PatternFill("solid", fgColor="808080")
+            # 输入表头
+            if i >= 8:
+                wb_sheet.cell(row=3, column=i).value = f'第{i - 7}箱'
+        # 写入FBA货件单号
+        wb_sheet.cell(row=2, column=2).value = shipment_id
+        # 合并单元格
+        for i in range(5, 9):
+            merged = f'E{i + len (list_sku)}:G{i + len (list_sku)}'
+            # print(merged)
+            wb_sheet.merge_cells(merged)
+        # 写入FBA出货信息
+        row = 4
+        sum_num = 0
+        #print(list_sku)
+        for i in list_sku:
+            #print(row, i)
+            wb_sheet.cell(row=row, column=1).value = row - 3
+            wb_sheet.cell(row=row, column=2).value = i[0]
+            wb_sheet.cell(row=row, column=3).value = i[1]
+            wb_sheet.cell(row=row, column=4).value = i[2]
+            wb_sheet.cell(row=row, column=5).value = i[3]
+            wb_sheet.cell(row=row, column=6).value = i[4]
+            wb_sheet.cell(row=row, column=7).value = 0
+            row += 1
+            sum_num += i[4]
+        # 写入合计发货数量
+        wb_sheet.cell(row=4 + len(list_sku), column=6).value = sum_num
+        wb.save('./static/装箱信息单/上传装箱信息.xlsx')
+
+    def order_out(self, list_index, list_num, warehouse):
+        # print(sku_list)
+        dict_warehouse = {'工厂仓库': '2156', '横中路仓库-加拿大': '1489', '横中路仓库-日本': '1490',
+                          '横中路仓库-美国': '1461', '横中路仓库-英国': '1488',
+                          '横中路仓库-德国': '2382', '淘汰-横中路成品仓库-加拿大': '1476', '淘汰-横中路成品仓库-日本': '1477',
+                          '淘汰-横中路成品仓库-美国': '1399', '淘汰-横中路成品仓库-英国': '1478', '百汇办公室': '414'}
+        product_list = []
+        for i in range(0, len(list_index)):
+            product_list.append({"sku": list_index[i], "good_num": list_num[i], "bad_num": 0, "seller_id": 0, "fnsku": ''})
+        url = "https://openapi.lingxing.com/erp/sc/routing/storage/storage/orderAddOut"
+        body = {"access_token": self.access_token,
+                "timestamp": int(time.time()),
+                "app_key": self.app_id,
+                # "wid": dict_warehouse['工厂仓库'],
+                "type": 11,
+                "product_list": product_list,
+                "sys_wid": dict_warehouse[warehouse]
+                }
+        print("生成sign签名参数：", body)
+        res = self.get_sign(body)
+        querystring = {"access_token": self.access_token,
+                       "timestamp": int(time.time()),
+                       "app_key": self.app_id,
+                       "sign": res
+                       }
+        payload = {"product_list": product_list, "type": 11, "sys_wid": dict_warehouse[warehouse]}
+        # print(payload)
+        payload = json.dumps(payload)
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "bearer {{access_token}}"
+        }
+        response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
+        result1 = json.loads(response.text)
+        if result1['code'] == 0 and result1['message'] == 'success':
+            return True
+        else:
+            return False
+
+    def order_put(self, list_index, list_num, warehouse):
+
+        # print(sku_list)
+        dict_warehouse = {'工厂仓库': '2156', '横中路仓库-加拿大': '1489', '横中路仓库-日本': '1490',
+                          '横中路仓库-美国': '1461', '横中路仓库-英国': '1488',
+                          '横中路仓库-德国': '2382', '淘汰-横中路成品仓库-加拿大': '1476', '淘汰-横中路成品仓库-日本': '1477',
+                          '淘汰-横中路成品仓库-美国': '1399', '淘汰-横中路成品仓库-英国': '1478', '百汇办公室': '414'}
+        product_list = []
+        for i in range(0, len(list_index)):
+            product_list.append({"sku": list_index[i], "good_num": list_num[i], "bad_num": 0, "seller_id": 0, "fnsku": '', 'price': 0.00})
+        url = "https://openapi.lingxing.com/erp/sc/routing/storage/storage/orderAdd"
+        body = {"access_token": self.access_token,
+                "timestamp": int(time.time()),
+                "app_key": self.app_id,
+                "type": 1,
+                "product_list": product_list,
+                "sys_wid": dict_warehouse[warehouse]
+                }
+        res = self.get_sign(body)
+        querystring = {"access_token": self.access_token,
+                       "timestamp": int(time.time()),
+                       "app_key": self.app_id,
+                       "sign": res
+                       }
+        payload = {"product_list": product_list, "type": 1, "sys_wid": dict_warehouse[warehouse]}
+        # print(payload)
+        payload = json.dumps(payload)
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "bearer {{access_token}}"
+        }
+        response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
+        result1 = json.loads(response.text)
+        if result1['code'] == 0 and result1['message'] == 'success':
+            return True
+        else:
+            return False
+
+    def get_warehouse_num(self, sku):
+        # 生成sign签名
+        # API接口路径
+        url = "https://openapi.lingxing.com/erp/sc/routing/data/local_inventory/inventoryDetails"
+        body = {"access_token": self.access_token,
+                "timestamp": int(time.time()),
+                "app_key": "ak_nEfE94OSogf3x", "offset": 0, "length": 400, "wid": "2156"
+               }
+        # "wid": "2156,1489,2382,1490,1461,1488,1476,1477,1399,1478,414", "offset": 0, "length": 400
+        res = self.get_sign(body)
+        # res = ''
+        querystring = {"access_token": self.access_token,
+                       "timestamp": int(time.time()),
+                       "app_key": self.app_id,
+                       "sign": res
+                       }
+        payload = {"wid": "2156", "offset": 0, "length": 400}
+        payload = json.dumps(payload)
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "bearer {{access_token}}"
+        }
+        response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
+        result1 = json.loads(response.text)
+        product_id = ''
+        # 判断数据是否正常获取
+        if result1['code'] == 0 and result1['message'] == "success":
+            # 获取库存明细数据条数
+            # 以四百条数据为一页分页查询
+            for i in result1['data']:
+                if i['sku'] == sku:
+                    product_id = i['product_id']
+                    break
+        if product_id:
+            return product_id
+        else:
+            payload = {"wid": '2156', "offset": 400, "length": 400}
+            body['offset'] = 400
+            res = self.get_sign(body)
+            querystring['sign'] = res
+            payload = json.dumps(payload)
+            response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
+            result = json.loads(response.text)
+            if result['code'] == 0 and result['message'] == "success":
+                for i in result['data']:
+                    if i['sku'] == sku:
+                        product_id = i['product_id']
+                        break
+            if product_id:
+                return product_id
+            else:
+                return False
+
+    def get_product(self, product_id, sku):
+        url = "https://openapi.lingxing.com/erp/sc/routing/data/local_inventory/productInfo"
+        body = {"access_token": self.access_token,
+                "timestamp": int(time.time()),
+                "app_key": self.app_id,
+                "id": product_id
+                }
+        # print(querystring)
+        res = self.get_sign(body)
+        querystring = {"access_token": self.access_token,
+                       "timestamp": int(time.time()),
+                       "app_key": self.app_id,
+                       "sign": res
+                       }
+        payload = {"id": product_id}
+        payload = json.dumps(payload)
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "bearer {{access_token}}"
+        }
+        # time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        # print("访问API：", time_now)
+        response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
+        result1 = json.loads(response.text)
+        product_name = ''
+        if result1['code'] == 0 and result1['message'] == 'success':
+            if result1['data']['sku'] == sku:
+                product_name = result1['data']['product_name']
+        return product_name

@@ -54,6 +54,10 @@
     height:40px;
     border:1px solid black;
 }
+.download_item{
+width:100px;
+height:40px;
+}
 #button_control1{
      margin:0px 0px 0px 0px;
 }
@@ -71,6 +75,9 @@
 }
 #box_control2{
      margin:-42px 0px 0px 990px;
+}
+#download_control{
+margin:-42px 0px 0px 1600px;
 }
 .background_control{
      height: 40px;
@@ -100,7 +107,7 @@
 </style>
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>物料装箱</title>
 </head>
 <body>
 <div class="pick_item">
@@ -130,6 +137,8 @@
             <div class="box_search2" id="box_control2">
                 <input class="input_po" type="text" placeholder="  箱号" name="po_name" autocomplete="off" id="pa_name">
                 <input type="submit" value="搜索" class="button" onclick="pa_msg()">
+            </div>
+            <div class="download_item" id="download_control">
             </div>
         </div>
     </div>
@@ -207,8 +216,8 @@
         </div>
     </div>
 </div>
-<script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="../JavaScript/jquery-3.0.0.min.js"></script>
+<script src="../JavaScript/axios.min.js"></script>
 <script>
     function get_pa(){
     var url = "/get_pa";
@@ -246,13 +255,32 @@
     var num = document.getElementById('span_4').innerHTML;
     var pa_name = document.getElementById('span_1').innerHTML;
     var fnsku_put = document.getElementById('span_2').innerHTML;
+    console.log(fnsku_put.length)
     var statues = document.getElementById('span_5').innerHTML;
     var method_value = document.getElementById('method_value').value;
     var data = {
     data: JSON.stringify({'fnsku_value': fnsku_value, 'pa_name': pa_name})};
-    if (fnsku_put.type == undefined){
-    fnsku_put = fnsku_value;
+    if (fnsku_put.length == 10){
+    if (fnsku_put == fnsku_value){
+    document.getElementById('fnsku').value = '';
+    if (statues == '正在装箱'){
+    document.getElementById("span_4").innerHTML = parseInt(num) + 1;
     }
+    if (statues == '已打包'){
+    if (method_value == '添加物料'){
+    document.getElementById("span_4").innerHTML = parseInt(num) + 1;
+    }
+    if (method_value == '删减物料'){
+    document.getElementById("span_4").innerHTML = parseInt(num) - 1;
+    }
+    }
+    }
+    if(fnsku_put != fnsku_value){
+    document.getElementById('fnsku').value = '';
+    alert('输入FNSKU前后不一致，请重试！');
+    }
+    }
+    if(fnsku_put.length != 10){
     document.getElementById('fnsku').value = '';
     $.ajax({
     url: url,
@@ -263,7 +291,6 @@
     success: function(msg){
     if (msg['msg'] == 'success'){
     var fnsku = msg['data']['fnsku'];
-    if (fnsku == fnsku_put){
     var name = msg['data']['品名'];
     var num_input = msg['data']['装箱数量'];
     document.getElementById("span_2").innerHTML = fnsku;
@@ -271,18 +298,10 @@
     if (statues == '正在装箱'){
     document.getElementById("span_4").innerHTML = parseInt(num) + num_input;
     }
-    if (statues == '已打包'){
-    if (method_value == '添加物料'){
-    document.getElementById("span_4").innerHTML = parseInt(num) + num_input;
     }
-    if (method_value == '删减物料'){
-    document.getElementById("span_4").innerHTML = parseInt(num) - num_input;
+    if (msg['msg'] == 'error'){
+    alert(msg['data']);
     }
-    }
-    }
-    if (fnsku != fnsku_put){alert('输入FNSKU前后不一致，请重试！');}
-    }
-    if (msg['msg'] == 'error'){alert(msg['data']);}
     },
     error: function(XMLHttpRequest, textStatus, errorThrown) {
             if (textStatus === 'timeout') {
@@ -291,9 +310,16 @@
             }
     })
     }
+    }
 
     function clear_html(){
     if (confirm('是否清空界面信息')){
+    clear();
+    }
+    }
+
+    function clear(){
+    document.getElementById("download_control").innerHTML = '';
     document.getElementById("span_5").innerHTML = '';
     document.getElementById("span_1").innerHTML = '';
     document.getElementById("span_2").innerHTML = '';
@@ -301,7 +327,6 @@
     document.getElementById("span_4").innerHTML = '';
     document.getElementById('fnsku').value = '';
     document.getElementById('pa_name').value = '';
-    }
     }
 
     function pa_msg(){
@@ -345,9 +370,9 @@
     var name = document.getElementById("span_3").innerHTML;
     var num = document.getElementById("span_4").innerHTML;
     var statues = document.getElementById("span_5").innerHTML;
-    var data = {data: JSON.stringify({'pa_name': pa_name, 'fnsku': 'fnsku', 'name': name, 'num': num, 'statues': statues})}
+    var data = {data: JSON.stringify({'pa_name': pa_name, 'fnsku': fnsku, 'name': name, 'num': num, 'statues': statues})}
     $.ajax({
-    url: url,
+    url: '/pack_pa',
     headers:{Accept: "application/json; charset=utf-8"},
     type: "POST",
     dataType: 'json',
@@ -355,7 +380,7 @@
     success: function(msg){
     if (msg['msg'] == 'success'){
     alert('装箱成功');
-    clear_html();
+    clear();
     download_pdf(msg['data']['filename'], pa_name)
     }
     if (msg['msg'] == 'error'){
@@ -372,96 +397,11 @@
     }
 
     function download_pdf(filename, pa){
-    pa_name = "+ pa_name +" + ".pdf";
-    var div = document.createElement("div");
-    div.className = "download_button";
+    var pa_name = pa + ".pdf";
     var str = "<a href="+ filename +" download="+ pa_name +">下载</a>";
-    div.innerHTML = str;
-	document.getElementById("layui_id").appendChild(div);
+    document.getElementById("download_control").innerHTML = str;
     }
 
 </script>
 </body>
 </html>
-
-<!--var data = document.getElementById('box_control2').getAttribute('data-database');-->
-<!--    var pa = document.getElementById('button_control1').getAttribute('data-database');-->
-<!--    var fnsku_msg = document.getElementById('box_control1').getAttribute('data-database');-->
-<!--    var msg_error = document.getElementById('box_control1').getAttribute('data-error');-->
-<!--    console.log(fnsku_msg)-->
-<!--    var myGeocode = data.split(',');-->
-<!--    if (myGeocode.length > 1){-->
-<!--    console.log(myGeocode)-->
-<!--    var pa_name = myGeocode[0];-->
-<!--    var fnsku = myGeocode[1];-->
-<!--    var name = myGeocode[2];-->
-<!--    var num = myGeocode[3];-->
-<!--    var statue = myGeocode[4];-->
-<!--    document.getElementById("span_1").innerHTML = pa_name;-->
-<!--    document.getElementById("span_2").innerHTML = fnsku;-->
-<!--    document.getElementById("span_3").innerHTML = name;-->
-<!--    document.getElementById("span_4").innerHTML = num;-->
-<!--    document.getElementById("span_5").innerHTML = statue;-->
-<!--    }-->
-<!--    if (pa.length > 13){-->
-<!--    var pa_name = pa;-->
-<!--    var fnsku = "";-->
-<!--    var name = "";-->
-<!--    var num = 0;-->
-<!--    var statue = "正在装箱";-->
-<!--    document.getElementById("span_1").innerHTML = pa_name;-->
-<!--    document.getElementById("span_2").innerHTML = fnsku;-->
-<!--    document.getElementById("span_3").innerHTML = name;-->
-<!--    document.getElementById("span_4").innerHTML = num;-->
-<!--    document.getElementById("span_5").innerHTML = statue;-->
-<!--    }-->
-<!--    if (fnsku_msg.length > 22){-->
-<!--    var msg = fnsku_msg.split(',');-->
-<!--    console.log(msg)-->
-<!--    var pa_name = msg[0];-->
-<!--    var fnsku = msg[1];-->
-<!--    var name = msg[2];-->
-<!--    var num = msg[3];-->
-<!--    var statue = "正在装箱";-->
-<!--    document.getElementById("span_1").innerHTML = pa_name;-->
-<!--    document.getElementById("span_2").innerHTML = fnsku;-->
-<!--    document.getElementById("span_3").innerHTML = name;-->
-<!--    document.getElementById("span_4").innerHTML = num;-->
-<!--    document.getElementById("span_5").innerHTML = statue;-->
-<!--    }-->
-<!--    if(fnsku_msg.length == 22){-->
-<!--    alert(" + fnsku_msg + ");-->
-<!--    }-->
-<!--    function myFunction() {-->
-<!--      if(event.keyCode==13) {-->
-<!--      document.getElementById("button_fnsku").click();-->
-<!--      }-->
-<!--    }-->
-<!--    if (msg_error > 9){-->
-<!--    alert(" + msg_error + ");-->
-<!--    }-->
-
-
-<!--    function write_span(pa_name, fnsku, name, num , statue){-->
-<!--    var tr = document.createElement("tr");-->
-<!--    tr.className = "list_control";-->
-<!--    var str = "<th class=\"list_control_1\"><div class=\"header_text\"><span name=\"pa_name\" id=\"span_1\">"+ pa_name +"</span></div></th><th class=\"list_control_2\"><div class=\"header_text\"><span name=\"fnsku\" id=\"span_2\">"+ fnsku +"</span></div></th><th class=\"list_control_3\"><div class=\"header_text\"><span name=\"name\" id=\"span_3\">"+ name +"</span></div></th><th class=\"list_control_4\"><div class=\"header_text\"><span name=\"num\" id=\"span_4\">"+ num +"</span></div></th><th class=\"list_control_5\"><div class=\"header_text\"><span name=\"statue\" id=\"span_5\">"+ statue +"</span></div></th>";-->
-<!--    tr.innerHTML = str;-->
-<!--	document.getElementById("control_item").appendChild(tr);-->
-<!--    }-->
-<!--    write_span(pa_name, fnsku, name, num , statue)-->
-<!--    var now = new Date();-->
-<!--    var year = now.getFullYear();-->
-<!--    var month = mow.getMonth()+1;-->
-<!--    var date = now.getDate();-->
-<!--    var hour = now.getHours();-->
-<!--    var minute = now.getMinutes();-->
-<!--    var second = now.getSeconds();-->
-<!--    var pa_name = "PA" + "year[2:]" + "month" + "date" + "hour" + "minute" + "second";-->
-<!--    var str = "<th class=\"list_control_1\"><div class=\"header_text\"><span name=\"pa_name\">"+ pa_name +"</span></div></th><th class=\"list_control_2\"><div class=\"header_text\"><span name=\"fnsku\">"+ fnsku +"</span></div></th><th class=\"list_control_3\"><div class=\"header_text\"><span name=\"name\">"+ name +"</span></div></th><th class=\"list_control_4\"><div class=\"header_text\"><span name=\"num\">"+ num +"</span></div></th><th class=\"list_control_5\"><div class=\"header_text\"><span name=\"statue\">"+ statue +"</span></div></th>";-->
-<!--    var myGeocode = list_pa;-->
-<!--    var pa_name = myGeocode[0];-->
-<!--    var fnsku = myGeocode[1];-->
-<!--    var name = myGeocode[2];-->
-<!--    var num = myGeocode[3];-->
-<!--    var statue = myGeocode[4];-->

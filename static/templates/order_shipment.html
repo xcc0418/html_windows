@@ -5,13 +5,13 @@
     background-color:white;
 }
 .method_item{
-    width:110px;
+    width:200px;
     height:40px;
     border:1px solid black;
     margin:0px 0px 0px 0px;
 }
 .method{
-    width:100px;
+    width:200px;
     height:40px;
     outline:none;
     border:none;
@@ -53,14 +53,20 @@
      background-color:rgb(220, 220, 220);
      margin:10px 0px 0px 0px;
 }
+#method_control{
+ margin:0px 0px 0px 0px;
+}
+#method_control1{
+ margin:-41px 0px 0px 250px;
+}
 #input_control1{
- margin:-41px 0px 0px 120px;
+ margin:-41px 0px 0px 480px;
 }
 #input_control2{
- margin:-41px 0px 0px 440px;
+ margin:-41px 0px 0px 720px;
 }
 #clear_control{
- margin:-41px 0px 0px 680px;
+ margin:-41px 0px 0px 960px;
 }
 .list_control1{
     height: 40px;
@@ -85,7 +91,7 @@
 </style>
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>物料出库</title>
 </head>
 <body>
 <div class="shipment">
@@ -95,16 +101,30 @@
                 <option value="SKU">SKU</option>
                 <option value="FNSKU">FNSKU</option>
                 <option value="计划单号">计划单号</option>
-                <option value="计划单号">次品出库</option>
                 <option value="PDD/ZX">PDD/ZX</option>
+            </select>
+        </div>
+        <div class="method_item" id="method_control1">
+            <select class="method" id="list_warehouse">
+                <option value="工厂仓库">工厂仓库</option>
+                <option value="横中路仓库-加拿大">横中路仓库-加拿大</option>
+                <option value="横中路仓库-日本">横中路仓库-日本</option>
+                <option value="横中路仓库-美国">横中路仓库-美国</option>
+                <option value="横中路仓库-英国'">横中路仓库-英国</option>
+                <option value="横中路仓库-德国">横中路仓库-德国</option>
+                <option value="淘汰-横中路仓库-加拿大">淘汰-横中路仓库-加拿大</option>
+                <option value="淘汰-横中路仓库-日本">淘汰-横中路仓库-日本</option>
+                <option value="淘汰-横中路仓库-美国">淘汰-横中路仓库-美国</option>
+                <option value="淘汰-横中路仓库-英国">淘汰-横中路仓库-英国</option>
+                <option value="百汇办公室">百汇办公室</option>
             </select>
         </div>
         <div class="msg_item" id="input_control1">
             <input class="input_item" type="text" name="index_data" autocomplete="off" id="order" onkeydown="myFunction()">
-            <input type="submit" value="搜索" class="button" onclick="get_order()">
+            <input type="submit" value="搜索" class="button" onclick="get_order()" id="button_fnsku">
         </div>
         <div class="button_item" id="input_control2">
-            <button class="button" onclick="shipment_order()">入库</button>
+            <button class="button" onclick="shipment_order()">出库</button>
         </div>
         <div class="button_item" id="clear_control">
             <button class="button" onclick="clear_html()">清空</button>
@@ -153,12 +173,10 @@
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
     var list_order = []
-
     function get_order(){
     var order = document.getElementById('order').value;
     var index = document.getElementById('method_value').value;
     if (order != undefined){
-    console.log(list_order.indexOf(order))
     if (list_order.indexOf(order) == -1){
     var data = {data: JSON.stringify({'index': index, 'order': order})};
     $.ajax({
@@ -197,7 +215,7 @@
             }
 		})
 	}
-	if (list_order.indexOf(order) != -1){
+	if (parseInt(list_order.indexOf(order)) != -1){
 	document.getElementById('order').value = '';
 	var num = document.getElementById(order).innerHTML;
 	document.getElementById(order).innerHTML = parseInt(num) + 1;
@@ -226,20 +244,19 @@
 
     function shipment_order(){
     if (confirm('是否将物料出库')){
-    var data = {};
-    for (var i = 0; i < list_order.length; i++){
-    data[list_order[i]] = int(document.getElementById(list_order[i]).innerHTML);
-    }
-    var data_json = {data: JSON.stringify(data)};
+    var list_data = get_table();
+    var warehouse = document.getElementById("list_warehouse").value;
+    var data_json = {data: JSON.stringify({"list_data":list_data, "warehouse": warehouse})};
      $.ajax({
             headers:{Accept: "application/json; charset=utf-8"},
 			type: 'POST',
 			url: '/shipment_upload',
 			dataType: 'json',
-			data: data,
+			data: data_json,
 			success: function(msg){
 				if (msg['msg'] == 'success'){
 				alert('出库成功');
+				clear();
 				}
 				if (msg['msg'] == 'error'){
 				alert('出库失败');
@@ -253,6 +270,21 @@
 			})
 	}
     }
+
+    function get_table(){
+    var tabObj = document.getElementById('control_item1');
+    var data = [];
+    for(var i=0,rows=tabObj.rows.length; i<rows; i++){
+    for(var j=0,cells=tabObj.rows[i].cells.length; j<cells; j++){
+        if(!data[i]){
+        data[i] = new Array();
+        }
+        data[i][j] = tabObj.rows[i].cells[j].getElementsByTagName('span')[0].innerHTML;
+    }
+    }
+    return data;
+    }
+
 
 	function clear(){
 	var div = document.getElementById('control_item1');
