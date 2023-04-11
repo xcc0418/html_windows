@@ -45,6 +45,15 @@
 	border:none;
 	outline:none;/*取消边框和外边框将按钮边框去掉*/
 }
+.upload{
+	float:left;
+	width:100px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
 .input_item{
     float: left;
     width: 110px;
@@ -62,6 +71,11 @@
 	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
     outline:none;
 	border:none;/*取消文本框内外边框*/
+}
+.download_item{
+width:100px;
+height:40px;
+font-size: 25px;
 }
 .background_control{
      height: 40px;
@@ -89,6 +103,9 @@
 }
 #clear_control{
  margin:-41px 0px 0px 440px;
+}
+#download_item{
+margin:-42px 0px 42px 150px;
 }
 .list_control1{
     height: 40px;
@@ -124,6 +141,8 @@
 <head>
     <meta charset="UTF-8">
     <title>物料信息查询</title>
+    <link rel="icon" href="../static/images/favicon.ico" type="image/x-icon"/>
+	<link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon"/>
 </head>
 <body>
 <div class="search">
@@ -137,7 +156,7 @@
         </div>
         <div class="msg_item" id="input_control1">
             <input class="input_item" type="text" name="index_data" autocomplete="off" id="index_data">
-            <input type="submit" value="搜索" class="button" onclick="get_msg()">
+            <input type="submit" value="搜索" class="button" onclick="get_msg()" id="button_item">
         </div>
         <div class="button_item" id="clear_control">
             <button class="button" onclick="clear_html()">清空</button>
@@ -152,8 +171,10 @@
             <button class="button" onclick="change_location()">更改存放位置</button>
         </div>
         <div class="button_item" id="input_control4">
-            <input type="file" name="file" class="file_input" id="file_name" style="display:none">
-            <input type="submit" value="上传" class="button" onclick="upload()">
+            <input type="file" name="file" id="files" style="display:none" onchange="upload();">
+            <input type="button" value="批量获取箱号" id="import" class="upload">
+        </div>
+        <div class="download_item" id="download_control">
         </div>
     </div>
     <div class="table_list">
@@ -164,9 +185,9 @@
             <table class="table_control">
                 <thead class="header_item" id="control_item">
                 <tr class="list_control">
-                    <th class="list_control1" id="header_control1" >
+                    <th id="header_control3" class="list_control3">
                         <div class="header_text">
-                            <span>箱号</span>
+                            <span>品名</span>
                         </div>
                     </th>
                     <th id="header_control2" class="list_control2">
@@ -174,9 +195,9 @@
                             <span>FNSKU</span>
                         </div>
                     </th>
-                    <th id="header_control3" class="list_control3">
+                    <th class="list_control1" id="header_control1" >
                         <div class="header_text">
-                            <span>品名</span>
+                            <span>箱号</span>
                         </div>
                     </th>
                     <th id="header_control4" class="list_control4">
@@ -205,15 +226,21 @@
     </div>
 </div>
 </body>
-<script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="../JavaScript/jquery-3.0.0.min.js"></script>
+<script src="../JavaScript/axios.min.js"></script>
 <script>
+    $("#import").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
+        $("#files").click();
+    });
+
     function get_msg(){
+    document.getElementById("button_item").disabled = "ture";
     var index = document.getElementById('method_value').value;
     var index_data = document.getElementById('index_data').value;
     var data = {
     data: JSON.stringify({'index': index, 'index_data': index_data})};
-    clear_html();
+    clear();
+    document.getElementById("background_control").innerHTML = "正在获取装箱信息...";
     $.ajax({
             headers:{Accept: "application/json; charset=utf-8"},
 			type: 'POST',
@@ -221,32 +248,43 @@
 			dataType: 'json',
 			data: data,
 			success: function(msg){
-				if (msg['msg'] == 'success'){
-                new_control(msg['data'], index)
-				}
+            if (msg['msg'] == 'success'){
+            if (index == 'FNSKU'){
+            download_excl(msg['data']['filename'], msg['data']['file']);
+            document.getElementById("background_control").innerHTML = "";
+            alert('获取成功');
+            }
+            else{
+            new_control(msg['data'], index);
+            }
+            document.getElementById("button_item").disabled = false;
+            }
+            if (msg['msg'] == 'error'){
+            document.getElementById("background_control").innerHTML = "";
+            document.getElementById("button_item").disabled = false;
+            alert(msg['data']);
+            }
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
             if (textStatus === 'timeout') {
-                alert('请求超时，请重试！');
+            document.getElementById("background_control").innerHTML = "";
+            document.getElementById("button_item").disabled = false;
+            alert('请求超时，请重试！');
             }
             }
 		})
 	}
 
 	function new_control(dict_msg, index){
+	document.getElementById("background_control").innerHTML = "";
 	if (index == 'FNSKU'){
-	var num_all = dict_msg['库存数量'];
 	var num_location = dict_msg['装箱总数量'];
 	var background = document.getElementById("background_control");
-	background.innerHTML = "库存数量: " + num_all + "     装箱总数量: "+ num_location;
+	background.innerHTML = "装箱总数量: "+ num_location;
 	}
-	var th_list = document.createElement("thead");
-	th_list.className = "header_item";
-	th_list.id = "control_item1";
-	document.getElementById("table_control").appendChild(th_list);
 	for (var i=0; i<dict_msg['data_list'].length; i++){
 	var tr = document.createElement("tr");
-	tr.className = "list_control"
+	tr.className = "list_control_tr";
 	var pa_name = dict_msg['data_list'][i]['箱号'];
 	var fnsku = dict_msg['data_list'][i]['fnsku'];
 	var name = dict_msg['data_list'][i]['品名'];
@@ -259,17 +297,14 @@
 	var num_str = create_control(['list_control4', num]);
 	var statues_str = create_control(['list_control5', statues]);
 	var location_str = create_control(['list_control6', location]);
-	var str = pa_name_str + fnsku_str + name_str + num_str + statues_str + location_str;
-	console.log(str)
+	var str = name_str + fnsku_str + pa_name_str + num_str + statues_str + location_str;
 	tr.innerHTML = str;
 	document.getElementById("control_item1").appendChild(tr);
 	}
-	document.getElementById('fnsku').value = '';
 	}
 
 	function create_control(msg_data){
 	var msg = msg_data;
-	console.log(msg);
 	var str = "<th class="+ msg[0] +"><div class=\"header_text\"><span>"+ msg[1] +"</span></div></th>";
 	return str
 	}
@@ -289,6 +324,7 @@
 			success: function(msg){
 				if (msg['msg'] == 'success'){
                 alert('位置更改成功');
+                clear();
 				}
 				if (msg['msg'] == 'error'){
                 alert('位置更改失败');
@@ -304,46 +340,79 @@
     }
 
     function upload(){
-        var filename = document.getElementById('file_name').files[0];
-        if (filename != undefined){
-        var formFile = new FormData();
-        formFile.append("action", "UploadVMKImagePath");
-        formFile.append("file", filename);
-        var data = formFile;
-        $.ajax({
-            headers:{Accept: "application/json; charset=utf-8"},
-			type: 'POST',
-			url: '/uploader',
-			dataType: 'json',
-			data: data,
-			cache: false,
-            processData: false,
-            contentType: false,
-			success: function(msg){
-				if (msg['msg'] == 'success'){
-                alert('位置更改成功');
-				}
-				if (msg['msg'] == 'error'){
-                alert('位置更改失败');
-				}
-			},
-			error: function(XMLHttpRequest, textStatus, errorThrown) {
-            if (textStatus === 'timeout') {
-                alert('请求超时，请重试！');
-            }
-            }
-		})
-		if (filename == undefined){
-		alert('请先获取文件路径');
-		}
-	}
+    var filename = document.getElementById("files").files[0]['name'];
+    console.log(filename)
+    if (confirm("是否上传"+ filename +"")){
+    document.getElementById("import").disabled = "ture";
+    document.getElementById("background_control").innerHTML = "正在生成装箱表格...";
+    var button = document.getElementById('import');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
+    var formData = new FormData();
+    formData.append("myfile", document.getElementById("files").files[0]);
+    $.ajax({
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: 'POST',
+    url: '/uploader',
+    dataType: 'json',
+    data: formData,
+    cache: false,
+    processData: false,
+    contentType: false,
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    download_excl(msg['data']['filename'], msg['data']['file']);
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import").disabled = false;
+    document.getElementById("background_control").innerHTML = "";
+    alert('获取成功');
+    }
+    if (msg['msg'] == 'error'){
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import").disabled = false;
+    document.getElementById("background_control").innerHTML = "";
+    alert('获取失败');
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import").disabled = false;
+    document.getElementById("background_control").innerHTML = "";
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+    }
+
+    function download_excl(filename, file){
+    var pa_name = filename + ".xlsx";
+    var str = "<a href="+ file +" download="+ pa_name +">下载</a>";
+    document.getElementById("download_control").innerHTML = str;
     }
 
 	function clear_html(){
-    var div = document.getElementById('control_item1');
-    div.parentNode.removeChild(div);
-    var background = document.getElementById("background_control");
+    if (confirm('是否清空当前页面信息')){
+    clear();
+    }
 	}
+
+    function clear(){
+    document.getElementById("button_item").disabled = false;
+    document.getElementById('index_data').value = '';
+    document.getElementById("download_control").innerHTML = '';
+    var div = document.getElementById('control_item1');
+	for (var i=1; i > 0; i++){
+	var tr = document.querySelector('.list_control_tr');
+	if (tr){
+    div.removeChild(tr);
+    }
+    else{
+    break;
+    }
+    }
+    document.getElementById("background_control").innerHTML = '';
+    }
 
 </script>
 </html>

@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no">
 <title>科倍电子</title>
-
+	<link rel="icon" href="../static/images/favicon.ico" type="image/x-icon"/>
+	<link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon"/>
 <style>
 .label_tag {
   float:left;
@@ -74,9 +75,6 @@ body {
 				width: 10px;
 
 }
-<!--.tag:hover > .tag_home ~ .tag_home_del{-->
-<!--											display: block;-->
-<!--									  }-->
 .contents_li{
 				display: none;
 				margin: 0px 0px 0px -80px;
@@ -96,7 +94,9 @@ body {
 .contents_e5{color: rgb(255, 255, 255);}
 .tag_name{color: rgb(255, 255, 255);}
 .label_name{color: rgb(255, 255, 255);}
-
+#content_data2{
+margin: -50px, 0px, 0px, 0px
+}
 </style>
 </head>
 <body>
@@ -125,7 +125,7 @@ body {
 	</div>
 	<div>
 		<div class="contents_item">
-			<ul class="contents_data">
+			<ul class="contents_data" id="content_data1">
 				<li class="first_item">仓库工具</li>
 				<li class="contents_li">
 					<a class="contents_a" href="../static/templates/FBA_shipment.html" target="_blank">
@@ -142,6 +142,15 @@ body {
 				<li class="contents_li">
 					<a class="contents_a" href="../static/templates/order_put.html" target="_blank">
 						<span class="contents_e5" id="contents_list5">物料入库</span></a></li>
+			</ul>
+			<ul class="contents_data" id="content_data2">
+				<li class="first_item">工厂物料管理工具</li>
+				<li class="contents_li">
+					<a class="contents_a" href="../static/templates/stores_requisition.html" target="_blank">
+						<span class="contents_e1" id="contents_list6">生成领料单</span></a></li>
+				<li class="contents_li">
+					<a class="contents_a" href="../static/templates/show_requisition.html" target="_blank">
+						<span class="contents_e1" id="contents_list7">领料详情</span></a></li>
 			</ul>
 		</div>
 	</div>

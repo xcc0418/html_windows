@@ -146,11 +146,11 @@ def uploading_pdd(list_sku, list_num):
         # print(text)
         list_text = []
         list_list = get_msg['data']['list']
-        print(get_msg['data']['list'])
+        # print(get_msg['data']['list'])
         for i in range(0, len(list_list)):
             if list_list[i]['wh_name'] == '横中路仓库-美国' and list_list[i]['sku'] == sku:
                 list_text.append(list_list[i])
-        print(list_text)
+        # print(list_text)
         if list_text:
             sku_name = list_text[0]['product_name']
             sku_name = sku_name.replace('/', '%2F')
@@ -315,12 +315,28 @@ def submmit(list_data, shipment_id, list_pa):
                 sheet.cell(row=count, column=c, value=list_data[i][(c - 1)])
             count = count + 1
         finish_code = 1
+    num_all = 0
+    for i in range(0, len(list_data[0])-7):
+        sum_num = 0
+        for j in range(0, len(list_data)):
+            if sheet.cell(row=j+4, column=i+8).value:
+                sum_num += int(sheet.cell(row=j+4, column=i+8).value)
+        num_all += sum_num
+        sheet.cell(row=len(list_data)+3, column=i + 8, value=sum_num)
+    sheet.cell(row=len(list_data)+3, column=len(list_data[0])+1, value=num_all)
     if finish_code:
         # 更新数据库
         if list_pa:
+            quantity = Quantity()
             for i in list_pa:
+                sql1 = "select * from `storage`.`relevance_hakone` where `箱号` = '%s'" % i
+                result = func(sql1)
+                if result:
+                    sql2 = "DELETE FROM `storage`.`relevance_hakone` WHERE `箱号` = '%s'" % i
+                    func(sql2, 'w')
                 state = "已出货"
                 func("UPDATE `storage`.`warehouse` SET `状态` = '%s' WHERE `箱号` = '%s'" % (state, str(i)), 'w')
+            quantity.delect_sql(list_pa)
             wb.save("./static/装箱信息单/上传装箱信息.xlsx")
             # 可以自动上传后，下面的内容就不必了
         time1 = time.strftime("%Y_%m_%d", time.localtime())
@@ -428,7 +444,7 @@ class Quantity(object):
         self.time = self.time.strftime("%Y-%m-%d")
         self.start_time = self.start_time.strftime("%Y-%m-%d")
         # self.start_time = '2022-03-07'
-        print(self.time, self.start_time)
+        # print(self.time, self.start_time)
 
     def sql(self):
         self.connection = pymysql.connect(host='3354n8l084.goho.co',  # 数据库地址
@@ -595,10 +611,11 @@ class Quantity(object):
             for k in range(4, 3 + len(list_sku)):
                 wb_sheet.cell(row=k, column=i).alignment = alignment
             # 设置单元格背景颜色：灰色
-            wb_sheet.cell (row=4 + len (list_sku), column=i).fill = PatternFill("solid", fgColor="808080")
+            wb_sheet.cell(row=4 + len(list_sku), column=i).fill = PatternFill("solid", fgColor="808080")
             # 输入表头
             if i >= 8:
                 wb_sheet.cell(row=3, column=i).value = f'第{i - 7}箱'
+        wb_sheet.cell(row=4 + len (list_sku), column=int(box_num) + 8).fill = PatternFill("solid", fgColor="808080")
         # 写入FBA货件单号
         wb_sheet.cell(row=2, column=2).value = shipment_id
         # 合并单元格
@@ -643,7 +660,7 @@ class Quantity(object):
                 "product_list": product_list,
                 "sys_wid": dict_warehouse[warehouse]
                 }
-        print("生成sign签名参数：", body)
+        # print("生成sign签名参数：", body)
         res = self.get_sign(body)
         querystring = {"access_token": self.access_token,
                        "timestamp": int(time.time()),
@@ -784,3 +801,15 @@ class Quantity(object):
             if result1['data']['sku'] == sku:
                 product_name = result1['data']['product_name']
         return product_name
+
+    def delect_sql(self, list_pa):
+        self.sql()
+        for i in list_pa:
+            sql3 = "select * from `storage`.`relevance_hakone` where `箱号` = '%s'" % i
+            self.cursor.execute(sql3)
+            result = self.cursor.fetchall()
+            if result:
+                sql4 = "DELETE FROM `storage`.`relevance_hakone` WHERE `箱号` = '%s'" % i
+                self.cursor.execute(sql4)
+        self.connection.commit()
+        self.sql_close()

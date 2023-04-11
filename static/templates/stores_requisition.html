@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>生成领料单</title>
+    <link rel="icon" href="../static/images/favicon.ico" type="image/x-icon"/>
+    <link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon"/>
+</head>
+<style>
+  .item_list{
+    background-color:white;
+}
+.method_item{
+    width:200px;
+    height:40px;
+    border:1px solid black;
+    margin:0px 0px 0px 0px;
+}
+.method {
+    width:200px;
+    height:40px;
+    outline:none;
+    border:none;
+    background-color:white;
+}
+.box_search1{
+    width:200px;
+    height:40px;
+    border:1px solid black;
+}
+.input_po{
+    float: left;
+    width: 190px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.button{
+	float:left;
+	width:96px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.button_item{
+    width:100px;
+    height:40px;
+    border:1px solid black;
+}
+.download_item{
+width:100px;
+height:40px;
+}
+.background_control{
+     height: 40px;
+     background-color:rgb(220, 220, 220);
+     margin:10px 0px 0px 0px;
+}
+td,th {
+        box-sizing: border-box;/* 设置表格样式 */
+        border: 1px solid #DDDDDD;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-align: center;
+        background: #F4F4F5;
+        height: 50px;
+    }
+.list_control1{
+    height: 40px;
+    width:400px;
+    text-align: center;
+}
+.list_control2{
+    height: 40px;
+    width:400px;
+    text-align: center;
+}
+#box_control1{
+margin:0px 0px 0px 0px;
+}
+#method_control1{
+margin:-41px 0px 0px 250px;
+}
+#button_control2{
+margin:-41px 0px 0px 500px;
+}
+#button_control3{
+margin:-41px 0px 0px 650px;
+}
+#button_control4{
+margin:-41px 0px 0px 800px;
+}
+#button_control5{
+margin:-41px 0px 0px 950px;
+}
+#box_control2{
+margin:-41px 0px 0px 1100px;
+}
+#button_control6{
+margin:-41px 0px 0px 1320px;
+}
+#download_control{
+margin:-41px 0px 41px 150px;
+}
+.header_text{
+    height: 50px;
+    width:400px;
+}
+.list_text{
+    font-size: 20px;
+    text-align: center;
+    height: 50px;
+    width:400px;
+}
+</style>
+<body>
+<div class="pick_item">
+    <div class="box_item">
+        <div class="item_list">
+            <div class="box_search1" id="box_control1">
+                <input type="text" placeholder="  PO单号" class="input_po" autocomplete="off" name="po_name" id="po_name">
+            </div>
+            <div class="method_item" id="method_control1">
+              <select class="method" id="list_class">
+
+              </select>
+            </div>
+            <div class="button_item" id="button_control2">
+                <button class="button" onclick="get_class()">获取品类</button>
+            </div>
+            <div class="button_item" id="button_control3">
+                <button class="button" onclick="find_po()">生成领料单号</button>
+            </div>
+            <div class="button_item" id="button_control4">
+                <button class="button" onclick="upload_table()" id="button_item">生成领料单</button>
+            </div>
+            <div class="button_item" id="button_control5">
+                <button class="button" onclick="clear_html()">清空</button>
+            </div>
+            <div class="box_search1" id="box_control2">
+                <input type="text" placeholder="  品类名称" class="input_po" autocomplete="off" name="po_name" id="class_name">
+            </div>
+            <div class="button_item" id="button_control6">
+                <button class="button" onclick="create_class()">添加品类</button>
+            </div>
+            <div class="download_item" id="download_control">
+            </div>
+        </div>
+    </div>
+    <div class="table_list">
+        <div class="background_control" id="background_control"></div>
+        <div class="table_item" id="data_database">
+            <table class="table_control">
+                <thead class="header_item" id="control_item">
+                <tr class="list_control">
+                    <th class="list_control1" id="header_control1" >
+                        <div class="header_text">
+                            <span>SKU</span>
+                        </div>
+                    </th>
+                    <th class="list_control2" id="header_control2" >
+                        <div class="header_text">
+                            <span>领料数量</span>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+            </table>
+            <table class="table_control" id="table_control">
+                <thead class="header_item" id="control_item1">
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+<script src="../JavaScript/jquery-3.0.0.min.js"></script>
+<script src="../JavaScript/axios.min.js"></script>
+<script>
+  function get_class(){
+  $.ajax({
+  url: "/stores_requisition/get_class",
+  headers:{Accept: "application/json; charset=utf-8"},
+  type: "GET",
+  dataType: 'json',
+  success: function(msg){
+  console.log(msg)
+  if (msg['msg'] == 'success'){
+  console.log(msg)
+  add_class(msg['data']['list_class']);
+  alert('品类获取成功');
+  }
+  },
+  error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+        }
+        }
+  })
+  }
+
+  function add_class(list_class){
+  document.getElementById("list_class").innerHTML = '';
+  var str_class = '';
+  for (var i = 0; i < list_class.length; i++){
+  str_class = str_class + "<option value="+ list_class[i] +">"+ list_class[i] +"</option>";
+  }
+  document.getElementById("list_class").innerHTML = str_class;
+  }
+
+  function find_po(){
+  var po_name = document.getElementById("po_name").value;
+  var class_name = document.getElementById("list_class").value;
+  if (po_name && class_name){
+  var data = {"data": JSON.stringify({"po_name": po_name, "class_name": class_name})}
+  $.ajax({
+  url: "/stores_requisition/find_po",
+  headers:{Accept: "application/json; charset=utf-8"},
+  type: "post",
+  data: data,
+  dataType: 'json',
+  success: function(msg){
+  if (msg['msg'] == 'success'){
+  create_table();
+  alert('领料单号生成成功');
+  }
+  if (msg['msg'] == 'error'){
+  alert(msg['data']);
+  }
+  },
+  error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+        }
+        }
+  })
+  }
+  }
+
+  function create_table(){
+  document.getElementById("control_item1").innerHTML = '';
+  var str_table = '';
+  for (var i = 0; i<40; i++){
+  var str_row = "<tr class=\"list_control\"><th class=\"list_control1\"><div class=\"list_text\"><span class=\"list_text\" contenteditable=\"true\">——</span></div></th><th class=\"list_control2\"><div class=\"list_text\"><span class=\"list_text\" contenteditable=\"true\">0</span></div></th></tr>";
+  str_table = str_table+str_row;
+  }
+  document.getElementById("control_item1").innerHTML = str_table;
+  }
+
+  function upload_table(){
+  if (confirm("是否生成领料单")){
+  document.getElementById("button_item").disabled = "ture";
+  document.getElementById("background_control").innerHTML = "正在生成领料单";
+  var po_name = document.getElementById("po_name").value;
+  var class_name = document.getElementById("list_class").value;
+  var list_sku = get_table();
+  if (po_name && class_name){
+  var data = {"data": JSON.stringify({"po_name": po_name, "class_name": class_name, "list_sku": list_sku})}
+  $.ajax({
+  url: "/stores_requisition/upload_table",
+  headers:{Accept: "application/json; charset=utf-8"},
+  type: "post",
+  data: data,
+  dataType: 'json',
+  success: function(msg){
+  if (msg['msg'] == 'success'){
+  clear();
+  document.getElementById("background_control").innerHTML = "";
+  download_excl(msg['data']['filename'], msg['data']['file']);
+  document.getElementById("button_item").disabled = false;
+  alert('领料单生成成功');
+  }
+  if (msg['msg'] == 'error'){
+  document.getElementById("button_item").disabled = false;
+  document.getElementById("background_control").innerHTML = "";
+  alert(msg['data']);
+  }
+  },
+  error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+        document.getElementById("button_item").disabled = false;
+        document.getElementById("background_control").innerHTML = "";
+            alert('请求超时，请重试！');
+
+        }
+        }
+  })
+  }
+  document.getElementById("button_item").disabled = false;
+  document.getElementById("background_control").innerHTML = "";
+  }
+  }
+
+  function get_table(){
+  var tabObj = document.getElementById('table_control');
+  var data = [];
+  for(var i=0,rows=tabObj.rows.length; i<rows; i++){
+  for(var j=0,cells=tabObj.rows[i].cells.length; j<cells; j++){
+  if(!data[i]){
+  data[i] = new Array();
+  }
+  data[i][j] = tabObj.rows[i].cells[j].getElementsByTagName('span')[0].innerHTML;
+  }
+  }
+  return data;
+  }
+
+  function create_class(){
+  var class_name = document.getElementById("class_name").value;
+  if (confirm("是否新增"+ class_name +"这个品类")){
+  if (class_name){
+  var data = {"data": JSON.stringify({"class_name": class_name})}
+  $.ajax({
+  url: "/stores_requisition/add_class",
+  headers:{Accept: "application/json; charset=utf-8"},
+  type: "post",
+  data: data,
+  dataType: 'json',
+  success: function(msg){
+  if (msg['msg'] == 'success'){
+  clear();
+  add_class(msg['data']);
+  alert('品类添加成功');
+  }
+  if (msg['msg'] == 'error'){
+  alert(msg['data']);
+  }
+  },
+  error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+        }
+        }
+  })
+  }
+  }
+  }
+
+  function download_excl(filename, file){
+  var pa_name = filename + ".xlsx";
+  var str = "<a href="+ file +" download="+ pa_name +">下载</a>";
+  document.getElementById("download_control").innerHTML = str;
+  }
+
+  function clear_html(){
+  if (confirm("是否清空当前页面信息")){
+  clear();
+  }
+  }
+
+  function clear(){
+  document.getElementById("button_item").disabled = false;
+  document.getElementById("class_name").value = '';
+  document.getElementById("control_item1").innerHTML = '';
+  document.getElementById("po_name").value = '';
+  document.getElementById("download_control").innerHTML = '';
+  document.getElementById("list_class").innerHTML = '';
+  }
+
+</script>
+</html>

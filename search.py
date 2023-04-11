@@ -9,46 +9,7 @@ import requests
 import base64
 from Crypto.Cipher import AES
 import openpyxl
-
-
-def get_msg(index, index_data):
-    data_msg = []
-    if index == '箱号':
-        sql = "select * from `storage`.`warehouse` where `箱号` = '%s' and 状态 = '已打包'" % index_data
-        result = func(sql)
-        for i in result:
-            name = func("SELECT `品名` FROM `data_read`.`listing` where `FNSKU`='%s'" % i[1])
-            if i[12]:
-                msg = {'箱号': i[0], 'fnsku': i[1], '品名': name[0][0], '装箱数量': i[2], '装箱状态': i[11], '装箱位置': i[12]}
-            else:
-                msg = {'箱号': i[0], 'fnsku': i[1], '品名': name[0][0], '装箱数量': i[2], '装箱状态': i[11], '装箱位置': '这箱还没有匹配位置'}
-            data_msg.append(msg)
-        return {'data_list': data_msg}
-    if index == 'FNSKU':
-        sql = "select * from `storage`.`warehouse` where `FNSKU1` = '%s' and 状态 = '已打包'" % index_data
-        result = func(sql)
-        num_location = 0
-        for i in result:
-            num_location += int(i[2])
-            name = func("SELECT `品名` FROM `data_read`.`listing` where `FNSKU`='%s'" % i[1])
-            if i[12]:
-                msg = {'箱号': i[0], 'fnsku': i[1], '品名': name[0][0], '装箱数量': i[2], '装箱状态': i[11], '装箱位置': i[12]}
-            else:
-                msg = {'箱号': i[0], 'fnsku': i[1], '品名': name[0][0], '装箱数量': i[2], '装箱状态': i[11], '装箱位置': '这箱还没有匹配位置'}
-            data_msg.append(msg)
-        # num_all = find_storage(index_data)
-        quantity_msg = Quantity()
-        num_all = quantity_msg.get_warehouse_num(index_data)
-        return {'库存数量': num_all, '装箱总数量': num_location, 'data_list': data_msg}
-    if index == '位置':
-        sql = "select * from `storage`.`warehouse` where `存放位置` = '%s' and 状态 = '已打包'" % index_data
-        result = func(sql)
-        for i in result:
-            name = func("SELECT `品名` FROM `data_read`.`listing` where `FNSKU`='%s'" % i[1])
-            msg = {'箱号': i[0], 'fnsku': i[1], '品名': name[0][0], '装箱数量': i[2], '装箱状态': i[11], '装箱位置': i[12]}
-            data_msg.append(msg)
-            # print(msg)
-        return {'data_list': data_msg}
+from openpyxl.styles import PatternFill
 
 
 def find_storage(fnsku):
@@ -100,6 +61,7 @@ def get_warehouse(filename):
     for i in range(1, row1+1):
         fnsku = ws_sheet.cell(row=i, column=2).value
         if fnsku:
+            fnsku = fnsku.strip('')
             if fnsku in list_fnsku:
                 continue
             else:
@@ -112,15 +74,16 @@ def get_warehouse(filename):
         wb = openpyxl.Workbook()
         wb_sheet = wb.active
         wb_sheet.append(['品名', 'FNSKU', '箱号信息', '装箱总数量'])
+        row1 = 1
         for i in list_warehouse:
-            wb_sheet.append(i)
+            for j in i:
+                wb_sheet.append(j)
+                row1 += 1
         starrow1 = 2
         last_cell_value = wb_sheet.cell(row=starrow1, column=2).value
         count = 0
         for q in range(0, row1):
             cell_value = wb_sheet.cell(row=starrow1 + count, column=2).value
-            # if q+2 != starrow1 + count:
-            #     print("第%s个q，第%d行"%(q,starrow1+count))
             if cell_value == last_cell_value:
                 count = count + 1
             else:
@@ -131,24 +94,29 @@ def get_warehouse(filename):
                 count = 1
                 last_cell_value = cell_value
         time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        file = f'F:/html_windows/static/FNSKU装箱信息/{time_now}-箱号.xlsx'
+        file = f'./static/FNSKU装箱信息/{time_now}-箱号.xlsx'
         wb.save(file)
-        return file
+        return f'../FNSKU装箱信息/{time_now}-箱号.xlsx', f'{time_now}-箱号'
 
 
 def get_po(fnsku):
+    list_msg = []
     result = func("SELECT `箱号`, `存放位置`, `数量1` FROM `storage`.`warehouse` WHERE `FNSKU1` = '%s' and `状态` = '已打包'" % fnsku)
-    name = func("SELECT `品名` FROM `data_read`.`listing` where `FNSKU`='%s'" % fnsku)
-    num = 0
-    for i in result:
-        num += int(i[2])
-    for i in result:
-        if i[1]:
-            msg = f"箱号：{i[0]}   存放位置：{i[1]}   数量：{i[2]}"
-            return [name[0][0], fnsku, msg, num]
-        else:
-            msg = f"箱号：{i[0]}   存放位置：这箱还没有匹配位置   数量：{i[2]}"
-            return [name[0][0], fnsku, msg, num]
+    if result:
+        name = func("SELECT `品名` FROM `data_read`.`listing` where `FNSKU`='%s'" % fnsku)
+        num = 0
+        for i in result:
+            num += int(i[2])
+        for i in result:
+            if i[1]:
+                msg = f"箱号：{i[0]}   存放位置：{i[1]}   数量：{i[2]}"
+                list_msg.append([name[0][0], fnsku, msg, num])
+            else:
+                msg = f"箱号：{i[0]}   存放位置：这箱还没有匹配位置   数量：{i[2]}"
+                list_msg.append([name[0][0], fnsku, msg, num])
+    else:
+        list_msg.append(['', fnsku, '没有装箱信息'])
+    return list_msg
 
 
 def func(sql, m='r'):
@@ -169,6 +137,7 @@ def func(sql, m='r'):
     py.close()
     return data
 
+
 class Quantity (object):
     def __init__(self):
         self.app_id = "ak_nEfE94OSogf3x"
@@ -182,19 +151,19 @@ class Quantity (object):
         headers = {
             "Content-Type": "application/x-www-form-urlencoded"
         }
-        response = requests.post (url, data=payload, headers=headers, params=querystring)
-        result = json.loads (response.text)
+        response = requests.post(url, data=payload, headers=headers, params=querystring)
+        result = json.loads(response.text)
         # print(response.text)
         self.access_token = result['data']['access_token']
         self.refresh_token = result['data']['refresh_token']
-        self.time = datetime.datetime.now ().strftime ("%Y-%m-%d")
-        self.time = datetime.datetime.strptime (self.time, "%Y-%m-%d")
+        self.time = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.time = datetime.datetime.strptime(self.time, "%Y-%m-%d")
         # self.time = "2021-12-06"
-        self.start_time = self.time - datetime.timedelta (days=1)
-        self.time = self.time.strftime ("%Y-%m-%d")
-        self.start_time = self.start_time.strftime ("%Y-%m-%d")
+        self.start_time = self.time - datetime.timedelta(days=1)
+        self.time = self.time.strftime("%Y-%m-%d")
+        self.start_time = self.start_time.strftime("%Y-%m-%d")
         # self.start_time = '2022-03-07'
-        print (self.time, self.start_time)
+        # print(self.time, self.start_time)
 
     def sql(self):
         self.connection = pymysql.connect (host='3354n8l084.goho.co',  # 数据库地址
@@ -225,30 +194,30 @@ class Quantity (object):
         # 目标md5串
         str_parm = ''
         # 将字典中的key排序
-        for p in sorted (body):
+        for p in sorted(body):
             # 每次排完序的加到串中
             # if body[p]:
             # str类型需要转化为url编码格式
-            if isinstance (body[p], str):
-                str_parm = str_parm + str (p) + "=" + str (urllib.parse.quote (body[p])) + "&"
+            if isinstance(body[p], str):
+                str_parm = str_parm + str(p) + "=" + str(urllib.parse.quot (body[p])) + "&"
                 # print(str(urllib.parse.quote(body[p])))
                 continue
-            str_parm = str_parm + str (p) + "=" + str (body[p]).replace (" ", "") + "&"
+            str_parm = str_parm + str(p) + "=" + str(body[p]).replace(" ", "") + "&"
             # print(str(body[p]).replace(" ",""))
         # 加上对应的key
-        str_parm = str_parm.rstrip ('&')
+        str_parm = str_parm.rstrip('&')
         # print("字符串拼接:", str_parm)
 
         # 转换md5串
-        if isinstance (str_parm, str):
+        if isinstance(str_parm, str):
             # 如果是unicode先转utf-8
-            parmStr = str_parm.encode ("utf-8")
+            parmStr = str_parm.encode("utf-8")
             # parmStr = str_parm
-            m = hashlib.md5 ()
+            m = hashlib.md5()
             m.update (parmStr)
-            md5_sign = m.hexdigest ()
+            md5_sign = m.hexdigest()
             # print(m.hexdigest())
-            md5_sign = md5_sign.upper ()
+            md5_sign = md5_sign.upper()
             # print("MD5加密:", md5_sign)
         eg = EncryptDate(apikey)  # 这里密钥的长度必须是16的倍数
         res = eg.encrypt(md5_sign)
@@ -299,7 +268,7 @@ class Quantity (object):
                     body['length'] = length-k*400
                     payload['length'] = length-k*400
                 body['offset'] = k*400
-                print(payload)
+                # print(payload)
                 res = self.get_sign(body)
                 querystring['sign'] = res
                 payload = json.dumps(payload)
@@ -310,16 +279,255 @@ class Quantity (object):
                 for q in result['data']:
                     if len(sku) == 10:
                         if q['fnsku'] == sku:
-                            print(q)
+                            # print(q)
                             num_total += q['product_total']
                     else:
                         if q['sku'] == sku:
-                            print(q)
+                            # print(q)
                             num_total += q['product_total']
         else:
             print(result1)
-        print(num_total)
+        # print(num_total)
         return num_total
+
+    def delect_box(self, pa_name):
+        self.sql()
+        sql1 = "SELECT `状态` from `storage`.`warehouse` WHERE `箱号` = '%s'" % pa_name
+        self.cursor.execute(sql1)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        if result:
+            if result[0]['状态'] == "已删除":
+                return False, '这箱物料已删除'
+            elif result[0]['状态'] == "已出货":
+                return False, "这箱物料已出货"
+            else:
+                self.sql()
+                status = "已删除"
+                sql2 = "UPDATE `storage`.`warehouse` SET `状态` = '%s' WHERE `箱号` = '%s'" % (status, pa_name)
+                self.cursor.execute(sql2)
+                self.connection.commit()
+                self.sql_close()
+                return True, '删除成功'
+        else:
+            return False, '请查看箱号是否正确'
+
+    def get_msg(self, index, index_data):
+        self.sql()
+        data_msg = []
+        if index == '箱号':
+            sql = "select * from `storage`.`warehouse` where `箱号` = '%s' and 状态 = '已打包'" % index_data
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+            self.sql_close()
+            if result:
+                for i in result:
+                    self.sql()
+                    sql1 = "SELECT * FROM `data_read`.`listing` where `FNSKU`='%s'" % i[1]
+                    self.cursor.execute(sql1)
+                    name = self.cursor.fetchall()[0]['品名']
+                    self.sql_close()
+                    if i['存放位置']:
+                        msg = {'箱号': i['箱号'], 'fnsku': index_data, '品名': name, '装箱数量': i['数量1'], '装箱状态': i['状态'], '装箱位置': i['存放位置']}
+                    else:
+                        msg = {'箱号': i['箱号'], 'fnsku': index_data, '品名': name, '装箱数量': i['数量1'], '装箱状态': i['状态'],
+                               '装箱位置': '这箱还没有匹配位置'}
+                    data_msg.append(msg)
+                return {'data_list': data_msg}
+            else:
+                return False
+        if index == 'FNSKU':
+            list_re = self.get_pa([index_data])
+            # print(list_re)
+            if list_re:
+                time_now = self.write_re(list_re)
+                return [f'../FNSKU装箱信息/{time_now}-箱号.xlsx', f'{time_now}-箱号']
+            else:
+                return False
+        if index == '位置':
+            sql = "select * from `storage`.`warehouse` where `存放位置` = '%s' and 状态 = '已打包'" % index_data
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+            self.sql_close()
+            if result:
+                for i in result:
+                    self.sql()
+                    sql1 = "SELECT * FROM `data_read`.`listing` where `FNSKU`='%s'" % i[1]
+                    self.cursor.execute(sql1)
+                    name = self.cursor.fetchall()[0]['品名']
+                    self.sql_close()
+                    msg = {'箱号': i['箱号'], 'fnsku': index_data, '品名': name, '装箱数量': i['数量1'], '装箱状态': i['状态'], '装箱位置': i['存放位置']}
+                    data_msg.append(msg)
+                    # print(msg)
+                return {'data_list': data_msg}
+            else:
+                return False
+
+    def get_pa(self, list_fnsku):
+        list_re = {}
+        for k in list_fnsku:
+            list_pa = []
+            self.sql()
+            sql = "select * from `storage`.`warehouse` where `FNSKU1` = '%s' and `状态` = '已打包'" % k
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+            if result:
+                for i in result:
+                    list_pa.append(i['箱号'])
+            for i in list_pa:
+                sql = "select * from `storage`.`relevance_hakone` where `箱号` = '%s'" % i
+                self.cursor.execute(sql)
+                result = self.cursor.fetchall()
+                if result:
+                    if result[0]['关联箱标'] in list_re:
+                        list_re[result[0]['关联箱标']][i] = 1
+                    else:
+                        list_re[result[0]['关联箱标']] = {}
+                        sql1 = "select * from `storage`.`relevance_hakone` where `关联箱标` = '%s'" % result[0]['关联箱标']
+                        self.cursor.execute(sql1)
+                        result1 = self.cursor.fetchall()
+                        for j in result1:
+                            list_re[result[0]['关联箱标']][j['箱号']] = 0
+                        list_re[result[0]['关联箱标']][i] = 1
+                else:
+                    list_re[i] = 1
+        return list_re
+
+    def write_re(self, list_re):
+        wb = openpyxl.Workbook()
+        wb_sheet = wb.active
+        wb_sheet.append(['关联箱号', 'FNSKU', 'SKU', '品名', '箱号', '存放位置', '数量'])
+        row1 = 1
+        for i in list_re:
+            if i.find('PA') >= 0:
+                msg = self.get_pa_msg1(i, '', 0)
+                del msg[7]
+                wb_sheet.append(msg)
+                for q in range(2, 8):
+                    wb_sheet.cell(row=row1 + 1, column=q).fill = PatternFill("solid", fgColor="00FF00")
+                row1 += 1
+            if i.find('RE') >= 0:
+                list_pa = []
+                for k in list_re[i]:
+                    msg = self.get_pa_msg1(k, i, list_re[i][k])
+                    if msg[7]:
+                        del msg[7]
+                        wb_sheet.append(msg)
+                        for q in range(2, 8):
+                            wb_sheet.cell(row=row1+1, column=q).fill = PatternFill("solid", fgColor="00FF00")
+                        row1 += 1
+                    else:
+                        del msg[7]
+                        list_pa.append(msg)
+                if list_pa:
+                    for k in list_pa:
+                        wb_sheet.append(k)
+                        row1 += 1
+        # print(row1)
+        starrow1 = 2
+        starrow2 = 2
+        last_cell_value = wb_sheet.cell(row=starrow1, column=1).value
+        last_cell_value1 = wb_sheet.cell(row=starrow2, column=2).value
+        count = 0
+        count1 = 0
+        for q in range(0, row1):
+            cell_value = wb_sheet.cell(row=starrow1 + count, column=1).value
+            if cell_value == last_cell_value:
+                count = count + 1
+            else:
+                if last_cell_value:
+                    wb_sheet.merge_cells('A%d:A%d' % (starrow1, starrow1 - 1 + count))
+                starrow1 = starrow1 + count
+                count = 1
+                last_cell_value = cell_value
+            cell_value1 = wb_sheet.cell(row=starrow2 + count1, column=2).value
+            if cell_value1 == last_cell_value1:
+                count1 = count1 + 1
+            else:
+                if last_cell_value1:
+                    wb_sheet.merge_cells('B%d:B%d' % (starrow2, starrow2 - 1 + count1))
+                    wb_sheet.merge_cells('C%d:C%d' % (starrow2, starrow2 - 1 + count1))
+                    wb_sheet.merge_cells('D%d:D%d' % (starrow2, starrow2 - 1 + count1))
+                starrow2 = starrow2 + count1
+                count1 = 1
+                last_cell_value1 = cell_value1
+        time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        file = f'./static/FNSKU装箱信息/{time_now}-箱号.xlsx'
+        wb.save(file)
+        return time_now
+
+    def get_pa_msg1(self, pa_name, re_name, index):
+        self.sql()
+        msg = ''
+        sql = "select * from `storage`.`warehouse` where `箱号` = '%s' and 状态 = '已打包'" % pa_name
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        if result:
+            for i in result:
+                self.sql()
+                sql1 = "SELECT * FROM `data_read`.`listing` where `FNSKU`='%s'" % i['FNSKU1']
+                self.cursor.execute(sql1)
+                result1 = self.cursor.fetchall()
+                name = result1[0]['品名']
+                sku = result1[0]['SKU']
+                self.sql_close()
+                if i['存放位置']:
+                    msg = [re_name, i['FNSKU1'], sku, name, i['箱号'], i['存放位置'], i['数量1'], index]
+                else:
+                    msg = [re_name, i['FNSKU1'], sku, name, i['箱号'], '这箱还没有匹配位置', i['数量1'], index]
+            return msg
+        else:
+            return False
+
+    def get_pa_msg(self, pa_name):
+        self.sql()
+        num_location = 0
+        msg = ''
+        sql = "select * from `storage`.`warehouse` where `箱号` = '%s' and 状态 = '已打包'" % pa_name
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        if result:
+            for i in result:
+                num_location = int(i['数量1'])
+                self.sql()
+                sql1 = "SELECT * FROM `data_read`.`listing` where `FNSKU`='%s'" % i['FNSKU1']
+                self.cursor.execute(sql1)
+                name = self.cursor.fetchall()[0]['品名']
+                self.sql_close()
+                if i['存放位置']:
+                    msg = {'箱号': i['箱号'], 'fnsku': i['FNSKU1'], '品名': name, '装箱数量': i['数量1'], '装箱状态': i['状态'],
+                           '装箱位置': i['存放位置']}
+                else:
+                    msg = {'箱号': i['箱号'], 'fnsku': i['FNSKU1'], '品名': name, '装箱数量': i['数量1'], '装箱状态': i['状态'],
+                           '装箱位置': '这箱还没有匹配位置'}
+            return num_location, msg
+        else:
+            return False, False
+
+    def get_warehouse(self, filename):
+        ws = openpyxl.load_workbook(filename)
+        ws_sheet = ws.active
+        row1 = ws_sheet.max_row
+        for i in range(row1, 0, -1):
+            cell_value1 = ws_sheet.cell(row=i, column=1).value
+            if cell_value1:
+                row1 = i
+                break
+        list_fnsku = []
+        for i in range(1, row1 + 1):
+            fnsku = ws_sheet.cell(row=i, column=2).value
+            if fnsku:
+                fnsku = fnsku.strip('')
+                if fnsku in list_fnsku:
+                    continue
+                else:
+                    list_fnsku.append(fnsku)
+        list_re = self.get_pa(list_fnsku)
+        # print(list_re)
+        time_now = self.write_re(list_re)
+        return [f'../FNSKU装箱信息/{time_now}-箱号.xlsx', f'{time_now}-箱号']
 
 
 ######## AES-128-ECS 加密

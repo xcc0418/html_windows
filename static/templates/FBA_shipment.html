@@ -44,6 +44,9 @@ height:40px;
     outline:none;
 	border:none;/*取消文本框内外边框*/
 }
+#button_item{
+background-Color:rgb(252, 252, 252);
+}
 .background_control{
      height: 40px;
      background-color:rgb(220, 220, 220);
@@ -175,6 +178,8 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 <head>
     <meta charset="UTF-8">
     <title>FBA出货</title>
+    <link rel="icon" href="../static/images/favicon.ico" type="image/x-icon"/>
+	<link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon"/>
 </head>
 <body>
   <div class="FBA_shipment">
@@ -188,7 +193,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
             <input type="submit" value="+" class="button_control" onclick="add_box()">
         </div>
         <div class="button_item" id="button_control1">
-            <button class="button" onclick="get_FBA()">下载装箱清单</button>
+            <button class="button" onclick="get_FBA()" id="button_item">下载装箱清单</button>
         </div>
          <div class="msg_item" id="input_control3">
              <input class="input_item" type="text"  placeholder="   FNSKU或箱号" name="index_data" autocomplete="off" id="index_data" onkeydown="myFunction()">
@@ -233,22 +238,24 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 <script src="../JavaScript/axios.min.js"></script>
 <script src="https://cdn.bootcss.com/xlsx/0.11.9/xlsx.core.min.js"></script>
 <script>
-
+    var isclick = 0;
     $("#import").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
         $("#files").click();
     });
 
     function get_FBA(){
+    document.getElementById("button_item").disabled = "ture";
+    var button = document.getElementById('button_item');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
     var table_control = document.getElementById('control_item1');
     if (table_control.getElementsByTagName('tr')[0]){
+    document.getElementById("button_item").disabled = "false";
     alert('请勿重复下载');
     }
     else{
     var fba = document.getElementById('FBA_id').value;
     var box_num = document.getElementById('box_num').value;
-    console.log(fba);
-    console.log(box_num);
-    if (fba && box_num){
+    if (fba && box_num && fba.length == 12){
     var data = {data: JSON.stringify({'fba': fba, 'box_num': box_num})};
     $.ajax({
             headers:{Accept: "application/json; charset=utf-8"},
@@ -277,7 +284,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 			var str_name = create_control(["list_control4", 'header_text4', dict_data['name'], text_name, 0]);
 			var text_sku = dict_data['sku'] + k;
 			var str_sku = create_control(["list_control5", 'header_text5', dict_data['sku'], text_sku, 0]);
-			var text_num_shipment = "order_num" + k;
+			var text_num_shipment = "order_num" + dict_data['fnsku'];
 			var str_num_shipmen = create_control(["list_control6", 'header_text6', dict_data['num_shipment'], text_num_shipment, 0]);
 			var text_num_in = "text_num_in" + dict_data['fnsku'];
 			var str_num_in = create_control(["list_control7", 'header_text7', 0, text_num_in, 0]);
@@ -290,20 +297,28 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 			}
 			tr.innerHTML = str;
 	        document.getElementById("control_item1").appendChild(tr);
+	        document.getElementById("button_item").disabled = false;
 			}
+			}
+			if (msg['msg'] == 'error'){
+			document.getElementById("button_item").disabled = false;
+			alert('FBA装箱清单下载失败');
 			}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
             if (textStatus === 'timeout') {
+            document.getElementById("button_item").disabled = false;
                 alert('请求超时，请重试！');
             }
             }
 			})
     }
     else{
-    alert('请先输入货件单号和装箱数量');
+    document.getElementById("button_item").disabled = false;
+    alert('请检查输入货件单号和装箱数量');
     }
     }
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
     }
 
     function create_control(msg_data){
@@ -390,7 +405,10 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 
     function get_fnsku(){
     var index = document.getElementById("index_data").value;
-    var data = {data: JSON.stringify({'index': index})};
+    index = index.toUpperCase();
+    index = index.replace(/[ ]|[\r\n]/g,"");
+    var list_pa = document.getElementById("background_control").innerHTML;
+    var data = {data: JSON.stringify({'index': index, 'list_pa': list_pa.split("-")})};
     $.ajax({
             headers:{Accept: "application/json; charset=utf-8"},
 			type: 'POST',
@@ -400,9 +418,9 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 			success: function(msg){
 			if (msg['msg'] == 'success'){
 			console.log(msg)
-			sum_order(msg['data']['fnsku'], msg['data']['num']);
+			var message = sum_order(msg['data']['fnsku'], msg['data']['num']);
+			if (message == "success"){
 			if (index.length == 14){
-			var list_pa = document.getElementById("background_control").innerHTML;
 			change_box(1);
 			if (list_pa){
 			document.getElementById("background_control").innerHTML = list_pa + '-' +index;
@@ -412,6 +430,10 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 			}
 			}
 			document.getElementById("index_data").value = '';
+			}
+			if (message == "error"){
+			alert('当前装箱数量超过预装箱数量！');
+			}
 			}
 			if (msg['msg'] == 'error'){
 			alert(msg['data']);
@@ -438,18 +460,27 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
     var id = "text_num_in" + fnsku;
     console.log(id)
     var sum_order = parseInt(document.getElementById(id).innerHTML);
+    var order_num_id = "order_num" + fnsku;
+    var order_num = parseInt(document.getElementById(order_num_id).innerHTML);
     sum_order += parseInt(num);
+    if (sum_order <= order_num){
     document.getElementById(id).innerHTML = sum_order;
     var fnsku_id = fnsku + parseInt(box_num);
     var order_num = parseInt(document.getElementById(fnsku_id).innerHTML);
     document.getElementById(fnsku_id).innerHTML = parseInt(num) + order_num;
+    return "success"
+    }
+    if (sum_order > order_num){
+    return "error"
+    }
     }
 
     function shipment_order(){
     if (confirm('是否提交当前表格信息')){
     var list_data = get_table();
+    document.getElementById("download_control").innerHTML = '';
     var shipment_id = document.getElementById('FBA_id').value;
-    var box_num = document.getElementById('box_num');
+    var box_num = document.getElementById('box_num').value;
 	var list_pa = document.getElementById("background_control").innerHTML;
 	console.log(list_pa)
 	list_pa = list_pa.split("-");
@@ -463,7 +494,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 			success: function(msg){
 			if (msg['msg'] == 'success'){
 			alert('提交成功');
-			clear()
+			clear();
 			download_pdf(msg['data']['filename'], shipment_id, msg['data']['time_data'])
 			}
 			if (msg['msg'] == 'error'){
@@ -478,7 +509,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
     if (confirm('是否保存当前表格信息')){
     var list_data = get_table();
     var shipment_id = document.getElementById('FBA_id').value;
-    var box_num = document.getElementById('box_num');
+    var box_num = document.getElementById('box_num').value;
 	var list_pa = document.getElementById("background_control").innerHTML;
 	console.log(list_pa)
 	list_pa = list_pa.split("-");
@@ -519,10 +550,10 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
     else{
     num = box_name.substring(1, 3);
     }
-    if (parseInt(box_num) == parseInt(num)){
+    if (parseInt(box_num) == parseInt(num) && index == 1){
     alert('当前已经是最后一个箱子了');
     }
-    if (parseInt(num) == 1 && index == 2){
+    else if (parseInt(num) == 1 && index == 2){
     alert('当前已经是第一个箱子了');
     }
     else{
@@ -569,6 +600,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 	}
 
 	function clear(){
+	document.getElementById("button_item").disabled = false;
 	var div = document.getElementById('control_item1');
 	for (var i=1; i > 0; i++){
 	var tr = document.querySelector('tr');
@@ -616,7 +648,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
     if (confirm('是否增加一箱')){
     var list_data = get_table();
     var shipment_id = document.getElementById('FBA_id').value;
-    var box_num = document.getElementById('box_num');
+    var box_num = document.getElementById('box_num').value;
 	var list_pa = document.getElementById("background_control").innerHTML;
 	console.log(list_pa)
 	list_pa = list_pa.split("-");
@@ -629,8 +661,9 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 			data: data_msg,
 			success: function(msg){
 			if (msg['msg'] == 'success'){
+			console.log(msg)
 			clear();
-			create_table(msg['data']['list_data'], msg['data']['list_num'], msg['data']['fba_id'], msg['data']['box_num'])
+			create_table(msg['data']['list_data'], msg['data']['fba_id'], msg['data']['box_num'])
 			if (msg['data']['list_pa']){
 			var str_pa = msg['data']['list_pa'][0]
 			for (var i = 1; i<msg['data']['list_pa'].length; i++){
@@ -651,7 +684,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
     if (confirm('是否删除一箱')){
     var list_data = get_table();
     var shipment_id = document.getElementById('FBA_id').value;
-    var box_num = document.getElementById('box_num');
+    var box_num = document.getElementById('box_num').value;
 	var list_pa = document.getElementById("background_control").innerHTML;
 	console.log(list_pa)
 	list_pa = list_pa.split("-");
@@ -665,7 +698,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 			success: function(msg){
 			if (msg['msg'] == 'success'){
 			clear();
-			create_table(msg['data']['list_data'], msg['data']['list_num'], msg['data']['fba_id'], msg['data']['box_num'])
+			create_table(msg['data']['list_data'], msg['data']['fba_id'], msg['data']['box_num'])
 			if (msg['data']['list_pa']){
 			var str_pa = msg['data']['list_pa'][0]
 			for (var i = 1; i<msg['data']['list_pa'].length; i++){
@@ -682,7 +715,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
     }
     }
 
-    function create_table(list_data, list_num, fba_id, box_num){
+    function create_table(list_data, fba_id, box_num){
     document.getElementById('box_name').value = '第1箱';
     document.getElementById('FBA_id').value = fba_id;
     document.getElementById('box_num').value = box_num;
@@ -691,27 +724,27 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
     var dict_data = list_data[k-1];
     var tr = document.createElement("tr");
     tr.className = "list_control";
-    tr.id = "list_" + dict_data['fnsku'];
+    tr.id = "list_" + dict_data[2];
     var str = "";
     var text_id = "id" + k;
     var str_id = create_control(["list_control1", 'header_text1', k, text_id, 0]);
-    var text_msku = dict_data['msku'] + k;
-    var str_msku = create_control(["list_control2", 'header_text2', dict_data['msku'], text_msku, 0]);
-    var text_fnsku = dict_data['fnsku'];
-    var str_fnsku = create_control(["list_control3", 'header_text3', dict_data['fnsku'], text_fnsku, 0]);
-    var text_name = dict_data['name'] + k;
-    var str_name = create_control(["list_control4", 'header_text4', dict_data['name'], text_name, 0]);
-    var text_sku = dict_data['sku'] + k;
-    var str_sku = create_control(["list_control5", 'header_text5', dict_data['sku'], text_sku, 0]);
-    var text_num_shipment = "order_num" + k;
-    var str_num_shipmen = create_control(["list_control6", 'header_text6', dict_data['num_shipment'], text_num_shipment, 0]);
-    var text_num_in = "text_num_in" + dict_data['fnsku'];
-    var str_num_in = create_control(["list_control7", 'header_text7', msg['data']['list_num'][k-1][0], text_num_in, 0]);
+    var text_msku = dict_data[1] + k;
+    var str_msku = create_control(["list_control2", 'header_text2', dict_data[1], text_msku, 0]);
+    var text_fnsku = dict_data[2];
+    var str_fnsku = create_control(["list_control3", 'header_text3', dict_data[2], text_fnsku, 0]);
+    var text_name = dict_data[3] + k;
+    var str_name = create_control(["list_control4", 'header_text4', dict_data[3], text_name, 0]);
+    var text_sku = dict_data[4] + k;
+    var str_sku = create_control(["list_control5", 'header_text5', dict_data[4], text_sku, 0]);
+    var text_num_shipment = "order_num" + dict_data[2];
+    var str_num_shipmen = create_control(["list_control6", 'header_text6', dict_data[5], text_num_shipment, 0]);
+    var text_num_in = "text_num_in" + dict_data[2];
+    var str_num_in = create_control(["list_control7", 'header_text7', dict_data[6], text_num_in, 0]);
     str = str_id + str_msku + str_fnsku + str_name + str_sku + str_num_shipmen + str_num_in;
     for (var i = 1; i <= parseInt(box_num); i++){
     var control = "list_control";
-    var control_id = dict_data['fnsku'] + i;
-    var str_control = create_control([control, 'header_text', list_num[k-1][i], control_id, 1]);
+    var control_id = dict_data[2] + i;
+    var str_control = create_control([control, 'header_text', dict_data[6+i], control_id, 1]);
     str = str + str_control;
     }
     tr.innerHTML = str;

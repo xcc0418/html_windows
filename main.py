@@ -1,6 +1,5 @@
 import datetime
 from flask import Flask, render_template, request
-from werkzeug.utils import secure_filename
 import pymysql
 import os
 import requests
@@ -13,9 +12,19 @@ from barcode.writer import ImageWriter
 import global_var
 import search
 import shipment
+import stores_requisition
+from flask import session
+# from flask.ext.login import LoginManger, login_required
 
 app = Flask(__name__, template_folder='./static/templates')
+# app.secret_key = 'Cobak'
+# login_manager = LoginManger()
+# login_manager.session_protection = 'strong'
+# login_manager.login_view = 'auth.login'
+# login_manager.init_app(app)
+app.permanent_session_lifetime = datetime.timedelta(seconds=60*60*24)
 app.config['UPLOAD_FOLDER'] = 'F:/html_windows/static/FNSKU装箱信息'
+app.config['SECRET_KEY'] = 'Cobak'
 
 
 # 跨域支持
@@ -100,6 +109,19 @@ def jpg_to_pdf(jpg, pdf_path):
     user.save()
 
 
+# 请求拦截器，对未登录的链接进行拦截，防止非法访问
+@app.before_request
+def before_user():
+    if request.path == "/login":
+        return None
+    if request.path.startswith("/static/images"):
+        return None
+    if request.path.startswith("/api"):
+        return None
+    if not session.get("username"):
+        return render_template('login.html')
+
+
 @app.route('/', methods=["POST", "GET"])
 def index():
     if request.method == 'GET':
@@ -146,6 +168,8 @@ def upload_asinking():
     except:
         r3 = '网络错误失败'
     if r3 == '操作成功' or r3 == '登录成功':
+        session['username'] = username
+        session.permanent = True
         return '<script>alert("登录成功");location.href="/home_page";</script>'
     else:
         return '<script>alert("登录失败");location.href="/";</script>'
@@ -172,6 +196,26 @@ def pa_msg():
         else:
             list_pa = {'msg': 'error', 'data': '请先输入箱号'}
         return json.dumps(list_pa)
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/packing/del_pa',methods=["POST"])
+def del_pa():
+    if request.method == 'POST':
+        dict_data = json.loads(request.form['data'])
+        pa_name = dict_data['pa_name']
+        if pa_name:
+            quantity_msg = search.Quantity()
+            msg, message = quantity_msg.delect_box(pa_name)
+            if msg:
+                return json.dumps({'msg': 'success', 'data': message})
+            else:
+                return json.dumps({'msg': 'error', 'data': message})
+        else:
+            return json.dumps({'msg': 'error'})
+    else:
+        return json.dumps({'msg': 'error'})
 
 
 @app.route('/get_pa', methods=["GET"])
@@ -184,6 +228,8 @@ def get_pa():
         # global_var.pa_name = pa_name
         dict_pa_name = {'success': pa_name}
         return json.dumps(dict_pa_name)
+    else:
+        return json.dumps ({'msg': 'error'})
 
 
 @app.route('/get_fnsku', methods=["POST"])
@@ -200,16 +246,15 @@ def get_fnsku():
                     fnsku_msg = {'msg': 'success', 'data': {'fnsku': fnsku_value, '品名': name[0][0], '装箱数量': 1}}
                 else:
                     fnsku_msg = {'msg': 'error', 'data': '这个fnsku没找到，请检查'}
-                print(fnsku_msg)
                 return json.dumps(fnsku_msg)
             else:
                 fnsku_msg = {'msg': 'error', 'data': '请先获取箱号'}
-                print(fnsku_msg)
                 return json.dumps(fnsku_msg)
-        # else:
-        #     fnsku_msg = {'msg': 'error', 'data': '请先输入fnsku'}
-        #     print(fnsku_msg)
-        #     return json.dumps(fnsku_msg)
+        else:
+            fnsku_msg = {'msg': 'error', 'data': '请先输入fnsku'}
+            return json.dumps(fnsku_msg)
+    else:
+        return json.dumps ({'msg': 'error'})
 
 
 @app.route('/pack_pa', methods=["POST"])
@@ -235,25 +280,35 @@ def pack_pa():
         else:
             msg = {'msg': 'error', 'data': '请先开始装箱操作'}
         return json.dumps(msg)
+    else:
+        return json.dumps ({'msg': 'error'})
 
 
 @app.route('/search_msg', methods=["POST"])
 def search_msg():
     if request.method == 'POST':
         dict_data = json.loads(request.form['data'])
-        print(dict_data)
         if dict_data:
             index = dict_data['index']
             index_data = dict_data['index_data']
-            result = search.get_msg(index, index_data)
-            print(result)
+            # index_data = ['X0033WDOUV', 'X003H2NKFB']
+            print(index_data)
+            search_msg = search.Quantity()
+            result = search_msg.get_msg(index, index_data)
             if result:
-                msg = {'msg': "success", 'data': result}
-                print(msg)
-                return json.dumps(msg)
+                if index == 'FNSKU':
+                    msg = {'msg': "success", 'data': {'file': result[0], 'filename': result[1]}}
+                    return json.dumps(msg)
+                else:
+                    msg = {'msg': "success", 'data': result}
+                    return json.dumps(msg)
             else:
-                msg = {'msg': "error", 'data': '没有找到这个箱号'}
+                msg = {'msg': "error", 'data': '没有找到这个信息'}
                 return json.dumps(msg)
+        else:
+            return json.dumps({'msg': "error", 'data': '请先输入要查询的数据'})
+    else:
+        return json.dumps ({'msg': 'error'})
 
 
 @app.route('/change_location', methods=["POST"])
@@ -270,22 +325,28 @@ def change_location():
             else:
                 msg = {'msg': "error"}
             return json.dumps(msg)
+        else:
+            return json.dumps({'msg': 'error'})
+    else:
+        return json.dumps({'msg': 'error'})
 
 
 @app.route('/uploader', methods=["POST"])
 def uploader():
     if request.method == 'POST':
-        filename = request.files['file']
+        filename = request.files['myfile']
         print(filename)
-        # if filename.find('xlsx') >= 0 or filename.find('xls') >= 0:
-        filename.save(os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(filename.filename)))
-        download_file = search.get_warehouse(filename)
-        if download_file:
-            return json.dumps({'msg': 'success', 'data': {'filename': download_file}})
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/FNSKU装箱信息/装箱信息{data_time}.xlsx'
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        search_msg = search.Quantity()
+        msg = search_msg.get_warehouse(filename)
+        if msg:
+            return json.dumps({'msg': 'success', 'data': {'file': msg[0], 'filename': msg[1]}})
         else:
             return json.dumps({'msg': 'error'})
-        # else:
-        #     return {'msg': 'error', 'data': '请选择表格文件'}
+    else:
+        return json.dumps ({'msg': 'error'})
 
 
 @app.route('/get_order', methods=["POST"])
@@ -301,6 +362,10 @@ def get_order():
                 return json.dumps({'msg': 'success', 'data': msg})
             else:
                 return json.dumps({'msg': 'error', 'data': '出库失败'})
+        else:
+            return json.dumps({'msg': 'error', 'data': '请先输入要出库的物料'})
+    else:
+        return json.dumps ({'msg': 'error'})
 
 
 @app.route('/shipment_upload', methods=["POST"])
@@ -320,6 +385,10 @@ def shipment_upload():
                 return json.dumps({'msg': "success"})
             else:
                 return json.dumps({'msg': 'error'})
+        else:
+            return json.dumps({'msg': 'error'})
+    else:
+        return json.dumps ({'msg': 'error'})
 
 
 @app.route('/shipment_put', methods=["POST"])
@@ -339,6 +408,10 @@ def shipment_put():
                 return json.dumps({'msg': "success"})
             else:
                 return json.dumps({'msg': 'error'})
+        else:
+            return json.dumps({'msg': 'error'})
+    else:
+        return json.dumps ({'msg': 'error'})
 
 
 @app.route('/get_fba', methods=["POST"])
@@ -354,23 +427,10 @@ def get_fba():
                 return json.dumps({'msg': "success", 'data': list_data, 'data_fnsku': list_fnsku})
             else:
                 return json.dumps({'msg': 'error', 'data': msg[1]})
-
-
-# @app.route('/get_number', methods=["POST"])
-# def get_number():
-#     if request.method == 'POST':
-#         dict_data = json.loads(request.form['data'])
-#         list_fnsku = dict_data['list_fnsku']
-#         data_num = dict_data['data_num']
-#         list_order_num = dict_data['list_order_num']
-#         for i in range(0, len(list_order_num)):
-#             num_order = 0
-#             for j in data_num[i]:
-#                 num_order += j
-#             if num_order < list_order_num[i]:
-#                 return json.dumps({'msg': 'error', 'data': f"{list_fnsku[i]}货物总数量不足，没有完全装箱！"})
-#             if num_order > list_order_num[i]:
-#                 return json.dumps({'msg': 'error', 'data': f"{list_fnsku[i]}货物总数量超出申报量，请仔细检查！"})
+        else:
+            return json.dumps({'msg': 'error', 'data': '请先输入FBA货件单号'})
+    else:
+        return json.dumps ({'msg': 'error'})
 
 
 @app.route('/FBA_shipment/get_fnsku', methods=["POST"])
@@ -378,16 +438,23 @@ def get_shipment_fnsku():
     if request.method == 'POST':
         dict_data = json.loads(request.form['data'])
         index = dict_data['index'].strip()
+        list_pa = dict_data['list_pa']
+        print(index)
         if len(index) == 10:
             return json.dumps({'msg': "success", 'data': {'fnsku': index, 'num': 1}})
         if len(index) == 14:
-            result = func(f"select `FNSKU1`, `数量1` from `storage`.`warehouse` where `箱号` = '{index}' and `状态` = '已打包'")
-            if result:
-                return json.dumps({'msg': "success", 'data': {'fnsku': result[0][0], 'num': result[0][1]}})
+            if index in list_pa:
+                return json.dumps({'msg': 'error', 'data': f"这个{index}箱号已重复，请重试！"})
             else:
-                return json.dumps({'msg': 'error', 'data': f"这个{index}箱号没找到，请重试！"})
+                result = func(f"select `FNSKU1`, `数量1` from `storage`.`warehouse` where `箱号` = '{index}' and `状态` = '已打包'")
+                if result:
+                    return json.dumps({'msg': "success", 'data': {'fnsku': result[0][0], 'num': result[0][1]}})
+                else:
+                    return json.dumps({'msg': 'error', 'data': f"这个{index}箱号没找到，请重试！"})
         else:
             return json.dumps({'msg': 'error', 'data': f"{index}格式不正确，请检查输入是否正确！"})
+    else:
+        return json.dumps ({'msg': 'error'})
 
 
 @app.route('/FBA_shipment/save_table', methods=["POST"])
@@ -403,6 +470,8 @@ def save_table():
             return json.dumps({'msg': "success", 'data': {'filename': message[0], 'time_data': message[1]}})
         else:
             return json.dumps({'msg': 'error', 'data': message})
+    else:
+        return json.dumps ({'msg': 'error'})
 
 
 @app.route('/FBA_shipment/shipment_order', methods=["POST"])
@@ -417,6 +486,8 @@ def shipment_order():
             return json.dumps({'msg': "success", 'data': {'filename': message[0], 'time_data': message[1]}})
         else:
             return json.dumps({'msg': 'error', 'data': message})
+    else:
+        return json.dumps ({'msg': 'error'})
 
 
 @app.route('/FBA_shipment/upload_file', methods=["POST"])
@@ -430,6 +501,8 @@ def upload_file():
         list_data, fba_id, box_num, list_num, list_pa = shipment.read_upload_excl(path)
         return json.dumps({'msg': "success", 'data': {'list_data': list_data, 'list_pa': list_pa, 'fba_id': fba_id,
                                                       'box_num': box_num, 'list_num': list_num}})
+    else:
+        return json.dumps({'msg': 'error'})
 
 
 @app.route('/FBA_shipment/add_box', methods=["POST"])
@@ -439,12 +512,15 @@ def add_box():
         list_data = dict_data['list_data']
         shipment_id = dict_data['shipment_id']
         list_pa = dict_data['list_pa']
-        box_num = dict_data['box_num']
+        box_num = int(dict_data['box_num'])+1
         list_data_new = []
-        for i in list_data:
-            list_new = i.append(0)
+        for i in range(1, len(list_data)):
+            list_new = list_data[i]
+            list_new.append(0)
             list_data_new.append(list_new)
         return json.dumps({'msg': "success", 'data': {'list_data': list_data_new, 'list_pa': list_pa, 'fba_id': shipment_id, 'box_num': box_num}})
+    else:
+        return json.dumps({'msg': 'error'})
 
 
 @app.route('/FBA_shipment/minus_box', methods=["POST"])
@@ -454,14 +530,127 @@ def minus_box():
         list_data = dict_data['list_data']
         shipment_id = dict_data['shipment_id']
         list_pa = dict_data['list_pa']
-        box_num = dict_data['box_num']
+        box_num = int(dict_data['box_num'])-1
         list_data_new = []
-        for i in list_data:
-            list_new = i.pop()
+        for i in range(1, len(list_data)):
+            list_new = list_data[i]
+            list_new.pop()
             list_data_new.append(list_new)
         return json.dumps({'msg': "success", 'data': {'list_data': list_data_new, 'list_pa': list_pa, 'fba_id': shipment_id, 'box_num': box_num}})
+    else:
+        return json.dumps ({'msg': 'error'})
+
+
+@app.route('/stores_requisition/get_class', methods=["GET"])
+def get_class():
+    if request.method == "GET":
+        quantity = stores_requisition.Quantity()
+        list_class = quantity.get_class()
+        return json.dumps({'msg': "success", 'data': {'list_class': list_class}})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/stores_requisition/find_po', methods=["POST"])
+def find_po():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        po_name = dict_data['po_name']
+        class_name = dict_data['class_name']
+        quantity = stores_requisition.Quantity()
+        msg, message = quantity.find_po(po_name, class_name)
+        if msg:
+            return json.dumps({'msg': "success", 'data': message})
+        else:
+            return json.dumps({'msg': "error", 'data': message})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/stores_requisition/upload_table', methods=["POST"])
+def upload_table():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        po_name = dict_data['po_name']
+        class_name = dict_data['class_name']
+        list_sku = dict_data['list_sku']
+        list_order = []
+        quantity = stores_requisition.Quantity()
+        # print(list_sku)
+        for i in list_sku:
+            if i[0] != '——' and i[1] != '0':
+                if len(i[0]) > 20:
+                    sku = quantity.find_sku(i[0], 'sku')
+                else:
+                    sku = i[0]
+                if len(i[1]) > 50:
+                    num = quantity.find_sku(i[1], 'num')
+                else:
+                    num = ''.join([x for x in i[1] if x.isdigit()])
+                list_order.append([sku, int(num)])
+        # print(list_order)
+        msg, message = quantity.write_sql(po_name, class_name, list_order)
+        # msg = False
+        # message = [False, False]
+        if msg:
+            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
+        else:
+            return json.dumps({'msg': "error", 'data': message})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/stores_requisition/add_class', methods=["POST"])
+def add_class():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        class_name = dict_data['class_name'].strip('')
+        quantity = stores_requisition.Quantity()
+        msg, message = quantity.add_class(class_name)
+        if msg:
+            return json.dumps({'msg': "success", 'data': message})
+        else:
+            return json.dumps({'msg': "error", 'data': message})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/show_requisition/get_po', methods=["POST"])
+def get_po():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        po_name = dict_data['po_name']
+        print(po_name)
+        quantity = stores_requisition.Quantity()
+        msg = quantity.get_po(po_name)
+        if msg:
+            return json.dumps({'msg': "success", 'data': msg})
+        else:
+            return json.dumps({'msg': "error", 'data': f"没有找到{po_name}这个订单号，请检查"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/show_requisition/uploader_sql', methods=["POST"])
+def uploader_sql():
+    if request.method == 'POST':
+        filename = request.files['myfile']
+        print(filename)
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'C:/装箱信息单/装箱信息{data_time}.xlsx'
+        quantity = stores_requisition.Quantity()
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        msg, message = quantity.upload_sql(path)
+        print(message)
+        if msg:
+            return json.dumps({'msg': "success"})
+        else:
+            return json.dumps({'msg': 'error', 'data': str(message)})
+    else:
+        return json.dumps({'msg': 'error'})
 
 
 if __name__ == '__main__':
     app.after_request(after_request)
-    app.run(port=80)
+    # app.run(port=80, debug=False, threaded=False, processes=100)
+    app.run(port=80, debug=False)
