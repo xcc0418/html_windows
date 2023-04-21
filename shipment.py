@@ -255,6 +255,7 @@ def read_upload_excl(path):
     list_data = []
     list_num = []
     fba_id = wb_sheet.cell(row=1, column=1).value
+    # print(fba_id)
     for i in range(column, 0, -1):
         cell_value1 = wb_sheet.cell(row=3, column=i).value
         if cell_value1:
@@ -266,21 +267,18 @@ def read_upload_excl(path):
     if wb_sheet.cell(row=2, column=1).value.find('PA') >= 0:
         k = 3
         for i in range(1, column):
-            list_pa.append(wb_sheet.cell(row=1, column=i).value)
-    for i in range(k, row+1):
+            pa_name = wb_sheet.cell(row=2, column=i).value
+            if pa_name:
+                list_pa.append(pa_name)
+    for i in range(k+1, row+1):
         id = wb_sheet.cell(row=i, column=1).value
         if id:
-            msku = wb_sheet.cell(row=i, column=2).value
-            fnsku = wb_sheet.cell(row=i, column=3).value
-            name = wb_sheet.cell(row=i, column=4).value
-            sku = wb_sheet.cell(row=i, column=5).value
-            num = wb_sheet.cell(row=i, column=6).value
-            list_data.append({'id': id, 'msku': msku, 'fnsku': fnsku, 'name': name, 'sku': sku, 'num_shipment': num})
-            dict_num = []
-            for j in range(7, column1+1):
-                dict_num.append(wb_sheet.cell(row=i, column=j).value)
-            list_num.append(dict_num)
-    return list_data, fba_id, box_num, list_num, list_pa
+            list_row = []
+            for j in range(1, int(box_num)+8):
+                list_row.append(wb_sheet.cell(row=i, column=j).value)
+            list_data.append(list_row)
+    # print(list_pa)
+    return list_data, fba_id, box_num, list_pa
 
 
 def submmit(list_data, shipment_id, list_pa):
@@ -308,6 +306,7 @@ def submmit(list_data, shipment_id, list_pa):
                 break
             else:
                 for c in range(7, len(list_data[i]) + 1):
+                    print(count, c, list_data[i][(c - 1)])
                     sheet.cell(row=count, column=c, value=list_data[i][(c - 1)])
                 count = count + 1
         else:
@@ -475,36 +474,47 @@ class Quantity(object):
         # 目标md5串
         str_parm = ''
         # 将字典中的key排序
-        for p in sorted(body):
+        for p in sorted (body):
             # 每次排完序的加到串中
             # if body[p]:
             # str类型需要转化为url编码格式
-            if isinstance(body[p], str):
-                str_parm = str_parm + str(p) + "=" + str(urllib.parse.quote(body[p])) + "&"
-                # print(str(urllib.parse.quote(body[p])))
+            if isinstance (body[p], str):
+                str_parm = str_parm + str (p) + "=" + str (urllib.parse.quote (body[p])) + "&"
                 continue
-            # if isinstance(body[p], list):
-            #     print(json.dumps(body[p]))
-            #     str_parm = str_parm + str(p) + "=" + json.dumps(body[p]) + "&"
-            str_parm = str_parm + str(p) + "=" + str(body[p]).replace(" ", "") + "&"
-            # print(str(body[p]).replace(" ",""))
+            # if isinstance(body[p], dict):
+            #     for i in body[p]:
+            #         body[p][i] = str(body[p][i])
+            # if isinstance(body[p], list) and isinstance(body[p][0], dict):
+            #     for i in range(0, len(body[p])):
+            #         for j in body[p][i]:
+            #             body[p][i][j] = str(urllib.parse.quote(str(body[p][i][j])))
+            # if p == "product_list":
+            #     str_parm = str_parm + str(p) + "=" + '[{"sku":"GCWL.897","good_num":1,"bad_num":0,"seller_id":0,"fnsku":""}]' + "&"
+            #     continue
+            #     body[p][0] = str(urllib.parse.quote(body[p][0]))
+            #     print(str(urllib.parse.quote(body[p][0])))
+            str_value = str (body[p])
+            str_value = str_value.replace (" ", "")
+            # str_value = str_value.replace("?", " ")
+            str_value = str_value.replace ("'", "\"")
+            str_parm = str_parm + str (p) + "=" + str_value + "&"
         # 加上对应的key
-        str_parm = str_parm.rstrip('&')
-        # print("字符串拼接:", str_parm)
-
-        # 转换md5串
-        if isinstance(str_parm, str):
+        str_parm = str_parm.rstrip ('&')
+        # print("字符串拼接1:", str_parm)
+        str_parm = str_parm.replace ("?", " ")
+        # print("字符串拼接2:", str_parm)
+        if isinstance (str_parm, str):
             # 如果是unicode先转utf-8
-            parmStr = str_parm.encode("utf-8")
+            parmStr = str_parm.encode ("utf-8")
             # parmStr = str_parm
-            m = hashlib.md5()
-            m.update(parmStr)
-            md5_sign = m.hexdigest()
+            m = hashlib.md5 ()
+            m.update (parmStr)
+            md5_sign = m.hexdigest ()
             # print(m.hexdigest())
-            md5_sign = md5_sign.upper()
+            md5_sign = md5_sign.upper ()
             # print("MD5加密:", md5_sign)
-        eg = EncryptDate(apikey)  # 这里密钥的长度必须是16的倍数
-        res = eg.encrypt(md5_sign)
+        eg = EncryptDate (apikey)  # 这里密钥的长度必须是16的倍数
+        res = eg.encrypt (md5_sign)
         # print("AES加密:", res)
         # print(eg.decrypt(res))
         return res

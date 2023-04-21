@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>新建ASIN</title>
+</head>
+<style>
+.item_list1{
+    width:1000px;
+    height:600px;
+    border:1px solid black;
+    background-color:white;
+}
+.method_item{
+    width:110px;
+    height:40px;
+    border:1px solid black;
+    margin:0px 0px 0px 0px;
+}
+.method{
+    width:100px;
+    height:40px;
+    outline:none;
+    border:none;
+    font-size:28;
+    background-color:white;
+}
+.msg_item{
+    width:200px;
+    height:40px;
+    border:1px solid black;
+    margin:auto;
+}
+.button_item1{
+    width:200px;
+    height:40px;
+    border:1px solid black;
+}
+.file_item{
+    width:300px;
+    height:40px;
+    border:1px solid white;
+}
+.button_item3{
+    width:150px;
+    height:40px;
+    border:1px solid black;
+}
+.button_item4{
+    width:150px;
+    height:40px;
+    font-size: 16px;
+}
+.button_item2{
+    width:100px;
+    height:40px;
+    font-size: 21px;
+}
+.button{
+	float:left;
+	width:150px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.upload{
+	float:left;
+	width:100px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.input_po{
+    float: left;
+    width: 190px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.input_item{
+    float: left;
+    width: 110px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.file_input{
+    float: left;
+    width: 200px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.download_item{
+width:100px;
+height:40px;
+font-size: 25px;
+}
+.download_item2{
+width:150px;
+height:30px;
+font-size: 18px;
+}
+#input_control1{
+margin:0px 0px 0px 500px;
+}
+#download_control2{
+margin:-41px 0px 0px 700px;
+}
+#item_control2{
+margin:0px 0px 0px 350px;
+}
+#download_control{
+margin:0px 0px 41px 500px;
+}
+#text_control1{
+margin:41px 0px 0px 350px;
+}
+#input_control2{
+margin:-41px 0px 41px 450px;
+}
+#text_control2{
+margin:0px 0px 0px 350px;
+}
+#method_control1{
+margin:-41px 0px 41px 450px;
+}
+#text_control3{
+margin:0px 0px 0px 350px;
+}
+#input_control3{
+margin:-41px 0px 41px 450px;
+}
+#text_control4{
+margin:0px 0px 0px 350px;
+}
+#input_control4{
+margin:-41px 0px 41px 450px;
+}
+#text_control5{
+margin:0px 0px 0px 300px;
+}
+#input_control5{
+margin:-41px 0px 41px 450px;
+}
+#text_control6{
+margin:-41px 0px 0px 650px;
+}
+#button_control{
+margin:41px 0px 41px 400px;
+}
+#button_control2{
+margin:-82px 0px 0px 600px;
+}
+</style>
+<body>
+<div>
+    <div class="item_list" id="item_control1">
+        <div class="button_item3" id="input_control1">
+            <input type="file" name="file" id="files" style="display:none" onchange="upload();">
+            <input type="button" value="批量生成MSKU" id="import" class="upload">
+        </div>
+        <div class="download_item2" id="download_control2">
+            <a href="../MSKU生成/msku批量生成模板.xlsx" download="msku批量生成模板.xlsx">下载批量生成模板</a>
+        </div>
+        <div class="download_item" id="download_control">
+        </div>
+    </div>
+    <div class="item_list1" id="item_control2">
+        <div class="button_item2" id="text_control1">
+            SKU：
+        </div>
+        <div class="button_item1" id="input_control2">
+            <input type="text" placeholder="  SKU" class="input_po" autocomplete="off" name="po_name" id="sku">
+        </div>
+        <div class="button_item2" id="text_control2">
+            国家：
+        </div>
+        <div class="method_item" id="method_control1">
+            <select class="method" id="list_country">
+                <option value="美国">美国</option>
+                <option value="英国">英国</option>
+                <option value="加拿大">加拿大</option>
+                <option value="日本">日本</option>
+                <option value="德国">德国</option>
+                <option value="意大利">意大利</option>
+                <option value="西班牙">西班牙</option>
+            </select>
+        </div>
+        <div class="button_item2" id="text_control3">
+            供应商：
+        </div>
+        <div class="button_item1" id="input_control3">
+            <input type="text" placeholder="  供应商" class="input_po" autocomplete="off" id="supplier">
+        </div>
+        <div class="button_item2" id="text_control4">
+            数量：
+        </div>
+        <div class="button_item1" id="input_control4">
+            <input type="text" placeholder="  数量" class="input_po" autocomplete="off" id="num">
+        </div>
+        <div class="button_item4" id="text_control5">
+            MSKU模板：
+        </div>
+        <div class="button_item1" id="input_control5">
+            <input type="text" placeholder="  MSKU模板" class="input_po" autocomplete="off" id="msku">
+        </div>
+        <div class="button_item5" id="text_control6">
+            (注：模板长度不超过23)
+        </div>
+        <div class="button_item3" id="button_control">
+            <button class="button" onclick="create_msku()" id="button_item1">生成msku</button>
+        </div>
+        <div class="button_item3" id="button_control2">
+            <button class="button" onclick="clear_html()">清空</button>
+        </div>
+    </div>
+</div>
+</body>
+<script src="../JavaScript/jquery-3.0.0.min.js"></script>
+<script src="../JavaScript/axios.min.js"></script>
+<script>
+
+  $("#import").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
+      $("#files").click();
+  });
+
+  function upload(){
+  var filename = document.getElementById("files").files[0]['name'];
+  console.log(filename)
+  if (confirm("是否上传"+ filename +"")){
+  document.getElementById("download_control").innerHTML = '';
+  document.getElementById("import").disabled = "ture";
+  var button = document.getElementById('import');
+  button.style.backgroundColor = 'rgb(220, 220, 220)';
+  var formData = new FormData();
+  formData.append("myfile", document.getElementById("files").files[0]);
+  $.ajax({
+  headers:{Accept: "application/json; charset=utf-8"},
+  type: 'POST',
+  url: '/create_msku/uploader_msku',
+  dataType: 'json',
+  data: formData,
+  cache: false,
+  processData: false,
+  contentType: false,
+  success: function(msg){
+  if (msg['msg'] == 'success'){
+  button.style.backgroundColor = 'rgb(252, 252, 252)';
+  document.getElementById("import").disabled = false;
+  download_excl(msg['data']['filename'], msg['data']['file']);
+  alert('生成成功');
+  }
+  if (msg['msg'] == 'error'){
+  button.style.backgroundColor = 'rgb(252, 252, 252)';
+  document.getElementById("import").disabled = false;
+  alert('生成失败');
+  }
+  },
+  error: function(XMLHttpRequest, textStatus, errorThrown) {
+  if (textStatus === 'timeout') {
+  button.style.backgroundColor = 'rgb(252, 252, 252)';
+  document.getElementById("import").disabled = false;
+  alert('请求超时，请重试！');
+  }
+  }
+  })
+  }
+  }
+
+  function create_msku(){
+  if (confirm("是否新建msku")){
+  document.getElementById("download_control").innerHTML = '';
+  document.getElementById("button_item1").disabled = "ture";
+  var sku = document.getElementById("sku").value;
+  var country = document.getElementById("list_country").value;
+  var supplier = document.getElementById("supplier").value;
+  var num = document.getElementById("num").value;
+  var msku = document.getElementById("msku").value;
+  var data = {"data": JSON.stringify({"sku": sku, "country": country, "supplier": supplier, "num": num, "msku": msku})};
+  $.ajax({
+  url: "/create_msku/get_msku",
+  headers:{Accept: "application/json; charset=utf-8"},
+  type: "post",
+  data: data,
+  dataType: 'json',
+  success: function(msg){
+  if (msg['msg'] == 'success'){
+  clear();
+  document.getElementById("button_item1").disabled = false;
+  download_excl(msg['data']['filename'], msg['data']['file']);
+  alert('msku生成成功');
+  }
+  if (msg['msg'] == 'error'){
+  document.getElementById("button_item1").disabled = false;
+  alert(msg['data']);
+  }
+  },
+  error: function(XMLHttpRequest, textStatus, errorThrown) {
+  if (textStatus === 'timeout') {
+  document.getElementById("button_item1").disabled = false;
+  alert('请求超时，请重试！');
+  }
+  }
+  })
+  }
+  }
+
+  function download_excl(filename, file){
+  console.log(filename, file)
+  var pa_name = filename + ".xlsx";
+  var str = "<a href="+ file +" download="+ pa_name +">下载</a>";
+  document.getElementById("download_control").innerHTML = str;
+  }
+
+  function clear_html(){
+  if (confirm("是否清空当前页面")){
+  clear();
+  }
+  }
+
+  function clear(){
+  document.getElementById("button_item1").disabled = false;
+  document.getElementById("sku").value = '';
+  document.getElementById("list_country").value = '';
+  document.getElementById("supplier").value = '';
+  document.getElementById("num").value = '';
+  document.getElementById("msku").value = '';
+  document.getElementById("download_control").innerHTML = '';
+  }
+
+</script>
+</html>

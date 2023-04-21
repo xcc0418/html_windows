@@ -478,6 +478,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
     function shipment_order(){
     if (confirm('是否提交当前表格信息')){
     var list_data = get_table();
+    document.getElementById("button_control2").disabled = "ture";
     document.getElementById("download_control").innerHTML = '';
     var shipment_id = document.getElementById('FBA_id').value;
     var box_num = document.getElementById('box_num').value;
@@ -493,11 +494,13 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 			data: data_msg,
 			success: function(msg){
 			if (msg['msg'] == 'success'){
+			document.getElementById("button_control2").disabled = false;
 			alert('提交成功');
 			clear();
 			download_pdf(msg['data']['filename'], shipment_id, msg['data']['time_data'])
 			}
 			if (msg['msg'] == 'error'){
+			document.getElementById("button_control2").disabled = false;
             alert(msg['data']);
             }
             }
@@ -626,13 +629,21 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
         url: "/FBA_shipment/upload_file",
         type: "POST",
         data: formData,
+        dataType: 'json',
         contentType: false,
         processData: false,
         success: function(msg) {
             if (msg['msg'] == 'success') {
             alert("上传成功！");
             clear();
-            create_table(msg['data']['list_data'], msg['data']['list_num'], msg['data']['fba_id'], msg['data']['box_num'])
+            create_table(msg['data']['list_data'], msg['data']['fba_id'], msg['data']['box_num'])
+            if (msg['data']['list_pa']){
+			var str_pa = msg['data']['list_pa'][0]
+			for (var i = 1; i<msg['data']['list_pa'].length; i++){
+			str_pa = str_pa + '-' +msg['data']['list_pa'][i];
+			}
+			document.getElementById("background_control").innerHTML = str_pa;
+			}
             }
             if (msg['msg'] == 'error') {
                 alert(data.msg);
@@ -716,6 +727,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
     }
 
     function create_table(list_data, fba_id, box_num){
+    console.log(fba_id, box_num)
     document.getElementById('box_name').value = '第1箱';
     document.getElementById('FBA_id').value = fba_id;
     document.getElementById('box_num').value = box_num;

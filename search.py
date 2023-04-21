@@ -9,7 +9,7 @@ import requests
 import base64
 from Crypto.Cipher import AES
 import openpyxl
-from openpyxl.styles import PatternFill
+from openpyxl.styles import PatternFill, Font
 
 
 def find_storage(fnsku):
@@ -101,6 +101,7 @@ def get_warehouse(filename):
 
 def get_po(fnsku):
     list_msg = []
+    num_local = 0
     result = func("SELECT `箱号`, `存放位置`, `数量1` FROM `storage`.`warehouse` WHERE `FNSKU1` = '%s' and `状态` = '已打包'" % fnsku)
     if result:
         name = func("SELECT `品名` FROM `data_read`.`listing` where `FNSKU`='%s'" % fnsku)
@@ -108,15 +109,14 @@ def get_po(fnsku):
         for i in result:
             num += int(i[2])
         for i in result:
+            num_local += i[2]
             if i[1]:
-                msg = f"箱号：{i[0]}   存放位置：{i[1]}   数量：{i[2]}"
-                list_msg.append([name[0][0], fnsku, msg, num])
+                msg = {'箱号': i[0], 'fnsku': fnsku, '品名': name[0][0], '装箱数量': i[2], '装箱状态': '已打包', '装箱位置': i[1]}
+                list_msg.append(msg)
             else:
-                msg = f"箱号：{i[0]}   存放位置：这箱还没有匹配位置   数量：{i[2]}"
-                list_msg.append([name[0][0], fnsku, msg, num])
-    else:
-        list_msg.append(['', fnsku, '没有装箱信息'])
-    return list_msg
+                msg = {'箱号': i[0], 'fnsku': fnsku, '品名': name[0][0], '装箱数量': i[2], '装箱状态': '已打包', '装箱位置': '这箱还没有匹配位置'}
+                list_msg.append(msg)
+    return list_msg, num_local
 
 
 def func(sql, m='r'):
@@ -194,33 +194,47 @@ class Quantity (object):
         # 目标md5串
         str_parm = ''
         # 将字典中的key排序
-        for p in sorted(body):
+        for p in sorted (body):
             # 每次排完序的加到串中
             # if body[p]:
             # str类型需要转化为url编码格式
-            if isinstance(body[p], str):
-                str_parm = str_parm + str(p) + "=" + str(urllib.parse.quot (body[p])) + "&"
-                # print(str(urllib.parse.quote(body[p])))
+            if isinstance (body[p], str):
+                str_parm = str_parm + str (p) + "=" + str (urllib.parse.quote (body[p])) + "&"
                 continue
-            str_parm = str_parm + str(p) + "=" + str(body[p]).replace(" ", "") + "&"
-            # print(str(body[p]).replace(" ",""))
+            # if isinstance(body[p], dict):
+            #     for i in body[p]:
+            #         body[p][i] = str(body[p][i])
+            # if isinstance(body[p], list) and isinstance(body[p][0], dict):
+            #     for i in range(0, len(body[p])):
+            #         for j in body[p][i]:
+            #             body[p][i][j] = str(urllib.parse.quote(str(body[p][i][j])))
+            # if p == "product_list":
+            #     str_parm = str_parm + str(p) + "=" + '[{"sku":"GCWL.897","good_num":1,"bad_num":0,"seller_id":0,"fnsku":""}]' + "&"
+            #     continue
+            #     body[p][0] = str(urllib.parse.quote(body[p][0]))
+            #     print(str(urllib.parse.quote(body[p][0])))
+            str_value = str (body[p])
+            str_value = str_value.replace (" ", "")
+            # str_value = str_value.replace("?", " ")
+            str_value = str_value.replace ("'", "\"")
+            str_parm = str_parm + str (p) + "=" + str_value + "&"
         # 加上对应的key
-        str_parm = str_parm.rstrip('&')
-        # print("字符串拼接:", str_parm)
-
-        # 转换md5串
-        if isinstance(str_parm, str):
+        str_parm = str_parm.rstrip ('&')
+        # print("字符串拼接1:", str_parm)
+        str_parm = str_parm.replace ("?", " ")
+        # print("字符串拼接2:", str_parm)
+        if isinstance (str_parm, str):
             # 如果是unicode先转utf-8
-            parmStr = str_parm.encode("utf-8")
+            parmStr = str_parm.encode ("utf-8")
             # parmStr = str_parm
-            m = hashlib.md5()
+            m = hashlib.md5 ()
             m.update (parmStr)
-            md5_sign = m.hexdigest()
+            md5_sign = m.hexdigest ()
             # print(m.hexdigest())
-            md5_sign = md5_sign.upper()
+            md5_sign = md5_sign.upper ()
             # print("MD5加密:", md5_sign)
-        eg = EncryptDate(apikey)  # 这里密钥的长度必须是16的倍数
-        res = eg.encrypt(md5_sign)
+        eg = EncryptDate (apikey)  # 这里密钥的长度必须是16的倍数
+        res = eg.encrypt (md5_sign)
         # print("AES加密:", res)
         # print(eg.decrypt(res))
         return res
@@ -323,7 +337,7 @@ class Quantity (object):
             if result:
                 for i in result:
                     self.sql()
-                    sql1 = "SELECT * FROM `data_read`.`listing` where `FNSKU`='%s'" % i[1]
+                    sql1 = "SELECT * FROM `data_read`.`listing` where `FNSKU`='%s'" % i['FNSKU1']
                     self.cursor.execute(sql1)
                     name = self.cursor.fetchall()[0]['品名']
                     self.sql_close()
@@ -352,7 +366,7 @@ class Quantity (object):
             if result:
                 for i in result:
                     self.sql()
-                    sql1 = "SELECT * FROM `data_read`.`listing` where `FNSKU`='%s'" % i[1]
+                    sql1 = "SELECT * FROM `data_read`.`listing` where `FNSKU`='%s'" % i['存放位置']
                     self.cursor.execute(sql1)
                     name = self.cursor.fetchall()[0]['品名']
                     self.sql_close()
@@ -396,7 +410,7 @@ class Quantity (object):
     def write_re(self, list_re):
         wb = openpyxl.Workbook()
         wb_sheet = wb.active
-        wb_sheet.append(['关联箱号', 'FNSKU', 'SKU', '品名', '箱号', '存放位置', '数量'])
+        wb_sheet.append(['关联箱号', 'FNSKU', 'SKU', '品名', '箱号', '存放位置', '数量', '总数量'])
         row1 = 1
         for i in list_re:
             if i.find('PA') >= 0:
@@ -404,7 +418,7 @@ class Quantity (object):
                 del msg[7]
                 wb_sheet.append(msg)
                 for q in range(2, 8):
-                    wb_sheet.cell(row=row1 + 1, column=q).fill = PatternFill("solid", fgColor="00FF00")
+                    wb_sheet.cell(row=row1+1, column=q).font = Font(u'微软雅黑', size=11, bold=True, italic=False, strike=False, color='DC143C')
                 row1 += 1
             if i.find('RE') >= 0:
                 list_pa = []
@@ -414,7 +428,7 @@ class Quantity (object):
                         del msg[7]
                         wb_sheet.append(msg)
                         for q in range(2, 8):
-                            wb_sheet.cell(row=row1+1, column=q).fill = PatternFill("solid", fgColor="00FF00")
+                            wb_sheet.cell(row=row1+1, column=q).font = Font(u'微软雅黑', size=11, bold=True, italic=False, strike=False, color='DC143C')
                         row1 += 1
                     else:
                         del msg[7]
@@ -445,9 +459,16 @@ class Quantity (object):
                 count1 = count1 + 1
             else:
                 if last_cell_value1:
+                    num_total = 0
+                    for i in range(starrow2, starrow2 + count1):
+                        num = int(wb_sheet.cell(row=i, column=7).value)
+                        num_total += num
+                    for i in range(starrow2, starrow2 + count1):
+                        wb_sheet.cell(row=i, column=8).value = num_total
                     wb_sheet.merge_cells('B%d:B%d' % (starrow2, starrow2 - 1 + count1))
                     wb_sheet.merge_cells('C%d:C%d' % (starrow2, starrow2 - 1 + count1))
                     wb_sheet.merge_cells('D%d:D%d' % (starrow2, starrow2 - 1 + count1))
+                    wb_sheet.merge_cells('H%d:H%d' % (starrow2, starrow2 - 1 + count1))
                 starrow2 = starrow2 + count1
                 count1 = 1
                 last_cell_value1 = cell_value1

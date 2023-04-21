@@ -250,8 +250,8 @@ margin:-42px 0px 42px 150px;
 			success: function(msg){
             if (msg['msg'] == 'success'){
             if (index == 'FNSKU'){
+            new_control(msg['data']['list_data'], index);
             download_excl(msg['data']['filename'], msg['data']['file']);
-            document.getElementById("background_control").innerHTML = "";
             alert('获取成功');
             }
             else{

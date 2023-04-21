@@ -99,36 +99,47 @@ class Quantity(object):
         # 目标md5串
         str_parm = ''
         # 将字典中的key排序
-        for p in sorted(body):
+        for p in sorted (body):
             # 每次排完序的加到串中
             # if body[p]:
             # str类型需要转化为url编码格式
-            if isinstance(body[p], str):
-                str_parm = str_parm + str(p) + "=" + str(urllib.parse.quote(body[p])) + "&"
-                # print(str(urllib.parse.quote(body[p])))
+            if isinstance (body[p], str):
+                str_parm = str_parm + str (p) + "=" + str (urllib.parse.quote (body[p])) + "&"
                 continue
-            # if isinstance(body[p], list):
-            #     print(json.dumps(body[p]))
-            #     str_parm = str_parm + str(p) + "=" + json.dumps(body[p]) + "&"
-            str_parm = str_parm + str(p) + "=" + str(body[p]).replace(" ", "") + "&"
-            # print(str(body[p]).replace(" ",""))
+            # if isinstance(body[p], dict):
+            #     for i in body[p]:
+            #         body[p][i] = str(body[p][i])
+            # if isinstance(body[p], list) and isinstance(body[p][0], dict):
+            #     for i in range(0, len(body[p])):
+            #         for j in body[p][i]:
+            #             body[p][i][j] = str(urllib.parse.quote(str(body[p][i][j])))
+            # if p == "product_list":
+            #     str_parm = str_parm + str(p) + "=" + '[{"sku":"GCWL.897","good_num":1,"bad_num":0,"seller_id":0,"fnsku":""}]' + "&"
+            #     continue
+            #     body[p][0] = str(urllib.parse.quote(body[p][0]))
+            #     print(str(urllib.parse.quote(body[p][0])))
+            str_value = str (body[p])
+            str_value = str_value.replace (" ", "")
+            # str_value = str_value.replace("?", " ")
+            str_value = str_value.replace ("'", "\"")
+            str_parm = str_parm + str (p) + "=" + str_value + "&"
         # 加上对应的key
-        str_parm = str_parm.rstrip('&')
-        # print("字符串拼接:", str_parm)
-
-        # 转换md5串
-        if isinstance(str_parm, str):
+        str_parm = str_parm.rstrip ('&')
+        # print("字符串拼接1:", str_parm)
+        str_parm = str_parm.replace ("?", " ")
+        # print("字符串拼接2:", str_parm)
+        if isinstance (str_parm, str):
             # 如果是unicode先转utf-8
-            parmStr = str_parm.encode("utf-8")
+            parmStr = str_parm.encode ("utf-8")
             # parmStr = str_parm
-            m = hashlib.md5()
-            m.update(parmStr)
-            md5_sign = m.hexdigest()
+            m = hashlib.md5 ()
+            m.update (parmStr)
+            md5_sign = m.hexdigest ()
             # print(m.hexdigest())
-            md5_sign = md5_sign.upper()
+            md5_sign = md5_sign.upper ()
             # print("MD5加密:", md5_sign)
-        eg = EncryptDate(apikey)  # 这里密钥的长度必须是16的倍数
-        res = eg.encrypt(md5_sign)
+        eg = EncryptDate (apikey)  # 这里密钥的长度必须是16的倍数
+        res = eg.encrypt (md5_sign)
         # print("AES加密:", res)
         # print(eg.decrypt(res))
         return res

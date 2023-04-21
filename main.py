@@ -12,8 +12,13 @@ from barcode.writer import ImageWriter
 import global_var
 import search
 import shipment
+import create_msku
 import stores_requisition
+import male_parent
 from flask import session
+from concurrent.futures import ThreadPoolExecutor
+
+executor = ThreadPoolExecutor(10)
 # from flask.ext.login import LoginManger, login_required
 
 app = Flask(__name__, template_folder='./static/templates')
@@ -27,7 +32,7 @@ app.config['UPLOAD_FOLDER'] = 'F:/html_windows/static/FNSKU装箱信息'
 app.config['SECRET_KEY'] = 'Cobak'
 
 
-# 跨域支持
+# 跨域支持response.setHeader("Set - Cookie", "HttpOnly;Secure;SameSite = None")
 def after_request(resp):
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
@@ -297,7 +302,8 @@ def search_msg():
             result = search_msg.get_msg(index, index_data)
             if result:
                 if index == 'FNSKU':
-                    msg = {'msg': "success", 'data': {'file': result[0], 'filename': result[1]}}
+                    list_data, num_local = search.get_po(index_data)
+                    msg = {'msg': "success", 'data': {'file': result[0], 'filename': result[1], 'list_data': {'data_list': list_data, '装箱总数量': num_local}}}
                     return json.dumps(msg)
                 else:
                     msg = {'msg': "success", 'data': result}
@@ -496,11 +502,11 @@ def upload_file():
         filename = request.files['myfile']
         print(filename)
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'C:/装箱信息单/装箱信息{data_time}.xlsx'
+        path = f'D:/装箱信息单/装箱信息{data_time}.xlsx'
         filename.save(os.path.join('UPLOAD_FOLDER', path))
-        list_data, fba_id, box_num, list_num, list_pa = shipment.read_upload_excl(path)
+        list_data, fba_id, box_num, list_pa = shipment.read_upload_excl(path)
         return json.dumps({'msg': "success", 'data': {'list_data': list_data, 'list_pa': list_pa, 'fba_id': fba_id,
-                                                      'box_num': box_num, 'list_num': list_num}})
+                                                      'box_num': box_num}})
     else:
         return json.dumps({'msg': 'error'})
 
@@ -620,7 +626,7 @@ def get_po():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
         po_name = dict_data['po_name']
-        print(po_name)
+        # print(po_name)
         quantity = stores_requisition.Quantity()
         msg = quantity.get_po(po_name)
         if msg:
@@ -637,7 +643,7 @@ def uploader_sql():
         filename = request.files['myfile']
         print(filename)
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'C:/装箱信息单/装箱信息{data_time}.xlsx'
+        path = f'D:/生产日程表/生产日程表{data_time}.xlsx'
         quantity = stores_requisition.Quantity()
         filename.save(os.path.join('UPLOAD_FOLDER', path))
         msg, message = quantity.upload_sql(path)
@@ -650,7 +656,424 @@ def uploader_sql():
         return json.dumps({'msg': 'error'})
 
 
+@app.route('/create_msku/get_msku', methods=["POST"])
+def get_msku():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        # print(dict_data)
+        sku = dict_data['sku'].strip()
+        country = dict_data['country'].strip()
+        supplier = dict_data['supplier'].strip()
+        num = int(dict_data['num'].strip())
+        msku = dict_data['msku'].strip()
+        if sku and country and supplier and num and msku:
+            if len(msku) <= 23:
+                quantity = create_msku.Quantity()
+                msg, message = quantity.create_msku(sku, country, supplier, num, msku)
+                if msg:
+                    return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
+                else:
+                    if message:
+                        return json.dumps({'msg': 'error', 'data': message})
+                    else:
+                        return json.dumps({'msg': 'error', 'data': '创建失败'})
+            else:
+                return json.dumps({'msg': 'error', 'data': 'msku模板长度超出，请重试'})
+        else:
+            return json.dumps({'msg': 'error', 'data': '请检查输入是否正确'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/create_msku/uploader_msku', methods=["POST"])
+def uploader_msku():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        # print(filename)
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/MSKU生成/MSKU生成{data_time}.xlsx'
+        quantity = create_msku.Quantity()
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        msg, message = quantity.upload_excl(path)
+        if msg:
+            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
+        else:
+            return json.dumps({'msg': 'error', 'data': message})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/change_fnsku/find_fnsku', methods=["POST"])
+def find_fnsku_change():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        # print(dict_data)
+        sku = dict_data['sku'].strip()
+        country = dict_data['country'].strip()
+        if sku and country:
+            quantity = create_msku.Quantity()
+            msg, message = quantity.find_fnsku(sku, country)
+            if msg:
+                return json.dumps({'msg': 'success', 'data': message})
+            else:
+                return json.dumps({'msg': 'error', 'data': message})
+        else:
+            if not sku:
+                return json.dumps({'msg': 'error', 'data': '请检查输入SKU'})
+            elif not country:
+                return json.dumps({'msg': 'error', 'data': '请检查输入国家'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/change_fnsku/get_fnsku', methods=["POST"])
+def get_fnsku_change():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        # print(dict_data)
+        sku = dict_data['sku'].strip()
+        country = dict_data['country'].strip()
+        num = int(dict_data['num'].strip())
+        if sku and country:
+            quantity = create_msku.Quantity()
+            msg, message = quantity.get_fnsku(sku, country, num)
+            if msg:
+                return json.dumps({'msg': 'success', 'data': {"file": message[0], "filename": message[1]}})
+            else:
+                return json.dumps({'msg': 'error', 'data': message})
+        else:
+            if not sku:
+                return json.dumps({'msg': 'error', 'data': '请检查输入SKU'})
+            elif not country:
+                return json.dumps({'msg': 'error', 'data': '请检查输入国家'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/change_fnsku/upload_fnsku', methods=["POST"])
+def upload_fnsku():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        # print(filename)
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/FNSKU获取/FNSKU获取{data_time}.xlsx'
+        quantity = create_msku.Quantity()
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        msg, message = quantity.read_excl(path)
+        if msg:
+            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
+        else:
+            return json.dumps({'msg': 'error', 'data': message})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/change_fnsku/upload_warehouse', methods=["POST"])
+def upload_warehouse():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        # print(filename)
+        warehouse = request.form['warehouse']
+        # warehouse = None
+        print(filename, warehouse)
+        if warehouse:
+            data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+            path = f'D:/换标调整/换标调整{data_time}.xlsx'
+            quantity = create_msku.Quantity()
+            filename.save(os.path.join('UPLOAD_FOLDER', path))
+            msg, message = quantity.change_fnsku(path, warehouse)
+            if msg:
+                return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
+            else:
+                return json.dumps({'msg': 'error', 'data': message})
+        return json.dumps({'msg': 'error', 'data': '请先选择换标仓库'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/change_fnsku/pair_msku', methods=["GET"])
+def pair_msku():
+    if request.method == "GET":
+        find_msku = create_msku.Find_order()
+        flag = find_msku.grt_flag()
+        if int(flag) == 1:
+            return json.dumps({'msg': "error", 'message': '当前正在配对，请勿重复操作'})
+        else:
+            executor.submit(find_msku.get_msku)
+            # print(msg)
+            return json.dumps({'msg': "success"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/pair_msku/pair', methods=["POST"])
+def pair():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        # print(dict_data)
+        sku = dict_data['sku'].strip()
+        asin = dict_data['asin'].strip()
+        store = dict_data['store'].strip()
+        version = float(dict_data['version'].strip())
+        msku = dict_data['msku'].strip()
+        fnsku = dict_data['fnsku'].strip()
+        male_sku = dict_data['male_sku']
+        male_parent = dict_data['male_parent']
+        if sku and asin and store and version and msku and fnsku:
+            quantity = create_msku.Quantity()
+            msg, message = quantity.pair_msku(sku, asin, store, version, msku, fnsku, male_parent, male_sku)
+            if msg:
+                return json.dumps({'msg': "success"})
+            else:
+                return json.dumps({'msg': 'error', 'data': message})
+        else:
+            return json.dumps({'msg': 'error', 'data': '请检查输入是否正确'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/pair_msku/upload_pair', methods=["POST"])
+def upload_pair():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        # print(filename)
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/批量配对/批量配对{data_time}.xlsx'
+        quantity = create_msku.Quantity()
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        msg, message = quantity.batch_pair(path)
+        return json.dumps({'msg': "success", 'data': {"file": msg, "filename": message}})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/male_parent/add_male', methods=["POST"])
+def add_male():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        parent = dict_data['male_parent']
+        if parent:
+            quantity = male_parent.Quantity()
+            msg, message = quantity.add_male(parent.strip(''))
+            if msg:
+                return json.dumps({'msg': "success"})
+            else:
+                return json.dumps({'msg': "error", 'message': message})
+        else:
+            return json.dumps({'msg': "error", 'message': '请先输入本地父体'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/male_parent/upload_male', methods=["POST"])
+def upload_male():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/本地父体/本地父体新增{data_time}.xlsx'
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        quantity = male_parent.Quantity()
+        msg = quantity.upload_male(path)
+        if msg:
+            return json.dumps({'msg': "success"})
+        else:
+            return json.dumps({'msg': "error"})
+    else:
+        return json.dumps({'msg': "error"})
+
+
+@app.route('/male_parent/upload_sku', methods=["POST"])
+def upload_sku():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/本地品名/本地品名新增{data_time}.xlsx'
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        quantity = male_parent.Quantity()
+        msg = quantity.upload_sku(path)
+        if msg:
+            return json.dumps({'msg': "success"})
+        else:
+            return json.dumps({'msg': "error"})
+    else:
+        return json.dumps({'msg': "error"})
+
+
+@app.route('/male_parent/upload_parent', methods=["POST"])
+def upload_parent():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/本地父体/本地父体关联{data_time}.xlsx'
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        quantity = male_parent.Quantity()
+        msg, message = quantity.upload_parent(path)
+        # print (msg, message)
+        if msg:
+            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
+        else:
+            return json.dumps({'msg': "error", 'data': str(message)})
+    else:
+        return json.dumps({'msg': "error"})
+
+
+@app.route('/male_parent/upload_name', methods=["POST"])
+def upload_name():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/本地品名/本地品名关联{data_time}.xlsx'
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        quantity = male_parent.Quantity()
+        msg, message = quantity.upload_name(path)
+        # print(msg, message)
+        if msg:
+            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
+        else:
+            return json.dumps({'msg': "error", 'data': str(message)})
+    else:
+        return json.dumps({'msg': "error"})
+
+
+@app.route('/male_parent/add_sku', methods=["POST"])
+def add_sku():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        sku = dict_data['sku']
+        if sku:
+            quantity = male_parent.Quantity()
+            msg, message = quantity.add_sku(sku.strip(''))
+            if msg:
+                return json.dumps({'msg': "success"})
+            else:
+                return json.dumps({'msg': "error", 'message': message})
+        else:
+            return json.dumps({'msg': "error", 'message': '请先输入本地品名'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/male_parent/relevance_male', methods=["POST"])
+def relevance_male():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        parent = dict_data['male_parent']
+        sku = dict_data['sku']
+        if parent and sku:
+            quantity = male_parent.Quantity()
+            msg, message = quantity.relevance_male(parent.strip(''), sku.strip(''))
+            if msg:
+                return json.dumps({'msg': "success"})
+            else:
+                return json.dumps({'msg': "error", 'message': message})
+        else:
+            if not parent:
+                return json.dumps({'msg': "error", 'message': '请先输入本地父体'})
+            if not sku:
+                return json.dumps({'msg': "error", 'message': '请先输入sku'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/male_parent/relieve_male', methods=["POST"])
+def relieve_male():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        parent = dict_data['male_parent']
+        sku = dict_data['sku']
+        if parent and sku:
+            quantity = male_parent.Quantity()
+            msg, message = quantity.relieve_male(parent.strip(''), sku.strip(''))
+            if msg:
+                return json.dumps({'msg': "success"})
+            else:
+                return json.dumps({'msg': "error", 'message': message})
+        else:
+            if not parent:
+                return json.dumps({'msg': "error", 'message': '请先输入本地父体'})
+            if not sku:
+                return json.dumps({'msg': "error", 'message': '请先输入sku'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/male_parent/relevance_sku', methods=["POST"])
+def relevance_sku():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        local_sku = dict_data['local_sku']
+        sku = dict_data['sku']
+        if local_sku and sku:
+            quantity = male_parent.Quantity()
+            msg, message = quantity.relevance_sku(local_sku.strip(''), sku.strip(''))
+            if msg:
+                return json.dumps({'msg': "success"})
+            else:
+                return json.dumps({'msg': "error", 'message': message})
+        else:
+            if not local_sku:
+                return json.dumps({'msg': "error", 'message': '请先输入本地sku'})
+            if not sku:
+                return json.dumps({'msg': "error", 'message': '请先输入sku'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/male_parent/relieve_sku', methods=["POST"])
+def relieve_sku():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        local_sku = dict_data['local_sku']
+        sku = dict_data['sku']
+        if local_sku and sku:
+            quantity = male_parent.Quantity()
+            msg, message = quantity.relieve_sku(local_sku.strip(''), sku.strip(''))
+            if msg:
+                return json.dumps({'msg': "success"})
+            else:
+                return json.dumps({'msg': "error", 'message': message})
+        else:
+            if not local_sku:
+                return json.dumps({'msg': "error", 'message': '请先输入本地sku'})
+            if not sku:
+                return json.dumps({'msg': "error", 'message': '请先输入sku'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/male_parent/get_male', methods=["POST"])
+def get_male():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        index = dict_data['index']
+        index_data = dict_data['index_data']
+        quantity = male_parent.Quantity()
+        list_data, index = quantity.get_male_parent(index, index_data)
+        if list_data:
+            return json.dumps({'msg': "success", 'data': list_data, 'index': index})
+        else:
+            return json.dumps({'msg': "error", 'message': "当前没有本地父体关系"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/male_parent/get_sku', methods=["POST"])
+def get_sku_male():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        index = dict_data['index']
+        index_data = dict_data['index_data']
+        quantity = male_parent.Quantity()
+        list_data, index = quantity.get_male_sku(index, index_data)
+        if list_data:
+            return json.dumps({'msg': "success", 'data': list_data, 'index': index})
+        else:
+            return json.dumps({'msg': "error", 'message': "当前没有本地品名关系"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
 if __name__ == '__main__':
     app.after_request(after_request)
-    # app.run(port=80, debug=False, threaded=False, processes=100)
-    app.run(port=80, debug=False)
+    app.run(port=80, debug=False, threaded=False, processes=100)
+    # app.run(port=80, debug=False)
