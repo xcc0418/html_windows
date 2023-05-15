@@ -80,16 +80,22 @@
     height:800px;
     border:1px solid black;
     background-color:white;
+    overflow: auto;
 }
 td,th {
         box-sizing: border-box;/* 设置表格样式 */
         border: 1px solid #DDDDDD;
         overflow: hidden;
+        white-space: nowrap;
         text-overflow: ellipsis;
         text-align: center;
         background: #F4F4F5;
         height: 50px;
     }
+thead tr th{
+            position: sticky;
+            top: 0;
+        }
 .list_control1{
     height: 40px;
     width:400px;
@@ -156,8 +162,8 @@ margin:-41px 0px 0px 180px;
 #button_control7{
 margin:-41px 0px 0px 400px;
 }
-#button_control9{
-margin:-41px 0px 0px 825px;
+#button_control10{
+margin:-41px 0px 0px 800px;
 }
 #method_control2{
 margin:-41px 0px 0px 1050px;
@@ -168,8 +174,23 @@ margin:-41px 0px 0px 1180px;
 #button_control8{
 margin:-41px 0px 0px 1400px;
 }
+#button_control9{
+margin:-41px 0px 0px 1600px;
+}
+#download_control2{
+margin:0px 0px 0px 50px;
+}
+#button_control13{
+margin:-41px 0px 0px 200px;
+}
+#button_control11{
+margin:-41px 0px 0px 800px;
+}
+#button_control12{
+margin:-41px 0px 0px 1200px;
+}
 #download_control{
-margin:0px 0px 0px 800px;
+margin:-41px 0px 0px 1400px;
 }
 #table_item1{
 margin:0px 0px 0px 50px;
@@ -244,8 +265,9 @@ margin:-801px 0px 0px 1000px;
             <div class="button_item" id="button_control7">
                 <button class="button" onclick="get_male()" id="button1">获取本地父体详情</button>
             </div>
-            <div class="clear_item" id="button_control9">
-                <button class="clear" onclick="clear_html()">清空</button>
+            <div class="button_item" id="button_control10">
+                <input type="file" name="file" id="files5" style="display:none" onchange="upload_relieve_male();">
+                <input type="button" value="批量解除本地父体关联" id="import5" class="upload">
             </div>
             <div class="method_item1" id="method_control2">
                 <select class="method1" id="list_class2">
@@ -258,6 +280,22 @@ margin:-801px 0px 0px 1000px;
             </div>
             <div class="button_item" id="button_control8">
                 <button class="button" onclick="get_sku()" id="button2">获取本地品名详情</button>
+            </div>
+            <div class="clear_item" id="button_control9">
+                <button class="clear" onclick="clear_html()">清空</button>
+            </div>
+            <div class="download_item" id="download_control2">
+                <a href="template_download.html">下载模板</a>
+            </div>
+            <div class="button_item" id="button_control13">
+                <button class="button" onclick="derive_table(event)" data-name="table1">导出表格</button>
+            </div>
+            <div class="button_item" id="button_control11">
+                <input type="file" name="file" id="files6" style="display:none" onchange="upload_relieve_sku();">
+                <input type="button" value="批量解除本地品名关联" id="import6" class="upload">
+            </div>
+            <div class="button_item" id="button_control12">
+                <button class="button" onclick="derive_table(event)" data-name="table1">导出表格</button>
             </div>
             <div class="download_item" id="download_control">
             </div>
@@ -298,6 +336,14 @@ margin:-801px 0px 0px 1000px;
 
     $("#import4").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
         $("#files4").click();
+    });
+
+    $("#import5").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
+        $("#files5").click();
+    });
+
+    $("#import6").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
+        $("#files6").click();
     });
 
 
@@ -372,7 +418,7 @@ margin:-801px 0px 0px 1000px;
 
     function add_sku(){
     var sku = document.getElementById("sku_input").value;
-    if (confirm("是否新增本地品名"+ male_parent +"")){
+    if (confirm("是否新增本地品名"+ sku +"")){
     var data = {"data": JSON.stringify({"sku": sku})};
     $.ajax({
     url: "/male_parent/add_sku",
@@ -461,7 +507,7 @@ margin:-801px 0px 0px 1000px;
     if (msg['msg'] == 'success'){
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("import3").disabled = false;
-    download_excl(msg['data']['filename'], msg['data']['file']);
+    download_excl(msg['data']['filename'], msg['data']['file'], "本地父体关联详情");
     alert('关联成功');
     }
     if (msg['msg'] == 'error'){
@@ -503,7 +549,7 @@ margin:-801px 0px 0px 1000px;
     if (msg['msg'] == 'success'){
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("import4").disabled = false;
-    download_excl(msg['data']['filename'], msg['data']['file']);
+    download_excl(msg['data']['filename'], msg['data']['file'], "本地品名关联详情");
     alert('关联成功');
     }
     if (msg['msg'] == 'error'){
@@ -523,10 +569,10 @@ margin:-801px 0px 0px 1000px;
     }
     }
 
-    function download_excl(filename, file){
-    console.log(filename, file)
+    function download_excl(filename, file, download_name){
+    document.getElementById("download_control").innerHTML = "";
     var pa_name = filename + ".xlsx";
-    var str = "<a href="+ file +" download="+ pa_name +">下载关联详情</a>";
+    var str = "<a href="+ file +" download="+ pa_name +">"+ download_name +"</a>";
     document.getElementById("download_control").innerHTML = str;
     }
 
@@ -620,6 +666,48 @@ margin:-801px 0px 0px 1000px;
     }
     }
 
+    function upload_relieve_male(){
+    var filename = document.getElementById("files5").files[0]['name'];
+    console.log(filename)
+    if (confirm("是否上传"+ filename +"")){
+    document.getElementById("import5").disabled = "ture";
+    var button = document.getElementById('import5');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
+    var formData = new FormData();
+    formData.append("myfile", document.getElementById("files5").files[0]);
+    $.ajax({
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: 'POST',
+    url: '/male_parent/upload_relieve_male',
+    dataType: 'json',
+    data: formData,
+    cache: false,
+    processData: false,
+    contentType: false,
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import5").disabled = false;
+    download_excl(msg['data']['filename'], msg['data']['file'], "解除本地父体详情");
+    alert('解除成功');
+    }
+    if (msg['msg'] == 'error'){
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import5").disabled = false;
+    alert(msg['data']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import5").disabled = false;
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+    }
+
     function relieve_sku(){
     var local_sku = document.getElementById("sku_input").value;
     var sku = document.getElementById("local_sku").value;
@@ -650,8 +738,49 @@ margin:-801px 0px 0px 1000px;
     }
     }
 
+    function upload_relieve_sku(){
+    var filename = document.getElementById("files6").files[0]['name'];
+    console.log(filename)
+    if (confirm("是否上传"+ filename +"")){
+    document.getElementById("import6").disabled = "ture";
+    var button = document.getElementById('import6');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
+    var formData = new FormData();
+    formData.append("myfile", document.getElementById("files6").files[0]);
+    $.ajax({
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: 'POST',
+    url: '/male_parent/upload_relieve_sku',
+    dataType: 'json',
+    data: formData,
+    cache: false,
+    processData: false,
+    contentType: false,
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import6").disabled = false;
+    download_excl(msg['data']['filename'], msg['data']['file'], "解除本地品名详情");
+    alert('解除成功');
+    }
+    if (msg['msg'] == 'error'){
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import6").disabled = false;
+    alert(msg['data']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import6").disabled = false;
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+    }
+
     function get_male(){
-    if (confirm("是否获取本地父体信息")){
     var index = document.getElementById("list_class1").value;
     var index_data = document.getElementById("get_msg1").value;
     document.getElementById("button1").disabled = "ture";
@@ -668,7 +797,7 @@ margin:-801px 0px 0px 1000px;
     document.getElementById("button1").disabled = false;
     document.getElementById("control_item1").innerHTML = '';
     if (msg['index'] == 0){
-    create_table(msg['data'], "本地父体", "sku")
+    create_table3(msg['data'])
     }
     if (msg['index'] == 1){
     create_table2(msg['data'], "本地父体")
@@ -687,10 +816,8 @@ margin:-801px 0px 0px 1000px;
         }
     })
     }
-    }
 
     function get_sku(){
-    if (confirm("是否获取本地品名信息")){
     var index = document.getElementById("list_class2").value;
     var index_data = document.getElementById("get_msg2").value;
     document.getElementById("button2").disabled = "ture";
@@ -725,7 +852,6 @@ margin:-801px 0px 0px 1000px;
         }
         }
     })
-    }
     }
 
     function clear_html(){
@@ -803,6 +929,86 @@ margin:-801px 0px 0px 1000px;
     document.getElementById("control_item2").appendChild(tr);
     }
     }
+    }
+
+    function create_table3(list_data){
+    var heard_tr = document.createElement("tr");
+    heard_tr.className = "list_control_tr";
+    var heard_name1_str = create_control(['list_control1', '本地父体']);
+    var heard_name2_str = create_control(['list_control2', 'SKU']);
+    var heard_name3_str = create_control(['list_control3', '本地品名']);
+    var heard_str = heard_name1_str + heard_name2_str + heard_name3_str;
+    heard_tr.innerHTML = heard_str;
+    document.getElementById("control_item1").appendChild(heard_tr);
+    for (var i = 0; i < list_data.length; i++){
+    var tr = document.createElement("tr");
+    tr.className = "list_control_tr";
+    var sku = list_data[i][1];
+    var name = list_data[i][0];
+    var local_name = list_data[i][2];
+    var sku_str = create_control(['list_control2', sku]);
+    var name_str = create_control(['list_control1', name]);
+    var local_name_str = create_control(['list_control1', local_name]);
+    var str = name_str + sku_str + local_name_str;
+    tr.innerHTML = str;
+    document.getElementById("control_item1").appendChild(tr);
+    }
+    }
+
+    function derive_table(event){
+    var list_msg = get_table();
+    var table_name = event.target.dataset.name
+    console.log(table_name)
+    var data = {"data": JSON.stringify({"list_msg": list_msg, "table_name": table_name})};
+    $.ajax({
+    url: "/male_parent/derive_table",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "POST",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    console.log(msg)
+    if (msg['msg'] == 'success'){
+    download_excl(msg['data']['filename'], msg['data']['file'], msg['data']['download_name']);
+    alert('导出成功');
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+            document.getElementById("button2").disabled = false;
+        }
+        }
+    })
+    }
+
+    function get_table(){
+    var tabObj1 = document.getElementById('table_control1');
+    var tab = document.getElementById("control_item1");
+    var data1 = [];
+    for(var i=0,rows=tabObj1.rows.length; i<rows; i++){
+    for(var j=0,cells=tabObj1.rows[i].cells.length; j<cells; j++){
+    if(!data1[i]){
+    data1[i] = new Array();
+    }
+    data1[i][j] = tabObj1.rows[i].cells[j].getElementsByTagName('span')[0].innerHTML;
+    }
+    }
+    var tabObj2 = document.getElementById('table_control2');
+    var tab2 = document.getElementById("control_item2");
+    var data2 = [];
+    for(var i=0,rows=tabObj2.rows.length; i<rows; i++){
+    for(var j=0,cells=tabObj2.rows[i].cells.length; j<cells; j++){
+    if(!data2[i]){
+    data2[i] = new Array();
+    }
+    data2[i][j] = tabObj2.rows[i].cells[j].getElementsByTagName('span')[0].innerHTML;
+    }
+    }
+    return [data1, data2];
     }
 
     function create_control(msg_data){

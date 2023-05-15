@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>父体对比</title>
+</head>
+<style>
+.widget{display:inline-block;background:#ff9900;}
+.box{width:50px;height:50px;background:#00b7ee;margin:5px;float:left;}
+.rk_menubox{width:100px;border:1px solid #ddd;position:absolute;z-index:999;background:#fff;}
+.rk_menuitem{line-height:20px;cursor:pointer;padding:0px 5px;}
+.rk_menuitem:hover{background:#f4f4f4;}
+.button_item1{
+    width:140px;
+    height:40px;
+    border:1px solid black;
+}
+.button1{
+	float:left;
+	width:140px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.button_item2{
+    width:120px;
+    height:40px;
+    border:1px solid black;
+}
+.button_item3{
+    width:200px;
+    height:40px;
+    border:1px solid black;
+    margin:auto;
+}
+.button2{
+	float:left;
+	width:120px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.button3{
+	float:left;
+	width:60px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.box_search{
+    width:160px;
+    height:40px;
+    border:1px solid black;
+}
+.input_po{
+    float: left;
+    width: 120px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.method_item{
+    width:110px;
+    height:40px;
+    border:1px solid black;
+    margin:0px 0px 0px 0px;
+}
+.method{
+    width:100px;
+    height:40px;
+    outline:none;
+    border:none;
+    font-size:28;
+    background-color:white;
+}
+.download_item2{
+width:150px;
+height:40px;
+font-size: 18px;
+}
+.background_control{
+     height: 40px;
+     background-color:rgb(220, 220, 220);
+     margin:10px 0px 0px 0px;
+}
+.table_list{
+    width:100%;
+    height:780px;
+}
+.table_item1{
+    width:200px;
+    height:100%;
+    border:1px solid black;
+    background-color:white;
+    overflow: auto;
+}
+.table_item2{
+    width:600px;
+    height:100%;
+    border:1px solid black;
+    background-color:white;
+    overflow: auto;
+}
+tr,th {
+        box-sizing: border-box;/* 设置表格样式 */
+        border: 1px solid #DDDDDD;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-align: center;
+        background: #F4F4F5;
+        height: 50px;
+    }
+thead tr th{
+            position: sticky;
+            top: 0;
+        }
+.list_control_header{
+      position: sticky;
+      top: 0; /* 固定第一行，前7列 */
+      z-index:1;
+    }
+.table-sort {
+    display: inline-block;
+    width: 10px;
+    height: 20px;
+    margin-left: 5px;
+    margin-right: 10px;
+    cursor: pointer !important;
+    vertical-align: middle;
+    position: relative
+}
+
+.table-sort i {
+    border: 6px dashed transparent;
+    position: absolute;
+    left: 5px
+}
+
+.table-sort .sort-asc {
+    top: 2px;
+    border-top: none;
+    border-bottom-style: solid;
+    border-bottom-color: #b2b2b2
+}
+
+.table-sort .sort-asc.cur, .table-sort .sort-asc:hover {
+    border-bottom-color: #fff
+}
+
+.table-sort .sort-desc {
+    bottom: 3px;
+    border-bottom: none;
+    border-top-style: solid;
+    border-top-color: #b2b2b2
+}
+
+.table-sort .sort-desc.cur, .table-sort .sort-desc:hover {
+    border-top-color: #fff
+}
+.list_control1{
+    height: 40px;
+    width:190px;
+    text-align: center;
+}
+
+.windows {
+	display: none;
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,0.5);
+	z-index:2;
+}
+#div1 {
+	background-color:rgb(220, 220, 220);
+	width: 730px;
+	height: 480px;
+	z-index: 1;
+	margin: 12% auto;
+	overflow: auto;
+}
+
+#table_item5 {
+	margin: auto;
+	width: 650px;
+	height: 390px;
+	padding: 0 20px;
+	border:1px solid black;
+    background-color:white;
+    overflow: auto;
+}
+
+#close {
+	padding: 5px;
+}
+h2 {
+	margin: 10px 0;
+	color: black;
+	padding-left: 15px;
+}
+#close-button {
+	float: right;
+	font-size: 30px;
+	color: black;
+	padding-top: 12px;
+	cursor: pointer;
+	padding-right: 15px;
+}
+
+#foot {
+	padding: 5px 0;
+	text-align: center;
+	background: #5cd31b;
+	color: white;
+}
+
+#button_control1{
+margin:0px 0px 0px 50px;
+}
+#button_control9{
+margin:-41px 0px 0px 220px;
+}
+#button_control2{
+margin:-41px 0px 0px 600px;
+}
+#button_control10{
+margin:-41px 0px 0px 770px;
+}
+#button_control3{
+margin:-41px 0px 0px 1050px;
+}
+#box_control3{
+margin:-41px 0px 0px 1300px;
+}
+#button_control7{
+margin:-41px 0px 0px 1480px;
+}
+#box_control1{
+margin:0px 0px 0px 50px;
+}
+#button_control4{
+margin:-41px 0px 0px 220px;
+}
+#method_control1{
+margin:-41px 0px 0px 350px;
+}
+#box_control2{
+margin:-41px 0px 0px 600px;
+}
+#button_control5{
+margin:-41px 0px 0px 770px;
+}
+#button_control6{
+margin:-41px 0px 0px 1050px;
+}
+#button_control8{
+margin:-41px 0px 0px 1300px;
+}
+#table_item1{
+margin:0px 0px 0px 50px;
+}
+#table_item2{
+margin:-781px 0px 0px 270px;
+}
+#table_item3{
+margin:-781px 0px 0px 490px;
+}
+#table_item4{
+margin:-781px 0px 0px 1110px;
+}
+</style>
+<body>
+<div class="item">
+    <div class="function_item">
+        <div class="item_list">
+            <div class="button_item1" id="button_control1">
+                <button class="button1" onclick="get_list_male()" id="button1">获取本地父体</button>
+            </div>
+            <div class="button_item1" id="button_control9">
+                <button class="button1" onclick="derive_table(event)" data-name="table1">导出本地父体表格</button>
+            </div>
+            <div class="button_item1" id="button_control2">
+                <button class="button1" onclick="get_list_asin()" id="button2">获取亚马逊父体</button>
+            </div>
+            <div class="button_item1" id="button_control10">
+                <button class="button1" onclick="derive_table(event)" data-name="table2">导出亚马逊父体表格</button>
+            </div>
+            <div class="button_item2" id="button_control3">
+                <button class="button2" onclick="contrast_parent()" id="button4">对比</button>
+            </div>
+            <div class="box_search" id="box_control3">
+                <input type="text" placeholder="  父ASIN" class="input_po" autocomplete="off" id="parent_asin">
+            </div>
+            <div class="button_item2" id="button_control7">
+                <button class="button2" onclick="download_parent()" id="input3">下载父ASIN</button>
+            </div>
+        </div>
+        <div class="item_list">
+            <div class="box_search" id="box_control1">
+                <input type="text" placeholder="  本地父体" class="input_po" autocomplete="off" id="male_input">
+            </div>
+            <div class="button_item2" id="button_control4">
+                <button class="button2" onclick="find_list_male()" id="input1">查询本地父体</button>
+            </div>
+            <div class="method_item" id="method_control1">
+                <select class="method" id="list_country">
+                    <option value="美国">美国</option>
+                    <option value="英国">英国</option>
+                    <option value="法国">法国</option>
+                    <option value="巴西">巴西</option>
+                    <option value="波兰">波兰</option>
+                    <option value="荷兰">荷兰</option>
+                    <option value="墨西哥">墨西哥</option>
+                    <option value="加拿大">加拿大</option>
+                    <option value="日本">日本</option>
+                    <option value="德国">德国</option>
+                    <option value="意大利">意大利</option>
+                    <option value="西班牙">西班牙</option>
+                    <option value="瑞典">瑞典</option>
+                </select>
+            </div>
+            <div class="box_search" id="box_control2">
+                <input type="text" placeholder="  亚马逊父体" class="input_po" autocomplete="off" id="asin_input">
+            </div>
+            <div class="button_item2" id="button_control5">
+                <button class="button2" onclick="find_list_asin()" id="input2">查询亚马逊父体</button>
+            </div>
+            <div class="button_item3" id="button_control6">
+                <input type="text" placeholder="本地品名" class="input_po" autocomplete="off" id="local_sku">
+                <input type="submit" value="搜索" class="button3" onclick="get_msg()" id="button_item">
+            </div>
+            <div class="download_item2" id="button_control8">
+
+            </div>
+        </div>
+    </div>
+    <div class="table_list" id="table_list">
+        <div class="background_control" id="background_control"></div>
+        <div class="table_item1" id="table_item1">
+            <table class="table_control" id="table_control1">
+                <thead class="header_item" id="control_item1">
+                </thead>
+            </table>
+        </div>
+        <div class="table_item1" id="table_item2">
+            <table class="table_control" id="table_control2">
+                <thead class="header_item" id="control_item2">
+                </thead>
+            </table>
+        </div>
+        <div class="table_item2" id="table_item3">
+            <table class="table_control" id="table_control3">
+                <thead class="header_item" id="control_item3" data-asin="">
+                </thead>
+            </table>
+        </div>
+        <div class="table_item2" id="table_item4">
+            <table class="table_control" id="table_control4">
+                <thead class="header_item" id="control_item4" data-asin="">
+                </thead>
+            </table>
+        </div>
+    </div>
+    <div id="windows" class="windows">
+        <div id="div1" class="content">
+            <div id="close">
+                <span id="close-button" onclick="close_windows()">×</span>
+                <h2 id="sku_msg"></h2>
+            </div>
+            <div class="table_item2" id="table_item5">
+                <table class="table_control" id="table_control5">
+                    <thead class="header_item" id="control_item5">
+                    </thead>
+                </table>
+            </div>
+        </div>
+	</div>
+</div>
+</body>
+<script src="../JavaScript/jquery-3.0.0.min.js"></script>
+<script src="../JavaScript/axios.min.js"></script>
+<script>
+
+    function get_list_male(){
+    document.getElementById("button1").disabled = "ture";
+    var button = document.getElementById('button1');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
+    $.ajax({
+    url: "/parent_message/get_list_male",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "get",
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    create_table(msg['data'], "本地父体");
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("button1").disabled = false;
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("button1").disabled = false;
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("button1").disabled = false;
+    }
+    }
+    })
+    }
+
+    function get_list_asin(){
+    var background = document.getElementById("background_control");
+	background.innerHTML = "正在查询亚马逊父体信息";
+    document.getElementById("button2").disabled = "ture";
+    var button = document.getElementById('button2');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
+    $.ajax({
+    url: "/parent_message/get_list_asin",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "get",
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    create_table(msg['data'], "亚马逊父体");
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("button2").disabled = false;
+    background.innerHTML = "";
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("button2").disabled = false;
+    background.innerHTML = "";
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("button2").disabled = false;
+    background.innerHTML = "";
+    }
+    }
+    })
+    }
+
+    function find_list_asin(){
+    var asin = document.getElementById("asin_input").value;
+    var background = document.getElementById("background_control");
+	background.innerHTML = "正在查询"+ asin;
+    document.getElementById("input2").disabled = "ture";
+    var button = document.getElementById('input2');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
+    var data = {"data": JSON.stringify({"asin": asin})};
+    $.ajax({
+    url: "/parent_message/find_list_asin",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    document.getElementById("control_item2").innerHTML = '';
+    if (asin){
+    var tab = document.getElementById("control_item4");
+    tab.innerHTML = '';
+    tab.dataset.asin = asin;
+    create_table([asin], "亚马逊父体");
+    create_table2(msg['data'], "亚马逊父体", asin);
+    }
+    else{
+    create_table(msg['data'], "亚马逊父体");
+    }
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("input2").disabled = false;
+    document.getElementById("asin_input").value = "";
+    background.innerHTML = "";
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("input2").disabled = false;
+    background.innerHTML = "";
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("input2").disabled = false;
+    background.innerHTML = "";
+    }
+    }
+    })
+    }
+
+    function find_list_male(){
+    var asin = document.getElementById("male_input").value;
+    var background = document.getElementById("background_control");
+	background.innerHTML = "正在查询"+ asin;
+    document.getElementById("input1").disabled = "ture";
+    var button = document.getElementById('input1');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
+    var data = {"data": JSON.stringify({"asin": asin})};
+    $.ajax({
+    url: "/parent_message/find_list_male",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    document.getElementById("control_item1").innerHTML = '';
+    create_table(msg['data'], "本地父体");
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("input1").disabled = false;
+    document.getElementById("male_input").value = "";
+    background.innerHTML = "";
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("input1").disabled = false;
+    background.innerHTML = "";
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("input1").disabled = false;
+    background.innerHTML = "";
+    }
+    }
+    })
+    }
+
+    function create_table(list_data, heard_name1){
+    var heard_tr = document.createElement("tr");
+    heard_tr.className = "list_control_header";
+    var heard_name1_str = create_control(['list_control1', heard_name1]);
+    heard_tr.innerHTML = heard_name1_str;
+    if (heard_name1 == "本地父体"){
+    document.getElementById("control_item1").appendChild(heard_tr);
+    }
+    if (heard_name1 == "亚马逊父体"){
+    document.getElementById("control_item2").appendChild(heard_tr);
+    }
+    for (var i = 0; i < list_data.length; i++){
+    var tr = document.createElement("tr");
+    tr.className = "list_control_tr";
+    var name = list_data[i];
+    var name_str = drag_control(['list_control1', name, 0]);
+    var str = name_str;
+    tr.innerHTML = str;
+    if (heard_name1 == "本地父体"){
+    document.getElementById("control_item1").appendChild(tr);
+    }
+    if (heard_name1 == "亚马逊父体"){
+    document.getElementById("control_item2").appendChild(tr);
+    }
+    }
+    }
+
+    function create_control(msg_data){
+    var msg = msg_data;
+    var str = '';
+    if (msg[2] == 1){
+    str = "<td class="+ msg[0] +"><div class=\"header_text\"><span ondblclick=\"windows_msg(event)\" class="+ msg[3] +" oncontextmenu=\"menu_bar(event)\" onclick=\"close_menu()\">"+ msg[1] +"</span></div></td>";
+    }
+    else if(msg[2] == 2){
+    str = "<td class="+ msg[0] +"><div class=\"header_text\"><span>"+ msg[1] +"</span><span class=\"table-sort\"><i class=\"sort-asc\" onclick=\"ascending_sort(event)\" sort_name="+ msg[1] +" sort_asin="+ msg[3] +"></i><i class=\"sort-desc\" onclick=\"descending_sort(event)\" sort_name="+ msg[1] +" sort_asin="+ msg[3] +"></i></span></div></td>";
+    }
+    else{
+    str = "<td class="+ msg[0] +"><div class=\"header_text\"><span>"+ msg[1] +"</span></div></td>";
+    }
+    return str
+    }
+
+    function drag_control(msg_data){
+    var msg = msg_data;
+    var str = '';
+    str = "<td class="+ msg[0] +"><div class=\"header_text\" ondragend=\"drop(event)\" ondragover=\"allowDrop(event)\" draggable=\"true\" ondragstart=\"drag(event)\" id="+ msg[1] +">"+ msg[1] +"</div></td>";
+    return str
+    }
+
+    function allowDrop(ev){
+    ev.preventDefault();
+    }
+
+    function drag(ev){
+    ev.dataTransfer.setData("text", ev.target.innerHTML);
+    }
+
+    function drop(ev){
+    ev.preventDefault();
+    var data = ev.target.innerHTML;
+    console.log(data)
+    find_asin_parent(data)
+    }
+
+    function find_asin_parent(asin){
+    var background = document.getElementById("background_control");
+	background.innerHTML = "正在获取"+ asin +"的相关信息";
+	var country = document.getElementById("list_country").value;
+    var data = {"data": JSON.stringify({"asin": asin, "country": country})};
+    console.log(data)
+    $.ajax({
+    url: "/parent_message/find_asin_parent",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    if (msg['male'] == "亚马逊父体"){
+    var tab = document.getElementById("control_item4");
+    tab.innerHTML = '';
+    background.innerHTML = "";
+    tab.dataset.asin = asin;
+    create_table2(msg['data'], "亚马逊父体", asin);
+    }
+    if (msg['male'] == "本地父体"){
+    var tab = document.getElementById("control_item3");
+    tab.innerHTML = '';
+    background.innerHTML = "";
+    tab.dataset.asin = asin;
+    create_table2(msg['data'], "本地父体", asin);
+    }
+    }
+    if (msg['msg'] == 'error'){
+    background.innerHTML = "";
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    background.innerHTML = "";
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
+    function create_table2(list_data, heard_name, asin){
+    var heard_tr = document.createElement("tr");
+    heard_tr.className = "list_control_header";
+    var heard_name1_str = create_control(['list_control1', heard_name, 0, 0]);
+    var heard_name2_str = create_control(['list_control1', 'SKU', 0, 0]);
+    var heard_name3_str = create_control(['list_control1', 'FBA库存', 2, asin]);
+    var heard_name4_str = create_control(['list_control1', 'FBA在途', 2, asin]);
+    var heard_name5_str = create_control(['list_control1', '本地库存', 2, asin]);
+    var heard_name6_str = create_control(['list_control1', '预计库存', 2, asin]);
+    var heard_name7_str = create_control(['list_control1', '30天销量', 2, asin]);
+    heard_tr.innerHTML = heard_name1_str + heard_name2_str + heard_name3_str + heard_name4_str + heard_name5_str + heard_name6_str + heard_name7_str;
+    if (heard_name == "本地父体"){
+    document.getElementById("control_item3").appendChild(heard_tr);
+    }
+    if (heard_name == "亚马逊父体"){
+    document.getElementById("control_item4").appendChild(heard_tr);
+    }
+    for (var i = 0; i < list_data.length; i++){
+    var tr = document.createElement("tr");
+    tr.className = "list_control_tr";
+    var name = list_data[i][0];
+    var name_str = create_control(['list_control1', name, 0, 0]);
+    var sku = list_data[i][1];
+    var sku_str = create_control(['list_control1', sku, 1, asin]);
+    var num = list_data[i][2];
+    var num_str = create_control(['list_control1', num, 0, 0]);
+    var order = list_data[i][5];
+    var order_str = create_control(['list_control1', order, 0, 0]);
+    var sale_num = list_data[i][4];
+    var sale_num_str = create_control(['list_control1', sale_num, 0, 0]);
+    var predict_num = list_data[i][6];
+    var predict_num_str = create_control(['list_control1', predict_num, 0, 0]);
+    var predict_fba = list_data[i][3];
+    var predict_fba_str = create_control(['list_control1', predict_fba, 0, 0]);
+    var str = name_str + sku_str + num_str + predict_fba_str + order_str + predict_num_str + sale_num_str;
+    tr.innerHTML = str;
+    if (heard_name == "本地父体"){
+    document.getElementById("control_item3").appendChild(tr);
+    }
+    if (heard_name == "亚马逊父体"){
+    document.getElementById("control_item4").appendChild(tr);
+    }
+    }
+    }
+
+    function contrast_parent(){
+    if (confirm("是否对比父体")){
+    document.getElementById("button4").disabled = "ture";
+    var background = document.getElementById("background_control");
+	background.innerHTML = "正在对比父体";
+	var list_data = get_table();
+    var data = {"data": JSON.stringify({"list_male": list_data[0], "list_asin": list_data[1]})};
+    $.ajax({
+    url: "/parent_message/contrast_parent",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    var tab = document.getElementById("control_item3");
+    tab.innerHTML = '';
+    var asin = tab.dataset.asin;
+    var tab2 = document.getElementById("control_item4");
+    tab2.innerHTML = '';
+    var asin2 = tab2.dataset.asin;
+    background.innerHTML = "";
+    document.getElementById("button4").disabled = false;
+    create_table2(msg['list_male'], "本地父体", asin);
+    create_table2(msg['list_asin'], "亚马逊父体", asin2);
+    }
+    if (msg['msg'] == 'error'){
+    background.innerHTML = "";
+    document.getElementById("button4").disabled = false;
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    background.innerHTML = "";
+    document.getElementById("button4").disabled = false;
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+    }
+
+    function get_table(){
+    var tabObj1 = document.getElementById('table_control3');
+    var tab = document.getElementById("control_item3");
+    var asin = tab.dataset.asin;
+    var data1 = [];
+    for(var i=0,rows=tabObj1.rows.length; i<rows; i++){
+    for(var j=0,cells=tabObj1.rows[i].cells.length; j<cells; j++){
+    if(!data1[i]){
+    data1[i] = new Array();
+    }
+    data1[i][j] = tabObj1.rows[i].cells[j].getElementsByTagName('span')[0].innerHTML;
+    data1[i][0] = asin;
+    }
+    }
+    data1[0][0] = "本地父体";
+    var tabObj2 = document.getElementById('table_control4');
+    var tab2 = document.getElementById("control_item4");
+    var asin2 = tab2.dataset.asin;
+    var data2 = [];
+    for(var i=0,rows=tabObj2.rows.length; i<rows; i++){
+    for(var j=0,cells=tabObj2.rows[i].cells.length; j<cells; j++){
+    if(!data2[i]){
+    data2[i] = new Array();
+    }
+    data2[i][j] = tabObj2.rows[i].cells[j].getElementsByTagName('span')[0].innerHTML;
+    data2[i][0] = asin2;
+    }
+    }
+    data2[0][0] = "亚马逊父体";
+    return [data1, data2];
+    }
+
+    function get_table2(){
+    var tabObj1 = document.getElementById('table_control3');
+    var data1 = [];
+    for(var i=0,rows=tabObj1.rows.length; i<rows; i++){
+    for(var j=0,cells=tabObj1.rows[i].cells.length; j<cells; j++){
+    if(!data1[i]){
+    data1[i] = new Array();
+    }
+    data1[i][j] = tabObj1.rows[i].cells[j].getElementsByTagName('span')[0].innerHTML;
+    }
+    }
+    var tabObj2 = document.getElementById('table_control4');
+    var data2 = [];
+    for(var i=0,rows=tabObj2.rows.length; i<rows; i++){
+    for(var j=0,cells=tabObj2.rows[i].cells.length; j<cells; j++){
+    if(!data2[i]){
+    data2[i] = new Array();
+    }
+    data2[i][j] = tabObj2.rows[i].cells[j].getElementsByTagName('span')[0].innerHTML;
+    }
+    }
+    return [data1, data2];
+    }
+
+    function windows_msg(ev){
+    var sku = ev.target.innerHTML;
+    var asin = ev.target.className;
+    var country = document.getElementById("list_country").value;
+    var data = {"data": JSON.stringify({"sku": sku, 'asin': asin, 'country': country})};
+    $.ajax({
+    url: "/parent_message/windows_msg",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    var div = document.getElementById('windows');
+    div.style.display = "block";
+    document.getElementById('sku_msg').innerHTML = "";
+    document.getElementById('control_item5').innerHTML = "";
+    document.getElementById('sku_msg').innerHTML = sku + "详情";
+    create_table3(msg['data']);
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
+    function close_windows() {
+    var div = document.getElementById('windows');
+	div.style.display = "none";
+    }
+    window.onclick = function close(e) {
+	if (e.target == div) {
+	    var div = document.getElementById('windows');
+		div.style.display = "none";
+	}
+    }
+    function create_table3(list_data){
+    var heard_tr = document.createElement("tr");
+    heard_tr.className = "list_control_tr";
+    var heard_name1_str = create_control(['list_control1', 'SKU', 0]);
+    var heard_name2_str = create_control(['list_control1', 'FNSKU', 0]);
+    var heard_name3_str = create_control(['list_control1', 'FBA库存', 0]);
+    var heard_name4_str = create_control(['list_control1', 'FBA在途', 0]);
+    var heard_name5_str = create_control(['list_control1', '30天销量', 0]);
+    var heard_name6_str = create_control(['list_control1', '本地库存', 0]);
+    var heard_name7_str = create_control(['list_control1', '预计库存', 0]);
+    var heard_name8_str = create_control(['list_control1', '国家', 0]);
+    heard_tr.innerHTML = heard_name1_str + heard_name2_str + heard_name3_str + heard_name4_str + heard_name5_str + heard_name6_str + heard_name7_str + heard_name8_str;
+    document.getElementById("control_item5").appendChild(heard_tr);
+    for (var i = 0; i < list_data.length; i++){
+    var tr = document.createElement("tr");
+    tr.className = "list_control_tr";
+    var sku = list_data[i][0];
+    var sku_str = create_control(['list_control1', sku, 0, 0]);
+    var fnsku = list_data[i][1];
+    var fnsku_str = create_control(['list_control1', fnsku, 0, 0]);
+    var num = list_data[i][2];
+    var num_str = create_control(['list_control1', num, 0, 0]);
+    var predict_fba = list_data[i][3];
+    var predict_fba_str = create_control(['list_control1', predict_fba, 0, 0]);
+    var sale_num = list_data[i][4];
+    var sale_num_str = create_control(['list_control1', sale_num, 0, 0]);
+    var order = list_data[i][5];
+    var order_str = create_control(['list_control1', order, 0, 0]);
+    var predict_num = list_data[i][6];
+    var predict_num_str = create_control(['list_control1', predict_num, 0, 0]);
+    var country = list_data[i][7];
+    var country_str = create_control(['list_control1', country, 0, 0]);
+    var str = sku_str + fnsku_str + num_str + predict_fba_str + sale_num_str + order_str + predict_num_str + country_str;
+    tr.innerHTML = str;
+    document.getElementById("control_item5").appendChild(tr);
+    }
+    }
+
+    function ascending_sort(event){
+    var index = event.target.getAttribute("sort_name");
+    var asin_index = event.target.getAttribute("sort_asin");
+    console.log(asin_index)
+	var list_data = get_table2();
+    var data = {"data": JSON.stringify({"list_male": list_data[0], "list_asin": list_data[1], "index": index, "sort_asin": asin_index})};
+    $.ajax({
+    url: "/parent_message/ascending_sort",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    var tab = document.getElementById("control_item3");
+    tab.innerHTML = '';
+    var asin = tab.dataset.asin;
+    var tab2 = document.getElementById("control_item4");
+    tab2.innerHTML = '';
+    var asin2 = tab2.dataset.asin;
+    if (msg['list_male'].length > 0){
+    create_table2(msg['list_male'], "本地父体", asin);
+    }
+    if (msg['list_asin'].length > 0){
+    create_table2(msg['list_asin'], "亚马逊父体", asin2);
+    }
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+    function descending_sort(event){
+    var index = event.target.getAttribute("sort_name");
+    var asin_index = event.target.getAttribute("sort_asin");
+    console.log(asin_index)
+	var list_data = get_table2();
+    var data = {"data": JSON.stringify({"list_male": list_data[0], "list_asin": list_data[1], "index": index, "sort_asin": asin_index})};
+    $.ajax({
+    url: "/parent_message/descending_sort",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    var tab = document.getElementById("control_item3");
+    tab.innerHTML = '';
+    var asin = tab.dataset.asin;
+    var tab2 = document.getElementById("control_item4");
+    tab2.innerHTML = '';
+    var asin2 = tab2.dataset.asin;
+    if (msg['list_male'].length > 0){
+    create_table2(msg['list_male'], "本地父体", asin);
+    }
+    if (msg['list_asin'].length > 0){
+    create_table2(msg['list_asin'], "亚马逊父体", asin2);
+    }
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
+    function download_parent(){
+    var asin = document.getElementById("parent_asin").value;
+    console.log(asin)
+    var data = {"data": JSON.stringify({"asin": asin})};
+    $.ajax({
+    url: "/parent_message/download_parent",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    var download_name = asin + "详情";
+    download_excl(msg['filename'], msg['file'], download_name)
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
+    function download_excl(filename, file, download_name){
+    document.getElementById("button_control8").innerHTML = "";
+    var pa_name = filename + ".xlsx";
+    var str = "<a href="+ file +" download="+ pa_name +">"+ download_name +"</a>";
+    document.getElementById("button_control8").innerHTML = str;
+    }
+
+    function menu_bar(event){
+    event.preventDefault();
+    if (event.which == 3){
+    var asin = event.target.className;
+    var sku = String(event.target.innerHTML);
+    var table = document.getElementById('control_item3');
+    var table_asin = table.dataset.asin;
+    show_menu(sku, asin, table_asin);
+    }
+    else{
+    close_menu();
+    }
+    }
+
+    function show_menu(sku, asin, table_asin){
+    close_menu();
+    var menu_str = "<div id=\"rk_menubox\" class=\"rk_menubox\">"+
+                   "<div class=\"rk_menuitem\"><span class=\"menu_button\" onclick=\"relieve_sku(event)\" data_sku='"+ sku +"' data_asin="+ asin +" data_table_asin="+ table_asin +">解除关联</span></div>"+
+                   "<div class=\"rk_menuitem\"><span class=\"menu_button\" onclick=\"relevance_sku(event)\" data_sku='"+ sku +"' data_asin="+ asin +" data_table_asin="+ table_asin +">关联</span></div></div>";
+
+    if($('#rk_menubox')[0]==null){
+      $('body').append(menu_str);
+    }
+
+    var evt=window.event || arguments[0];
+
+    // 获取鼠标右键按下后的位置,据此定义菜单显示的位置
+    var rightedge=$('#rk_menubox').width()+evt.clientX;
+
+    // 判断弹出的菜单是否有溢出浏览器窗口的宽度
+    if(rightedge>$(window).width()){
+      var _left=evt.clientX-$('#rk_menubox').width();
+      $('#rk_menubox').css({top:evt.clientY+'px',left:_left+'px'});
+    }else{
+      $('#rk_menubox').css({top:evt.clientY+'px',left:evt.clientX+'px'});
+    }
+    }
+
+    document.οncοntextmenu=function(event){
+    if($(event.target).attr('class')=='rk_menubox'){
+      return false;
+    }
+    }
+
+
+    function relieve_sku(event){
+    close_menu();
+    var asin = event.target.getAttribute("data_asin");
+    var sku = event.target.getAttribute("data_sku");
+    var table_asin = event.target.getAttribute("data_table_asin");
+    var data = {"data": JSON.stringify({"asin": asin, "sku": sku, "table_asin": table_asin})};
+    $.ajax({
+    url: "/parent_message/menu_relieve_sku",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    alert(msg['message']);
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
+    function relevance_sku(event){
+    close_menu();
+    var asin = event.target.getAttribute("data_asin");
+    var sku = event.target.getAttribute("data_sku");
+    var table_asin = event.target.getAttribute("data_table_asin");
+    var data = {"data": JSON.stringify({"asin": asin, "sku": sku, "table_asin": table_asin})};
+    $.ajax({
+    url: "/parent_message/menu_relevance_sku",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    alert(msg['message']);
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
+    function close_menu(){
+    if($('#rk_menubox')[0]!=null){
+      $('#rk_menubox').remove();
+    }
+    }
+
+    function derive_table(event){
+    var list_msg = get_table();
+    var table_name = event.target.dataset.name
+    var data = {"data": JSON.stringify({"list_msg": list_msg, "table_name": table_name})};
+    $.ajax({
+    url: "/male_parent/derive_table",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "POST",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    console.log(msg)
+    if (msg['msg'] == 'success'){
+    download_excl(msg['data']['filename'], msg['data']['file'], msg['data']['download_name']);
+    alert('导出成功');
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+            document.getElementById("button2").disabled = false;
+        }
+        }
+    })
+    }
+
+    function get_msg(){
+    var local_sku = document.getElementById("local_sku").value;
+    var list_msg = get_table();
+    var data = {"data": JSON.stringify({"list_male": list_msg[0], "list_asin": list_msg[1], "local_sku": local_sku})};
+    $.ajax({
+    url: "/parent_message/find_parent_sku",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "POST",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    console.log(msg)
+    if (msg['msg'] == 'success'){
+    var tab = document.getElementById("control_item3");
+    tab.innerHTML = '';
+    var asin = tab.dataset.asin;
+    var tab2 = document.getElementById("control_item4");
+    tab2.innerHTML = '';
+    var asin2 = tab2.dataset.asin;
+    create_table2(msg['list_male'], "本地父体", asin);
+    create_table2(msg['list_asin'], "亚马逊父体", asin2);
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+            document.getElementById("button2").disabled = false;
+        }
+        }
+    })
+    }
+
+</script>
+</html>

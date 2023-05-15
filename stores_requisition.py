@@ -184,7 +184,7 @@ class Quantity(object):
                 self.sql_close()
                 return False, '这个领料单号已被创建，请检查'
             else:
-                sql = "select * from `storage`.`po_order` where `PO` = '%s'" % po_number
+                sql = "select * from `storage`.`po_sku` where `PO` = '%s'" % po_number
                 self.cursor.execute(sql)
                 result1 = self.cursor.fetchall()
                 self.sql_close()

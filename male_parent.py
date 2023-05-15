@@ -37,6 +37,7 @@ class EncryptDate:
         msg = self.aes.decrypt(res).decode("utf8")
         return self.unpad(msg)
 
+
 class Quantity(object):
     def __init__(self):
         self.app_id = "ak_nEfE94OSogf3x"
@@ -137,6 +138,20 @@ class Quantity(object):
         # print(eg.decrypt(res))
         return res
 
+    def open_downloads(self):
+        self.sql()
+        sql = "update `flag`.`amazon_form_flag` set `flag_num` = 1 where `flag_name` = 'parent'"
+        self.cursor.execute(sql)
+        self.connection.commit()
+        self.sql_close()
+
+    def close_downloads(self):
+        self.sql()
+        sql = "update `flag`.`amazon_form_flag` set `flag_num` = 0 where `flag_name` = 'parent'"
+        self.cursor.execute(sql)
+        self.connection.commit()
+        self.sql_close()
+
     def add_male(self, male_parent):
         self.sql()
         sql = "select * from `amazon_form`.`list_parent` where `本地父体` = '%s'" % male_parent
@@ -157,95 +172,159 @@ class Quantity(object):
                 return False, e
 
     def upload_male(self, filename):
-        try:
-            wb = openpyxl.load_workbook(filename)
-            wb_sheet = wb.active
-            row1 = wb_sheet.max_row
-            for i in range(row1, 0, -1):
-                cell_value1 = wb_sheet.cell(row=i, column=1).value
-                if cell_value1:
-                    row1 = i
-                    break
-            for i in range(2, row1+1):
-                male_parent = wb_sheet.cell(row=i, column=1).value
-                if male_parent:
-                    msg, message = self.add_male(male_parent)
-                    if msg:
-                        continue
-                    else:
-                        wb_sheet.cell(row=i, column=2).value = message
-            wb.save(filename)
-            return True
-        except Exception as e:
-            print(e)
+        self.sql()
+        sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        if result[0]['flag_num'] == 0:
+            try:
+                self.open_downloads()
+                wb = openpyxl.load_workbook(filename)
+                wb_sheet = wb.active
+                row1 = wb_sheet.max_row
+                for i in range(row1, 0, -1):
+                    cell_value1 = wb_sheet.cell(row=i, column=1).value
+                    if cell_value1:
+                        row1 = i
+                        break
+                for i in range(2, row1+1):
+                    male_parent = wb_sheet.cell(row=i, column=1).value
+                    if male_parent:
+                        msg, message = self.add_male(male_parent)
+                        if msg:
+                            continue
+                        else:
+                            wb_sheet.cell(row=i, column=2).value = message
+                wb.save(filename)
+                self.close_downloads()
+                return True
+            except Exception as e:
+                print(e)
+                self.close_downloads()
+                return False
+        else:
             return False
 
     def upload_sku(self, filename):
-        try:
-            wb = openpyxl.load_workbook(filename)
-            wb_sheet = wb.active
-            row1 = wb_sheet.max_row
-            for i in range(row1, 0, -1):
-                cell_value1 = wb_sheet.cell(row=i, column=1).value
-                if cell_value1:
-                    row1 = i
-                    break
-            for i in range(2, row1+1):
-                male_sku = wb_sheet.cell(row=i, column=1).value
-                if male_sku:
-                    msg, message = self.add_sku(male_sku)
-                    if msg:
-                        continue
-                    else:
-                        wb_sheet.cell(row=i, column=2).value = message
-            wb.save(filename)
-            return True
-        except Exception as e:
-            print(e)
+        self.sql()
+        sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        if result[0]['flag_num'] == 0:
+            try:
+                self.open_downloads()
+                wb = openpyxl.load_workbook(filename)
+                wb_sheet = wb.active
+                row1 = wb_sheet.max_row
+                for i in range(row1, 0, -1):
+                    cell_value1 = wb_sheet.cell(row=i, column=1).value
+                    if cell_value1:
+                        row1 = i
+                        break
+                for i in range(2, row1+1):
+                    male_sku = wb_sheet.cell(row=i, column=1).value
+                    if male_sku:
+                        msg, message = self.add_sku(male_sku)
+                        if msg:
+                            continue
+                        else:
+                            wb_sheet.cell(row=i, column=2).value = message
+                wb.save(filename)
+                self.close_downloads()
+                return True
+            except Exception as e:
+                print(e)
+                self.close_downloads()
+                return False
+        else:
             return False
 
     def upload_parent(self, filename):
-        try:
-            wb = openpyxl.load_workbook(filename)
-            wb_sheet = wb.active
-            row1 = wb_sheet.max_row
-            for i in range(row1, 0, -1):
-                cell_value1 = wb_sheet.cell(row=i, column=1).value
-                if cell_value1:
-                    row1 = i
-                    break
-            for i in range(2, row1+1):
-                male_parent = wb_sheet.cell(row=i, column=1).value
-                sku = wb_sheet.cell(row=i, column=2).value
-                msg, message = self.relevance_male(male_parent, sku)
-                wb_sheet.cell(row=i, column=3).value = message
-            time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-            wb.save(f'./static/本地父体/关联本地父体_{time_now}.xlsx')
-            return True, [f'../本地父体/关联本地父体_{time_now}.xlsx', f"关联本地父体_{time_now}.xlsx"]
-        except Exception as e:
-            return False, e
+        self.sql()
+        sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        if result[0]['flag_num'] == 0:
+            try:
+                self.open_downloads()
+                wb = openpyxl.load_workbook(filename)
+                wb_sheet = wb.active
+                row1 = wb_sheet.max_row
+                for i in range(row1, 0, -1):
+                    cell_value1 = wb_sheet.cell(row=i, column=1).value
+                    if cell_value1:
+                        row1 = i
+                        break
+                for i in range(2, row1+1):
+                    male_parent = wb_sheet.cell(row=i, column=1).value
+                    if male_parent:
+                        sku = wb_sheet.cell(row=i, column=2).value
+                        if sku:
+                            msg, message = self.relevance_male(male_parent, sku)
+                        else:
+                            male_sku = wb_sheet.cell(row=i, column=3).value
+                            list_sku, message = self.get_male_sku("本地品名", male_sku)
+                            if list_sku:
+                                flag = 1
+                                for j in list_sku:
+                                    sku = j[1]
+                                    msg, message = self.relevance_male(male_parent, sku)
+                                    if msg:
+                                        continue
+                                    else:
+                                        flag = 0
+                                if flag:
+                                    message = "关联成功"
+                                else:
+                                    message = "关联失败"
+                            else:
+                                message = "没有找到这个本地品名"
+                        wb_sheet.cell(row=i, column=3).value = message
+                time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+                wb.save(f'./static/本地父体/关联本地父体_{time_now}.xlsx')
+                self.close_downloads()
+                return True, [f'../本地父体/关联本地父体_{time_now}.xlsx', f"关联本地父体_{time_now}.xlsx"]
+            except Exception as e:
+                self.close_downloads()
+                return False, e
+        else:
+            return False, "当前正在进行关联操作，请稍后再试"
 
     def upload_name(self, filename):
-        try:
-            wb = openpyxl.load_workbook(filename)
-            wb_sheet = wb.active
-            row1 = wb_sheet.max_row
-            for i in range(row1, 0, -1):
-                cell_value1 = wb_sheet.cell(row=i, column=1).value
-                if cell_value1:
-                    row1 = i
-                    break
-            for i in range(2, row1+1):
-                male_parent = wb_sheet.cell(row=i, column=1).value
-                sku = wb_sheet.cell(row=i, column=2).value
-                msg, message = self.relevance_sku(male_parent, sku)
-                wb_sheet.cell(row=i, column=3).value = message
-            time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-            wb.save(f'./static/本地品名/关联本地品名_{time_now}.xlsx')
-            return True, [f'../本地品名/关联本地品名_{time_now}.xlsx', f"关联本地品名_{time_now}.xlsx"]
-        except Exception as e:
-            print(e)
-            return False, e
+        self.sql()
+        sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        if result[0]['flag_num'] == 0:
+            try:
+                self.open_downloads()
+                wb = openpyxl.load_workbook(filename)
+                wb_sheet = wb.active
+                row1 = wb_sheet.max_row
+                for i in range(row1, 0, -1):
+                    cell_value1 = wb_sheet.cell(row=i, column=1).value
+                    if cell_value1:
+                        row1 = i
+                        break
+                for i in range(2, row1+1):
+                    male_parent = wb_sheet.cell(row=i, column=1).value
+                    sku = wb_sheet.cell(row=i, column=2).value
+                    msg, message = self.relevance_sku(male_parent, sku)
+                    wb_sheet.cell(row=i, column=3).value = message
+                time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+                wb.save(f'./static/本地品名/关联本地品名_{time_now}.xlsx')
+                self.close_downloads()
+                return True, [f'../本地品名/关联本地品名_{time_now}.xlsx', f"关联本地品名_{time_now}.xlsx"]
+            except Exception as e:
+                print(e)
+                self.close_downloads()
+                return False, e
+        else:
+            return False, "当前正在进行关联操作，请稍后再试"
 
     def add_sku(self, local_sku):
         self.sql()
@@ -276,18 +355,40 @@ class Quantity(object):
             self.cursor.execute(sql)
             result = self.cursor.fetchall()
             if result:
+                # print(f"{male_parent}与{sku}已关联")
                 return False, f"{male_parent}与{sku}已关联"
             else:
-                sql1 = "insert into `amazon_form`.`male_parent`(`本地父体`, `SKU`)values('%s', '%s')" % (male_parent, sku)
+                sql2 = "select * from `amazon_form`.`male_sku` where `SKU` = '%s'" % sku
+                self.cursor.execute(sql2)
+                result1 = self.cursor.fetchall()
+                if result1:
+                    sql3 = "select * from `amazon_form`.`male_sku` where `本地品名` = '%s'" % result1[0]['本地品名']
+                    self.cursor.execute(sql3)
+                    result2 = self.cursor.fetchall()
+                    for i in result2:
+                        sql4 = "insert into `amazon_form`.`male_parent`(`本地父体`, `SKU`)values('%s', '%s')" % (male_parent, i['SKU'])
+                        self.cursor.execute(sql4)
+                else:
+                    sql3 = "select * from `amazon_form`.`male_sku` where `本地品名` = '%s'" % sku
+                    self.cursor.execute(sql3)
+                    result2 = self.cursor.fetchall()
+                    if result2:
+                        for i in result2:
+                            sql4 = "insert into `amazon_form`.`male_parent`(`本地父体`, `SKU`)values('%s', '%s')" % (male_parent, i['SKU'])
+                            self.cursor.execute(sql4)
+                    else:
+                        sql1 = "insert into `amazon_form`.`male_parent`(`本地父体`, `SKU`)values('%s', '%s')" % (male_parent, sku)
+                        self.cursor.execute(sql1)
                 try:
-                    self.cursor.execute(sql1)
                     self.connection.commit()
                     return True, '成功'
                 except Exception as e:
+                    # print(e)
                     self.connection.rollback()
                     return False, e
         else:
             self.sql_close()
+            # print(f"没有{male_parent}这个本地父体，请检查")
             return False, f"没有{male_parent}这个本地父体，请检查"
 
     def relieve_male(self, male_parent, sku):
@@ -295,13 +396,30 @@ class Quantity(object):
         sql = "select * from `amazon_form`.`male_parent` where `本地父体` = '%s' and `SKU` = '%s'" % (male_parent, sku)
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
-        if result:
-            sql1 = "DELETE FROM `amazon_form`.`male_parent` WHERE `本地父体` = '%s' and `SKU` = '%s'" % (male_parent, sku)
-            try:
+        sql = "select * from `amazon_form`.`male_sku` where `本地品名` = '%s'" % sku
+        self.cursor.execute(sql)
+        result3 = self.cursor.fetchall()
+        if result or result3:
+            if result:
+                sql2 = "select * from `amazon_form`.`male_sku` where `SKU` = '%s'" % sku
+            else:
+                sql2 = "select * from `amazon_form`.`male_sku` where `本地品名` = '%s'" % sku
+            self.cursor.execute(sql2)
+            result1 = self.cursor.fetchall()
+            if result1:
+                sql3 = "select * from `amazon_form`.`male_sku` where `本地品名` = '%s'" % result1[0]['本地品名']
+                self.cursor.execute(sql3)
+                result2 = self.cursor.fetchall()
+                for i in result2:
+                    sql4 = "DELETE FROM `amazon_form`.`male_parent` WHERE `本地父体` = '%s' and `SKU` = '%s'" % (male_parent, i['SKU'])
+                    self.cursor.execute(sql4)
+            else:
+                sql1 = "DELETE FROM `amazon_form`.`male_parent` WHERE `本地父体` = '%s' and `SKU` = '%s'" % (male_parent, sku)
                 self.cursor.execute(sql1)
+            try:
                 self.connection.commit()
                 self.sql_close()
-                return True, True
+                return True, '成功'
             except Exception as e:
                 self.connection.rollback()
                 self.sql_close()
@@ -312,16 +430,16 @@ class Quantity(object):
 
     def relevance_sku(self, local_sku, sku):
         self.sql()
-        sql = "select * from `amazon_form`.`list_parent` where `本地父体` = '%s'" % local_sku
+        sql = "select * from `amazon_form`.`list_local_sku` where `本地品名` = '%s'" % local_sku
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
         if result:
-            sql = "select * from `amazon_form`.`male_sku` where `本地品名` = '%s' and `SKU` = '%s'" % (local_sku, sku)
+            sql = "select * from `amazon_form`.`male_sku` where `SKU` = '%s'" % sku
             self.cursor.execute(sql)
             result = self.cursor.fetchall()
             if result:
                 self.sql_close()
-                return False, f"{local_sku}与{sku}已关联"
+                return False, f"{result[0]['本地品名']}与{sku}已关联"
             else:
                 sql1 = "insert into `amazon_form`.`male_sku`(`本地品名`, `SKU`)values('%s', '%s')" % (local_sku, sku)
                 try:
@@ -335,7 +453,7 @@ class Quantity(object):
                     return False, e
         else:
             self.sql_close()
-            return False, f"没有{local_sku}这个本地父体，请检查"
+            return False, f"没有{local_sku}这个本地品名，请检查"
 
     def relieve_sku(self, local_sku, sku):
         self.sql()
@@ -356,6 +474,117 @@ class Quantity(object):
         else:
             self.sql_close()
             return False, "这个父体与sku没有相关信息"
+
+    def upload_relieve_male(self, filename):
+        self.sql()
+        sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        if result[0]['flag_num'] == 0:
+            try:
+                self.open_downloads()
+                wb = openpyxl.load_workbook(filename)
+                wb_sheet = wb.active
+                row1 = wb_sheet.max_row
+                for i in range(row1, 0, -1):
+                    cell_value1 = wb_sheet.cell(row=i, column=1).value
+                    if cell_value1:
+                        row1 = i
+                        break
+                for i in range(2, row1 + 1):
+                    male_parent = wb_sheet.cell(row=i, column=1).value
+                    sku = wb_sheet.cell(row=i, column=2).value
+                    if sku:
+                        msg, message = self.relieve_male(male_parent, sku)
+                    else:
+                        male_sku = wb_sheet.cell(row=i, column=3).value
+                        list_sku, message = self.get_male_sku("本地品名", male_sku)
+                        if list_sku:
+                            flag = 1
+                            for j in list_sku:
+                                sku = j[1]
+                                msg, message = self.relieve_male(male_parent, sku)
+                                if msg:
+                                    continue
+                                else:
+                                    flag = 0
+                            if flag:
+                                message = "解除成功"
+                            else:
+                                message = "解除失败"
+                        else:
+                            message = "没有找到这个本地品名"
+                    wb_sheet.cell(row=i, column=3).value = message
+                time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+                wb.save(f'./static/本地父体/解除本地父体关联_{time_now}.xlsx')
+                self.close_downloads()
+                return True, [f'../本地父体/解除本地父体关联_{time_now}.xlsx', f"解除本地父体关联_{time_now}.xlsx"]
+            except Exception as e:
+                print(e)
+                self.close_downloads()
+                return False, e
+        else:
+            return False, "当前正在进行关联操作，请稍后再试"
+
+    def upload_relieve_sku(self, filename):
+        self.sql()
+        sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        if result[0]['flag_num'] == 0:
+            try:
+                self.open_downloads()
+                wb = openpyxl.load_workbook(filename)
+                wb_sheet = wb.active
+                row1 = wb_sheet.max_row
+                for i in range(row1, 0, -1):
+                    cell_value1 = wb_sheet.cell(row=i, column=1).value
+                    if cell_value1:
+                        row1 = i
+                        break
+                for i in range(2, row1 + 1):
+                    male_parent = wb_sheet.cell(row=i, column=1).value
+                    sku = wb_sheet.cell(row=i, column=2).value
+                    msg, message = self.relieve_sku(male_parent, sku)
+                    wb_sheet.cell(row=i, column=3).value = message
+                time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+                wb.save(f'./static/本地品名/解除本地品名关联_{time_now}.xlsx')
+                self.close_downloads()
+                return True, [f'../本地品名/解除本地品名关联_{time_now}.xlsx', f"解除本地品名关联_{time_now}.xlsx"]
+            except Exception as e:
+                print(e)
+                self.close_downloads()
+                return False, e
+        else:
+            return False, "当前正在进行关联操作，请稍后再试"
+
+    def write_xlsx(self, list_data):
+        wb = openpyxl.Workbook()
+        wb_sheet = wb.active
+        for i in list_data:
+            if i[1] and i[1] != '0':
+                wb_sheet.append(i)
+        time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        print(list_data[0])
+        if list_data[0][0] == "本地父体":
+            path = f'./static/本地父体/本地父体详情_{time_now}.xlsx'
+            file = f'../本地父体/本地父体详情_{time_now}.xlsx'
+            filename = f'本地父体详情_{time_now}'
+            download_name = "本地父体详情"
+        elif list_data[0][0] == "本地品名":
+            path = f'./static/本地品名/本地品名详情_{time_now}.xlsx'
+            file = f'../本地品名/本地品名详情_{time_now}.xlsx'
+            filename = f'本地品名详情_{time_now}'
+            download_name = "本地品名详情"
+        else:
+            path = f'./static/本地父体/亚马逊父体详情_{time_now}.xlsx'
+            file = f'../本地父体/亚马逊父体详情_{time_now}.xlsx'
+            filename = f'亚马逊父体详情_{time_now}'
+            download_name = "亚马逊父体详情"
+        wb.save(path)
+        return file, filename, download_name
 
     def get_male_parent(self, index, index_data):
         self.sql()
@@ -381,13 +610,20 @@ class Quantity(object):
                 sql = "select * from `amazon_form`.`male_parent`"
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
-        self.sql_close()
         if result:
             list_data = []
             for i in result:
-                list_data.append([i['本地父体'], i['SKU']])
+                sql2 = f"select * from `amazon_form`.`male_sku` where `SKU` = '{i['SKU']}'"
+                self.cursor.execute(sql2)
+                result2 = self.cursor.fetchall()
+                if result2:
+                    list_data.append([i['本地父体'], i['SKU'], result2[0]['本地品名']])
+                else:
+                    list_data.append([i['本地父体'], i['SKU'], '当前没有本地品名'])
+            self.sql_close()
             return list_data, 0
         else:
+            self.sql_close()
             return False, 0
 
     def get_male_sku(self, index, index_data):
@@ -422,3 +658,45 @@ class Quantity(object):
             return list_data, 0
         else:
             return False, 0
+
+    def read_xlsx(self, filename):
+        wb = openpyxl.load_workbook(filename)
+        wb_sheet = wb.active
+        list_sku = []
+        for i in range(2, 400):
+            male_parent = wb_sheet.cell(row=i, column=1).value
+            if male_parent:
+                name = wb_sheet.cell(row=i, column=2).value
+                sku = self.get_sku(name)
+                if sku:
+                    continue
+                else:
+                    list_sku.append(name)
+                    print(name)
+        print(list_sku)
+
+    def test_sql(self):
+        self.sql()
+        sql = "SELECT `SKU` FROM `amazon_form`.`male_parent` WHERE `本地父体` = 'K11-K22父体'"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        print(result)
+        self.sql_close()
+
+    def get_sku(self, name):
+        self.sql()
+        sql = "select * from `data_read`.`product_id` where `品名` = '%s'" % name
+        # print(sql)
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        if result:
+            return result[0]['SKU']
+        else:
+            return False
+
+
+if __name__ == '__main__':
+    quantity = Quantity()
+    # quantity.read_xlsx("F:/html_windows/static/本地父体/关联本地父体_20230428172405.xlsx")
+    quantity.test_sql()

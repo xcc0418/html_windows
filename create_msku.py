@@ -758,7 +758,7 @@ class Quantity(object):
             version = wb_sheet.cell(row=i, column=5).value
             sku = wb_sheet.cell(row=i, column=6).value
             male_parent = wb_sheet.cell(row=i, column=7).value
-            male_sku = wb_sheet.cell (row=i, column=8).value
+            male_sku = wb_sheet.cell(row=i, column=8).value
             index, index_data = self.get_male (sku, male_parent, male_sku)
             if index:
                 seller_id, marketplace_id = self.get_seller_id2(store)

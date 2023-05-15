@@ -15,6 +15,7 @@ import shipment
 import create_msku
 import stores_requisition
 import male_parent
+import parent_message
 from flask import session
 from concurrent.futures import ThreadPoolExecutor
 
@@ -923,6 +924,7 @@ def upload_name():
         filename = request.files['myfile']
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
         path = f'D:/本地品名/本地品名关联{data_time}.xlsx'
+        print(path)
         filename.save(os.path.join('UPLOAD_FOLDER', path))
         quantity = male_parent.Quantity()
         msg, message = quantity.upload_name(path)
@@ -1041,6 +1043,66 @@ def relieve_sku():
         return json.dumps({'msg': 'error'})
 
 
+@app.route('/male_parent/upload_relieve_male', methods=["POST"])
+def upload_relieve_male():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/本地父体/解除本地父体关联{data_time}.xlsx'
+        print(path)
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        quantity = male_parent.Quantity()
+        msg, message = quantity.upload_relieve_male(path)
+        # print(msg, message)
+        if msg:
+            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
+        else:
+            return json.dumps({'msg': "error", 'data': str(message)})
+    else:
+        return json.dumps({'msg': "error"})
+
+
+@app.route('/male_parent/upload_relieve_sku', methods=["POST"])
+def upload_relieve_sku():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/本地品名/解除本地品名关联{data_time}.xlsx'
+        print(path)
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        quantity = male_parent.Quantity()
+        msg, message = quantity.upload_relieve_sku(path)
+        # print(msg, message)
+        if msg:
+            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
+        else:
+            return json.dumps({'msg': "error", 'data': str(message)})
+    else:
+        return json.dumps({'msg': "error"})
+
+
+@app.route('/male_parent/derive_table', methods=["POST"])
+def derive_table():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        table_name = dict_data['table_name']
+        if table_name == "table1":
+            list_table = dict_data['list_msg'][0]
+        else:
+            list_table = dict_data['list_msg'][1]
+        if list_table:
+            quantity = male_parent.Quantity()
+            path, filename, download_name = quantity.write_xlsx(list_table)
+            return json.dumps({'msg': "success", 'data': {"file": path, "filename": filename, "download_name": download_name}})
+        else:
+            if table_name == "table1":
+                return json.dumps({'msg': "error", 'data': "请先获取本地父体详情"})
+            else:
+                return json.dumps({'msg': "error", 'data': "请先获取本地品名详情"})
+    else:
+        return json.dumps({'msg': "error"})
+
+
 @app.route('/male_parent/get_male', methods=["POST"])
 def get_male():
     if request.method == "POST":
@@ -1069,6 +1131,237 @@ def get_sku_male():
             return json.dumps({'msg': "success", 'data': list_data, 'index': index})
         else:
             return json.dumps({'msg': "error", 'message': "当前没有本地品名关系"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/get_list_male', methods=["GET"])
+def get_list_male():
+    if request.method == "GET":
+        quantity = parent_message.Quantity()
+        list_msg = quantity.get_list_male()
+        if list_msg:
+            return json.dumps({'msg': "success", 'data': list_msg})
+        else:
+            return json.dumps({'msg': "error", 'message': "当前没有本地父体"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/get_list_asin', methods=["GET"])
+def get_list_asin():
+    if request.method == "GET":
+        quantity = parent_message.Quantity()
+        list_msg = quantity.read_excl()
+        if list_msg:
+            return json.dumps({'msg': "success", 'data': list_msg})
+        else:
+            return json.dumps({'msg': "error", 'message': "请先更新亚马逊表格"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/find_list_male', methods=["POST"])
+def find_list_male():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        asin = dict_data['asin']
+        quantity = parent_message.Quantity()
+        list_msg = quantity.get_list_male(asin)
+        if list_msg:
+            return json.dumps({'msg': "success", 'data': list_msg})
+        else:
+            return json.dumps({'msg': "error", 'message': "没有找到这个父体"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/find_list_asin', methods=["POST"])
+def find_list_asin():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        asin = dict_data['asin']
+        quantity = parent_message.Quantity()
+        if asin:
+            list_msg = quantity.find_excl(asin)
+        else:
+            list_msg = quantity.read_excl()
+        if list_msg:
+            return json.dumps({'msg': "success", 'data': list_msg})
+        else:
+            return json.dumps({'msg': "error", 'message': "没有找到这个父体"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/find_asin_parent', methods=["POST"])
+def find_asin_parent():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        asin = dict_data['asin']
+        quantity = parent_message.Quantity()
+        # print(asin)
+        if asin.find('B0') >= 0:
+            list_msg = quantity.find_excl(asin)
+            if list_msg:
+                # print("success")
+                return json.dumps({'msg': "success", 'data': list_msg, 'male': "亚马逊父体"})
+            else:
+                # print("error")
+                return json.dumps({'msg': "error", 'message': "没有找到这个父体信息"})
+        else:
+            country = dict_data['country']
+            list_msg = quantity.find_list_male(asin, country)
+            if list_msg:
+                # print("success")
+                return json.dumps({'msg': "success", 'data': list_msg, 'male': "本地父体"})
+            else:
+                # print("error")
+                return json.dumps({'msg': "error", 'message': "没有找到这个父体信息"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/contrast_parent', methods=["POST"])
+def contrast_parent():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        list_male = dict_data['list_male']
+        list_asin = dict_data['list_asin']
+        quantity = parent_message.Quantity()
+        list_1, list2 = quantity.contrast_parent(list_male, list_asin)
+        if list_1 and list2:
+            return json.dumps({'msg': "success", 'list_male': list_1, "list_asin": list2})
+        else:
+            return json.dumps({'msg': "error", 'message': "请先获取要对比的父体"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/windows_msg', methods=["POST"])
+def windows_msg():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        sku = dict_data['sku']
+        if sku:
+            asin = dict_data['asin']
+            country = dict_data['country']
+            quantity = parent_message.Quantity()
+            list_1 = quantity.windows_msg(sku, asin, country)
+            if list_1:
+                return json.dumps({'msg': "success", 'data': list_1})
+            else:
+                return json.dumps({'msg': "error", 'message': "SKU详情获取失败"})
+        else:
+            return json.dumps({'msg': "error", 'message': "SKU详情获取失败"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/ascending_sort', methods=["POST"])
+def ascending_sort():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        list_male = dict_data['list_male']
+        list_asin = dict_data['list_asin']
+        index = dict_data['index']
+        sort_asin = dict_data['sort_asin']
+        quantity = parent_message.Quantity()
+        list_1, list2 = quantity.ascending_sort(list_male, list_asin, index, sort_asin)
+        if list_1 or list2:
+            return json.dumps({'msg': "success", 'list_male': list_1, "list_asin": list2})
+        else:
+            return json.dumps({'msg': "error", 'message': "发生未知错误"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/descending_sort', methods=["POST"])
+def descending_sort():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        list_male = dict_data['list_male']
+        list_asin = dict_data['list_asin']
+        index = dict_data['index']
+        sort_asin = dict_data['sort_asin']
+        print(sort_asin)
+        quantity = parent_message.Quantity()
+        list_1, list2 = quantity.descending_sort(list_male, list_asin, index, sort_asin)
+        if list_1 or list2:
+            return json.dumps({'msg': "success", 'list_male': list_1, "list_asin": list2})
+        else:
+            return json.dumps({'msg': "error", 'message': "发生未知错误"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/download_parent', methods=["POST"])
+def download_parent():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        asin = dict_data['asin']
+        quantity = parent_message.Quantity()
+        msg, message = quantity.download_parent(asin)
+        if msg:
+            return json.dumps({'msg': "success", 'filename': message[1], "file": message[0]})
+        else:
+            return json.dumps({'msg': "error", 'message': message})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/menu_relieve_sku', methods=["POST"])
+def menu_relieve_sku():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        asin = dict_data['asin']
+        sku = dict_data['sku']
+        table_asin = dict_data['table_asin']
+        if asin.find('B0') >= 0:
+            asin = table_asin
+        quantity = male_parent.Quantity()
+        msg, message = quantity.relieve_male(asin, sku)
+        if msg:
+            return json.dumps({'msg': "success", 'message': message})
+        else:
+            return json.dumps({'msg': "error", 'message': message})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/menu_relevance_sku', methods=["POST"])
+def menu_relevance_sku():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        asin = dict_data['asin']
+        sku = dict_data['sku']
+        table_asin = dict_data['table_asin']
+        if asin.find('B0') >= 0:
+            asin = table_asin
+        print(asin, sku)
+        quantity = male_parent.Quantity()
+        msg, message = quantity.relevance_male(asin, sku)
+        if msg:
+            return json.dumps({'msg': "success", 'message': message})
+        else:
+            return json.dumps({'msg': "error", 'message': message})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/find_parent_sku', methods=["POST"])
+def find_parent_sku():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        list_male = dict_data['list_male']
+        list_asin = dict_data['list_asin']
+        local_sku = dict_data['local_sku']
+        quantity = parent_message.Quantity()
+        list_1, list2 = quantity.find_parent_sku(list_male, list_asin, local_sku)
+        if list_1 or list2:
+            return json.dumps({'msg': "success", 'list_male': list_1, "list_asin": list2})
+        else:
+            return json.dumps({'msg': "error", 'message': "请先获取要对比的父体"})
     else:
         return json.dumps({'msg': 'error'})
 

@@ -306,7 +306,7 @@ def submmit(list_data, shipment_id, list_pa):
                 break
             else:
                 for c in range(7, len(list_data[i]) + 1):
-                    print(count, c, list_data[i][(c - 1)])
+                    # print(count, c, list_data[i][(c - 1)])
                     sheet.cell(row=count, column=c, value=list_data[i][(c - 1)])
                 count = count + 1
         else:
