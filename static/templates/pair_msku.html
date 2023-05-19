@@ -116,7 +116,7 @@
 	border:none;/*取消文本框内外边框*/
 }
 .download_item{
-width:100px;
+width:200px;
 height:40px;
 font-size: 25px;
 }
@@ -377,7 +377,7 @@ margin:-82px 0px 0px 600px;
   function download_excl(filename, file){
   console.log(filename, file)
   var pa_name = filename + ".xlsx";
-  var str = "<a href="+ file +" download="+ pa_name +">下载</a>";
+  var str = "<a href="+ file +" download="+ pa_name +">批量配对明细</a>";
   document.getElementById("download_control").innerHTML = str;
   }
 

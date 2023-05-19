@@ -815,14 +815,14 @@ def pair():
         sku = dict_data['sku'].strip()
         asin = dict_data['asin'].strip()
         store = dict_data['store'].strip()
-        version = float(dict_data['version'].strip())
+        version = dict_data['version'].strip()
         msku = dict_data['msku'].strip()
         fnsku = dict_data['fnsku'].strip()
         male_sku = dict_data['male_sku']
         male_parent = dict_data['male_parent']
         if sku and asin and store and version and msku and fnsku:
             quantity = create_msku.Quantity()
-            msg, message = quantity.pair_msku(sku, asin, store, version, msku, fnsku, male_parent, male_sku)
+            msg, message = quantity.pair_msku(sku, asin, store, float(version), msku, fnsku, male_parent, male_sku)
             if msg:
                 return json.dumps({'msg': "success"})
             else:
@@ -848,16 +848,106 @@ def upload_pair():
         return json.dumps({'msg': 'error'})
 
 
-@app.route('/male_parent/add_male', methods=["POST"])
-def add_male():
+@app.route('/male_parent/parent_function', methods=["POST"])
+def parent_function():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
         parent = dict_data['male_parent']
         if parent:
+            index = dict_data['index']
             quantity = male_parent.Quantity()
-            msg, message = quantity.add_male(parent.strip(''))
+            msg, message = "", ""
+            if index == "关联":
+                sku = dict_data['sku']
+                if sku:
+                    msg, message = quantity.relevance_male(parent.strip(''), sku.strip(''))
+                else:
+                    msg, message = False, "请先输入SKU"
+            elif index == "解除关联":
+                sku = dict_data['sku']
+                if sku:
+                    msg, message = quantity.relieve_male(parent.strip(''), sku.strip(''))
+                else:
+                    msg, message = False, "请先输入SKU"
+            elif index == "创建父体":
+                msg, message = quantity.add_male(parent.strip(''))
+            elif index == "创建父体并关联":
+                sku = dict_data['sku']
+                if sku:
+                    msg, message = quantity.add_male(parent.strip(''))
+                    if msg:
+                        msg, message = quantity.relevance_male(parent.strip(''), sku.strip(''))
+                    else:
+                        msg = False
+                else:
+                    msg, message = False, "请先输入SKU"
+            elif index == "删除":
+                msg, message = quantity.delete_male(parent.strip(''))
+            elif index == "关联亚马逊父体":
+                amazon_parent = dict_data['sku']
+                if amazon_parent:
+                    msg, message = quantity.relevance_amazon(parent.replace(" ",""), amazon_parent.replace(" ",""))
+                else:
+                    msg, message = False, "请先输入亚马逊父体"
+            elif index == "解除亚马逊父体关联":
+                amazon_parent = dict_data['sku']
+                if amazon_parent:
+                    msg, message = quantity.relieve_amazon(parent.strip(''), amazon_parent.strip(''))
+                else:
+                    msg, message = False, "请先输入亚马逊父体"
             if msg:
-                return json.dumps({'msg': "success"})
+                if index == '关联' or index == '解除关联' or index == '创建父体并关联':
+                    upload_json = parent_message.Quantity()
+                    executor.submit(upload_json.update_json)
+                return json.dumps({'msg': "success", 'message': f"{index}成功"})
+            else:
+                return json.dumps({'msg': "error", 'message': message})
+        else:
+            return json.dumps({'msg': "error", 'message': '请先输入本地父体'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/male_parent/local_function', methods=["POST"])
+def local_function():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        parent = dict_data['male_parent']
+        if parent:
+            index = dict_data['index']
+            quantity = male_parent.Quantity()
+            msg, message = "", ""
+            if index == "关联":
+                sku = dict_data['sku']
+                if sku:
+                    msg, message = quantity.relevance_sku(parent.strip(''), sku.strip(''))
+                else:
+                    msg, message = False, "请先输入SKU"
+            elif index == "解除关联":
+                sku = dict_data['sku']
+                if sku:
+                    msg, message = quantity.relieve_sku(parent.strip(''), sku.strip(''))
+                else:
+                    msg, message = False, "请先输入SKU"
+            elif index == "创建品名":
+                msg, message = quantity.add_sku(parent.strip(''))
+            elif index == "创建品名并关联":
+                sku = dict_data['sku']
+                if sku:
+                    msg, message = quantity.add_sku(parent.strip(''))
+                    if msg:
+                        msg, message = quantity.relevance_sku(parent.strip(''), sku.strip(''))
+                    else:
+                        msg = False
+                else:
+                    msg, message = False, "请先输入SKU"
+            elif index == "删除":
+                msg, message = quantity.delete_sku(parent.strip(''))
+            if msg:
+                if index == '关联' or index == '解除关联' or index == '创建品名并关联':
+                    upload_json = parent_message.Quantity()
+                    executor.submit(upload_json.update_json)
+                return json.dumps({'msg': "success", 'message': f"{index}成功"})
             else:
                 return json.dumps({'msg': "error", 'message': message})
         else:
@@ -871,14 +961,44 @@ def upload_male():
     if request.method == "POST":
         filename = request.files['myfile']
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/本地父体/本地父体新增{data_time}.xlsx'
-        filename.save(os.path.join('UPLOAD_FOLDER', path))
-        quantity = male_parent.Quantity()
-        msg = quantity.upload_male(path)
-        if msg:
-            return json.dumps({'msg': "success"})
+        index = request.form['index']
+        msg, message = '', ''
+        if index == "关联":
+            path = f'D:/本地父体/本地父体关联{data_time}.xlsx'
+            filename.save(os.path.join('UPLOAD_FOLDER', path))
+            quantity = male_parent.Quantity()
+            msg, message = quantity.upload_parent(path)
+        elif index == "解除关联":
+            path = f'D:/本地父体/本地父体解除关联{data_time}.xlsx'
+            filename.save(os.path.join('UPLOAD_FOLDER', path))
+            quantity = male_parent.Quantity()
+            msg, message = quantity.upload_relieve_male(path)
+        elif index == "创建父体":
+            path = f'D:/本地父体/本地父体新增{data_time}.xlsx'
+            filename.save(os.path.join('UPLOAD_FOLDER', path))
+            quantity = male_parent.Quantity()
+            msg, message = quantity.upload_male(path)
+        elif index == "创建父体并关联":
+            path = f'D:/本地父体/本地父体新增并关联{data_time}.xlsx'
+            filename.save(os.path.join('UPLOAD_FOLDER', path))
+            quantity = male_parent.Quantity()
+            msg, message = quantity.upload_male(path)
+            if msg:
+                msg, message = quantity.upload_parent(path)
+        elif index == "删除":
+            path = f'D:/本地父体/本地父体删除{data_time}.xlsx'
+            filename.save(os.path.join('UPLOAD_FOLDER', path))
+            quantity = male_parent.Quantity()
+            msg = quantity.upload_delete_male(path)
         else:
-            return json.dumps({'msg': "error"})
+            return json.dumps({'msg': "error", 'message': "暂不支持批量操作亚马逊父体"})
+        if msg:
+            if index == '关联' or index == '解除关联' or index == '创建父体并关联':
+                upload_json = parent_message.Quantity()
+                executor.submit(upload_json.update_json)
+            return json.dumps({'msg': "success", 'message': f"{index}成功"})
+        else:
+            return json.dumps({'msg': "error", 'message': message})
     else:
         return json.dumps({'msg': "error"})
 
@@ -888,195 +1008,42 @@ def upload_sku():
     if request.method == "POST":
         filename = request.files['myfile']
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/本地品名/本地品名新增{data_time}.xlsx'
-        filename.save(os.path.join('UPLOAD_FOLDER', path))
-        quantity = male_parent.Quantity()
-        msg = quantity.upload_sku(path)
-        if msg:
-            return json.dumps({'msg': "success"})
-        else:
-            return json.dumps({'msg': "error"})
-    else:
-        return json.dumps({'msg': "error"})
-
-
-@app.route('/male_parent/upload_parent', methods=["POST"])
-def upload_parent():
-    if request.method == "POST":
-        filename = request.files['myfile']
-        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/本地父体/本地父体关联{data_time}.xlsx'
-        filename.save(os.path.join('UPLOAD_FOLDER', path))
-        quantity = male_parent.Quantity()
-        msg, message = quantity.upload_parent(path)
-        # print (msg, message)
-        if msg:
-            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
-        else:
-            return json.dumps({'msg': "error", 'data': str(message)})
-    else:
-        return json.dumps({'msg': "error"})
-
-
-@app.route('/male_parent/upload_name', methods=["POST"])
-def upload_name():
-    if request.method == "POST":
-        filename = request.files['myfile']
-        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/本地品名/本地品名关联{data_time}.xlsx'
-        print(path)
-        filename.save(os.path.join('UPLOAD_FOLDER', path))
-        quantity = male_parent.Quantity()
-        msg, message = quantity.upload_name(path)
-        # print(msg, message)
-        if msg:
-            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
-        else:
-            return json.dumps({'msg': "error", 'data': str(message)})
-    else:
-        return json.dumps({'msg': "error"})
-
-
-@app.route('/male_parent/add_sku', methods=["POST"])
-def add_sku():
-    if request.method == "POST":
-        dict_data = json.loads(request.form['data'])
-        sku = dict_data['sku']
-        if sku:
+        index = request.form['index']
+        msg, message = '', ''
+        if index == "关联":
+            path = f'D:/本地品名/本地品名关联{data_time}.xlsx'
+            filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
-            msg, message = quantity.add_sku(sku.strip(''))
-            if msg:
-                return json.dumps({'msg': "success"})
-            else:
-                return json.dumps({'msg': "error", 'message': message})
-        else:
-            return json.dumps({'msg': "error", 'message': '请先输入本地品名'})
-    else:
-        return json.dumps({'msg': 'error'})
-
-
-@app.route('/male_parent/relevance_male', methods=["POST"])
-def relevance_male():
-    if request.method == "POST":
-        dict_data = json.loads(request.form['data'])
-        parent = dict_data['male_parent']
-        sku = dict_data['sku']
-        if parent and sku:
+            msg, message = quantity.upload_name(path)
+        elif index == "解除关联":
+            path = f'D:/本地品名/本地品名解除关联{data_time}.xlsx'
+            filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
-            msg, message = quantity.relevance_male(parent.strip(''), sku.strip(''))
-            if msg:
-                return json.dumps({'msg': "success"})
-            else:
-                return json.dumps({'msg': "error", 'message': message})
-        else:
-            if not parent:
-                return json.dumps({'msg': "error", 'message': '请先输入本地父体'})
-            if not sku:
-                return json.dumps({'msg': "error", 'message': '请先输入sku'})
-    else:
-        return json.dumps({'msg': 'error'})
-
-
-@app.route('/male_parent/relieve_male', methods=["POST"])
-def relieve_male():
-    if request.method == "POST":
-        dict_data = json.loads(request.form['data'])
-        parent = dict_data['male_parent']
-        sku = dict_data['sku']
-        if parent and sku:
+            msg, message = quantity.upload_relieve_sku(path)
+        elif index == "创建品名":
+            path = f'D:/本地品名/本地品名新增{data_time}.xlsx'
+            filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
-            msg, message = quantity.relieve_male(parent.strip(''), sku.strip(''))
-            if msg:
-                return json.dumps({'msg': "success"})
-            else:
-                return json.dumps({'msg': "error", 'message': message})
-        else:
-            if not parent:
-                return json.dumps({'msg': "error", 'message': '请先输入本地父体'})
-            if not sku:
-                return json.dumps({'msg': "error", 'message': '请先输入sku'})
-    else:
-        return json.dumps({'msg': 'error'})
-
-
-@app.route('/male_parent/relevance_sku', methods=["POST"])
-def relevance_sku():
-    if request.method == "POST":
-        dict_data = json.loads(request.form['data'])
-        local_sku = dict_data['local_sku']
-        sku = dict_data['sku']
-        if local_sku and sku:
+            msg, message = quantity.upload_sku(path)
+        elif index == "创建品名并关联":
+            path = f'D:/本地品名/本地品名新增并关联{data_time}.xlsx'
+            filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
-            msg, message = quantity.relevance_sku(local_sku.strip(''), sku.strip(''))
+            msg, message = quantity.upload_sku(path)
             if msg:
-                return json.dumps({'msg': "success"})
-            else:
-                return json.dumps({'msg': "error", 'message': message})
-        else:
-            if not local_sku:
-                return json.dumps({'msg': "error", 'message': '请先输入本地sku'})
-            if not sku:
-                return json.dumps({'msg': "error", 'message': '请先输入sku'})
-    else:
-        return json.dumps({'msg': 'error'})
-
-
-@app.route('/male_parent/relieve_sku', methods=["POST"])
-def relieve_sku():
-    if request.method == "POST":
-        dict_data = json.loads(request.form['data'])
-        local_sku = dict_data['local_sku']
-        sku = dict_data['sku']
-        if local_sku and sku:
+                msg, message = quantity.upload_name(path)
+        elif index == "删除":
+            path = f'D:/本地品名/本地品名删除{data_time}.xlsx'
+            filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
-            msg, message = quantity.relieve_sku(local_sku.strip(''), sku.strip(''))
-            if msg:
-                return json.dumps({'msg': "success"})
-            else:
-                return json.dumps({'msg': "error", 'message': message})
-        else:
-            if not local_sku:
-                return json.dumps({'msg': "error", 'message': '请先输入本地sku'})
-            if not sku:
-                return json.dumps({'msg': "error", 'message': '请先输入sku'})
-    else:
-        return json.dumps({'msg': 'error'})
-
-
-@app.route('/male_parent/upload_relieve_male', methods=["POST"])
-def upload_relieve_male():
-    if request.method == "POST":
-        filename = request.files['myfile']
-        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/本地父体/解除本地父体关联{data_time}.xlsx'
-        print(path)
-        filename.save(os.path.join('UPLOAD_FOLDER', path))
-        quantity = male_parent.Quantity()
-        msg, message = quantity.upload_relieve_male(path)
-        # print(msg, message)
+            msg = quantity.upload_delete_sku(path)
         if msg:
-            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
+            if index == '关联' or index == '解除关联' or index == '创建品名并关联':
+                upload_json = parent_message.Quantity()
+                executor.submit(upload_json.update_json)
+            return json.dumps({'msg': "success", 'message': f"{index}成功"})
         else:
-            return json.dumps({'msg': "error", 'data': str(message)})
-    else:
-        return json.dumps({'msg': "error"})
-
-
-@app.route('/male_parent/upload_relieve_sku', methods=["POST"])
-def upload_relieve_sku():
-    if request.method == "POST":
-        filename = request.files['myfile']
-        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/本地品名/解除本地品名关联{data_time}.xlsx'
-        print(path)
-        filename.save(os.path.join('UPLOAD_FOLDER', path))
-        quantity = male_parent.Quantity()
-        msg, message = quantity.upload_relieve_sku(path)
-        # print(msg, message)
-        if msg:
-            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
-        else:
-            return json.dumps({'msg': "error", 'data': str(message)})
+            return json.dumps({'msg': "error", 'message': message})
     else:
         return json.dumps({'msg': "error"})
 
@@ -1148,19 +1115,6 @@ def get_list_male():
         return json.dumps({'msg': 'error'})
 
 
-@app.route('/parent_message/get_list_asin', methods=["GET"])
-def get_list_asin():
-    if request.method == "GET":
-        quantity = parent_message.Quantity()
-        list_msg = quantity.read_excl()
-        if list_msg:
-            return json.dumps({'msg': "success", 'data': list_msg})
-        else:
-            return json.dumps({'msg': "error", 'message': "请先更新亚马逊表格"})
-    else:
-        return json.dumps({'msg': 'error'})
-
-
 @app.route('/parent_message/find_list_male', methods=["POST"])
 def find_list_male():
     if request.method == "POST":
@@ -1176,20 +1130,39 @@ def find_list_male():
         return json.dumps({'msg': 'error'})
 
 
+@app.route('/parent_message/get_amazon_parent', methods=["POST"])
+def get_amazon_parent():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        male_parent = dict_data['male_parent']
+        quantity = parent_message.Quantity()
+        list_msg = quantity.amazon_parent(male_parent)
+        if list_msg:
+            return json.dumps({'msg': "success", 'data': list_msg})
+        else:
+            return json.dumps({'msg': "error", 'message': f"{male_parent}没有关联的亚马逊父体"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
 @app.route('/parent_message/find_list_asin', methods=["POST"])
 def find_list_asin():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
         asin = dict_data['asin']
+        country = dict_data['country']
         quantity = parent_message.Quantity()
-        if asin:
-            list_msg = quantity.find_excl(asin)
+        if asin and country:
+            list_msg = quantity.get_amazon_msg(asin, country)
+            if list_msg:
+                return json.dumps({'msg': "success", 'data': list_msg})
+            else:
+                return json.dumps({'msg': "error", 'message': "没有找到这个父体"})
         else:
-            list_msg = quantity.read_excl()
-        if list_msg:
-            return json.dumps({'msg': "success", 'data': list_msg})
-        else:
-            return json.dumps({'msg': "error", 'message': "没有找到这个父体"})
+            if asin:
+                return json.dumps({'msg': "error", 'message': "请先选择店铺"})
+            else:
+                return json.dumps({'msg': "error", 'message': "请先输入亚马逊父体"})
     else:
         return json.dumps({'msg': 'error'})
 
@@ -1199,25 +1172,28 @@ def find_asin_parent():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
         asin = dict_data['asin']
+        country = dict_data['country']
         quantity = parent_message.Quantity()
         # print(asin)
-        if asin.find('B0') >= 0:
-            list_msg = quantity.find_excl(asin)
-            if list_msg:
-                # print("success")
-                return json.dumps({'msg': "success", 'data': list_msg, 'male': "亚马逊父体"})
+        if country:
+            if asin.find('B0') >= 0:
+                list_msg = quantity.get_amazon_msg(asin, country)
+                if list_msg:
+                    # print("success")
+                    return json.dumps({'msg': "success", 'data': list_msg, 'male': "亚马逊父体"})
+                else:
+                    # print("error")
+                    return json.dumps({'msg': "error", 'message': "没有找到这个父体信息"})
             else:
-                # print("error")
-                return json.dumps({'msg': "error", 'message': "没有找到这个父体信息"})
+                list_msg = quantity.get_male_msg(asin, country)
+                if list_msg:
+                    # print("success")
+                    return json.dumps({'msg': "success", 'data': list_msg, 'male': "本地父体"})
+                else:
+                    # print("error")
+                    return json.dumps({'msg': "error", 'message': "没有找到这个父体信息"})
         else:
-            country = dict_data['country']
-            list_msg = quantity.find_list_male(asin, country)
-            if list_msg:
-                # print("success")
-                return json.dumps({'msg': "success", 'data': list_msg, 'male': "本地父体"})
-            else:
-                # print("error")
-                return json.dumps({'msg': "error", 'message': "没有找到这个父体信息"})
+            return json.dumps({'msg': "error", 'message': "请先选择店铺"})
     else:
         return json.dumps({'msg': 'error'})
 
@@ -1284,11 +1260,42 @@ def descending_sort():
         list_asin = dict_data['list_asin']
         index = dict_data['index']
         sort_asin = dict_data['sort_asin']
-        print(sort_asin)
         quantity = parent_message.Quantity()
         list_1, list2 = quantity.descending_sort(list_male, list_asin, index, sort_asin)
         if list_1 or list2:
             return json.dumps({'msg': "success", 'list_male': list_1, "list_asin": list2})
+        else:
+            return json.dumps({'msg': "error", 'message': "发生未知错误"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/ascending_sort2', methods=["POST"])
+def ascending_sort2():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        list_msg = dict_data['list_msg']
+        index = dict_data['index']
+        quantity = parent_message.Quantity()
+        list_data = quantity.ascending_sort2(list_msg, index)
+        if list_data:
+            return json.dumps({'msg': "success", 'data': list_data})
+        else:
+            return json.dumps({'msg': "error", 'message': "发生未知错误"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/descending_sort2', methods=["POST"])
+def descending_sort2():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        list_msg = dict_data['list_msg']
+        index = dict_data['index']
+        quantity = parent_message.Quantity()
+        list_data = quantity.descending_sort2(list_msg, index)
+        if list_data:
+            return json.dumps({'msg': "success", 'data': list_data})
         else:
             return json.dumps({'msg': "error", 'message': "发生未知错误"})
     else:
@@ -1300,8 +1307,9 @@ def download_parent():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
         asin = dict_data['asin']
+        data_time = dict_data['data_time']
         quantity = parent_message.Quantity()
-        msg, message = quantity.download_parent(asin)
+        msg, message = quantity.download_parent(asin, data_time)
         if msg:
             return json.dumps({'msg': "success", 'filename': message[1], "file": message[0]})
         else:
@@ -1356,12 +1364,13 @@ def find_parent_sku():
         list_male = dict_data['list_male']
         list_asin = dict_data['list_asin']
         local_sku = dict_data['local_sku']
-        quantity = parent_message.Quantity()
-        list_1, list2 = quantity.find_parent_sku(list_male, list_asin, local_sku)
-        if list_1 or list2:
+        shop = dict_data['shop']
+        if list_asin or list_male:
+            quantity = parent_message.Quantity()
+            list_1, list2 = quantity.find_parent_sku(list_male, list_asin, local_sku, shop)
             return json.dumps({'msg': "success", 'list_male': list_1, "list_asin": list2})
         else:
-            return json.dumps({'msg': "error", 'message': "请先获取要对比的父体"})
+            return json.dumps({'msg': "error", 'message': "请先获取要搜索的父体"})
     else:
         return json.dumps({'msg': 'error'})
 

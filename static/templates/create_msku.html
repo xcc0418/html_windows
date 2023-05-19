@@ -67,7 +67,7 @@
 }
 .upload{
 	float:left;
-	width:100px;
+	width:150px;
 	height:40px;
 	color:black;
 	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
@@ -264,7 +264,7 @@ margin:-82px 0px 0px 600px;
   if (msg['msg'] == 'error'){
   button.style.backgroundColor = 'rgb(252, 252, 252)';
   document.getElementById("import").disabled = false;
-  alert('生成失败');
+  alert(msg['data']);
   }
   },
   error: function(XMLHttpRequest, textStatus, errorThrown) {

@@ -146,6 +146,7 @@ class Quantity(object):
         return res
 
     def create_msku(self, sku, country, supplier, num, msku):
+        self.sql()
         msg = self.find_male(sku)
         if msg:
             time_now = datetime.datetime.now().strftime("%Y%m%d%H%M")
@@ -155,7 +156,6 @@ class Quantity(object):
                 list_msku.append(msku_new)
             # print(list_msku)
             path = self.write_excl(list_msku)
-            self.sql()
             msg, message = self.write_sql(list_msku, sku, country, supplier)
             if path and msg:
                 self.connection.commit()
@@ -165,17 +165,16 @@ class Quantity(object):
                 self.sql_close()
                 return False, False
         else:
+            self.sql_close()
             return False, f"请先将{sku}关联本地品名与本地父体"
 
     def find_male(self, sku):
-        self.sql()
         sql1 = "select * from `amazon_form`.`male_parent` where `SKU` = '%s'" % sku
         self.cursor.execute(sql1)
         result1 = self.cursor.fetchall()
         sql2 = "select * from `amazon_form`.`male_sku` where `SKU` = '%s'" % sku
         self.cursor.execute(sql2)
         result2 = self.cursor.fetchall()
-        self.sql_close()
         if result1 and result2:
             return True
         else:
@@ -225,7 +224,7 @@ class Quantity(object):
         self.sql()
         for i in range(2, row1 + 1):
             sku = wb_sheet.cell(row=i, column=1).value.strip()
-            msg = self.find_male (sku)
+            msg = self.find_male(sku)
             if msg:
                 msku = wb_sheet.cell(row=i, column=2).value.strip()
                 country = wb_sheet.cell(row=i, column=3).value.strip()
@@ -248,6 +247,7 @@ class Quantity(object):
                     self.sql_close()
                     return False, f"第{i}行数据不正确，请检查"
             else:
+                self.sql_close()
                 return False, f"请先将{sku}关联本地品名与本地父体"
         path = self.write_excl(list_msku)
         if path:
@@ -318,7 +318,7 @@ class Quantity(object):
             wb = openpyxl.load_workbook(filename)
             wb_sheet = wb.active
             row1 = wb_sheet.max_row
-            for i in range (row1, 0, -1):
+            for i in range(row1, 0, -1):
                 cell_value1 = wb_sheet.cell(row=i, column=1).value
                 if cell_value1:
                     row1 = i
@@ -343,7 +343,6 @@ class Quantity(object):
                     product_name = self.get_product_name(sku_excl)
                     for j in result:
                         k += 1
-                        self.change_sql(j['FNSKU'])
                         ws_sheet.append([sku_excl, product_name, '', '', j['FNSKU']])
                         if k == num:
                             break
@@ -351,6 +350,10 @@ class Quantity(object):
                     return False, f'{sku_excl}的fnsku未使用个数不足'
             time_now = datetime.datetime.now().strftime("%Y%m%d%H%M")
             self.connection.commit()
+            ws_row = ws_sheet.max_row
+            for i in range(2, ws_row+1):
+                fnsku = ws_sheet.cell(row=i, column=5).value
+                self.change_sql(fnsku)
             self.sql_close()
             ws.save(f'D:/html_windows/static/换标调整/换标调整-{time_now}.xlsx')
             return True, [f'../换标调整/换标调整-{time_now}.xlsx', f"换标调整-{time_now}"]
@@ -385,51 +388,55 @@ class Quantity(object):
             return False
 
     def change_fnsku(self, filename, warehouse):
-        dict_warehouse = {'工厂仓库': '2156', '横中路仓库-加拿大': '1489', '横中路仓库-日本': '1490',
-                          '横中路仓库-美国': '1461', '横中路仓库-英国': '1488',
-                          '横中路仓库-德国': '2382', '淘汰-横中路成品仓库-加拿大': '1476', '淘汰-横中路成品仓库-日本': '1477',
-                          '淘汰-横中路成品仓库-美国': '1399', '淘汰-横中路成品仓库-英国': '1478', '百汇办公室': '414'}
-        wb = openpyxl.load_workbook(filename)
-        wb_sheet = wb.active
-        row1 = wb_sheet.max_row
-        for i in range(row1, 0, -1):
-            cell_value1 = wb_sheet.cell(row=i, column=1).value
-            if cell_value1:
-                row1 = i
-                break
-        dict_product = {}
-        dict_product['wid'] = dict_warehouse[warehouse]
-        time_file = datetime.datetime.now().strftime("%Y%m%d")
-        # self.sql()
-        dict_product['product_list'] = []
-        self.mkdir(f"fnsku_{time_file}")
-        for i in range(2, row1 + 1):
-            sku = wb_sheet.cell(row=i, column=1).value.strip()
-            product_id = self.get_product_id1(sku)
-            fnsku = wb_sheet.cell(row=i, column=3).value.strip()
-            seller_name = wb_sheet.cell(row=i, column=4).value.strip()
-            seller_id = self.get_seller_id1(seller_name)
-            fnsku_new = wb_sheet.cell(row=i, column=5).value.strip()
-            to_seller_name = wb_sheet.cell (row=i, column=6).value.strip()
-            to_seller_id = self.get_seller_id1(to_seller_name)
-            num = int(wb_sheet.cell(row=i, column=7).value)
-            if seller_id and to_seller_id:
-                self.get_fnsku_lable(sku, fnsku_new, f'fnsku_{time_file}')
-                wb_sheet.cell(row=i, column=8).value = '换标成功'
-                dict_product['product_list'].append({'product_id': product_id, 'fnsku': fnsku, 'seller_id': seller_id, 'to_fnsku': fnsku_new, 'to_seller_id': to_seller_id, 'adjustment_valid_num': num})
+        try:
+            dict_warehouse = {'工厂仓库': '2156', '横中路仓库-加拿大': '1489', '横中路仓库-日本': '1490',
+                              '横中路仓库-美国': '1461', '横中路仓库-英国': '1488',
+                              '横中路仓库-德国': '2382', '淘汰-横中路成品仓库-加拿大': '1476', '淘汰-横中路成品仓库-日本': '1477',
+                              '淘汰-横中路成品仓库-美国': '1399', '淘汰-横中路成品仓库-英国': '1478', '百汇办公室': '414'}
+            wb = openpyxl.load_workbook(filename)
+            wb_sheet = wb.active
+            row1 = wb_sheet.max_row
+            for i in range(row1, 0, -1):
+                cell_value1 = wb_sheet.cell(row=i, column=1).value
+                if cell_value1:
+                    row1 = i
+                    break
+            dict_product = {}
+            dict_product['wid'] = dict_warehouse[warehouse]
+            time_file = datetime.datetime.now().strftime("%Y%m%d")
+            # self.sql()
+            dict_product['product_list'] = []
+            self.mkdir(f"fnsku_{time_file}")
+            for i in range(2, row1 + 1):
+                sku = wb_sheet.cell(row=i, column=1).value.strip()
+                product_id = self.get_product_id1(sku)
+                fnsku = wb_sheet.cell(row=i, column=3).value.strip()
+                seller_name = wb_sheet.cell(row=i, column=4).value.strip()
+                seller_id = self.get_seller_id1(seller_name)
+                fnsku_new = wb_sheet.cell(row=i, column=5).value.strip()
+                to_seller_name = wb_sheet.cell(row=i, column=6).value.strip()
+                to_seller_id = self.get_seller_id1(to_seller_name)
+                num = int(wb_sheet.cell(row=i, column=7).value)
+                if seller_id and to_seller_id:
+                    self.get_fnsku_lable(sku, fnsku_new, f'fnsku_{time_file}')
+                    wb_sheet.cell(row=i, column=8).value = '换标成功'
+                    dict_product['product_list'].append({'product_id': product_id, 'fnsku': fnsku, 'seller_id': seller_id, 'to_fnsku': fnsku_new, 'to_seller_id': to_seller_id, 'adjustment_valid_num': num})
+                else:
+                    return False, f"请检查{fnsku}和{fnsku_new}的店铺名称"
+            msg, message = self.adjustment_order(dict_product)
+            if msg:
+                self.mkdir2(f'{time_file}-{message}')
+                wb.save(f'D:/html_windows/static/换标调整/{time_file}-{message}/换标调整详情-{message}.xlsx')
+                shutil.move(f"D:/FNSKU标签/fnsku_{time_file}/", rf"D:/html_windows/static/换标调整/{time_file}-{message}/")
+                self.get_order_sn(message, time_file, dict_warehouse[warehouse])
+                # path = f'D:/html_windows/static/换标调整/{time_file}-{message}'
+                self.make_zip(f'D:/html_windows/static/换标调整/{time_file}-{message}', f'D:/html_windows/static/换标调整/{time_file}-{message}.zip')
+                return msg, [f'../换标调整/{time_file}-{message}.zip', f'{time_file}-{message}']
             else:
-                return False, f"请检查{fnsku}和{fnsku_new}的店铺名称"
-        msg, message = self.adjustment_order(dict_product)
-        if msg:
-            self.mkdir2(f'{time_file}-{message}')
-            wb.save(f'D:/html_windows/static/换标调整/{time_file}-{message}/换标调整详情-{message}.xlsx')
-            shutil.move(f"D:/FNSKU标签/fnsku_{time_file}/", rf"D:/html_windows/static/换标调整/{time_file}-{message}/")
-            self.get_order_sn(message, time_file, dict_warehouse[warehouse])
-            # path = f'D:/html_windows/static/换标调整/{time_file}-{message}'
-            self.make_zip(f'D:/html_windows/static/换标调整/{time_file}-{message}', f'D:/html_windows/static/换标调整/{time_file}-{message}.zip')
-            return msg, [f'../换标调整/{time_file}-{message}.zip', f'{time_file}-{message}']
-        else:
-            return msg, message
+                return msg, message
+        except Exception as e:
+            print(e)
+            return False, str(e)
 
     def mkdir(self, file):
         folder = os.path.exists(f"D:/FNSKU标签/{file}")
@@ -717,27 +724,46 @@ class Quantity(object):
     def pair_msku(self, sku, asin, store, version, msku, fnsku, male_parent=None, male_sku=None):
         index, index_data = self.get_male(sku, male_parent, male_sku)
         if index:
-            seller_id, marketplace_id = self.get_seller_id2(store)
-            data = {'data': [{'msku': msku, 'sku': sku, 'is_sync_pic': 0, 'seller_id': seller_id, 'marketplace_id': marketplace_id}]}
-            msg, message = self.pair(data)
-            if msg:
-                country = self.get_seller_country(store)
-                product_name, supplier = self.get_product_id2(sku)
-                if country and product_name and supplier:
-                    key = country + fnsku
-                    self.sql()
-                    sql = f"INSERT INTO data_read.listing VALUES('{key}','{store}','{country}'," \
-                          f"'{asin}','{msku}','{fnsku}','{product_name}','{sku}','可采购'," \
-                          f"'可发货', '{version}',85,'60','{supplier}',DEFAULT,DEFAULT)"
-                    self.cursor.execute(sql)
-                    self.connection.commit()
-                    self.sql_close()
-                    return True, '配对成功'
-                else:
-                    print('sku: ', sku, product_name, supplier)
-                    return False, '数据库错误'
+            country = self.get_seller_country (store)
+            key = country + fnsku
+            self.sql ()
+            sql = "select * from `data_read`.`listing` where `key` = '%s'" % key
+            self.cursor.execute (sql)
+            result = self.cursor.fetchall ()
+            if result:
+                self.sql_close ()
+                return False, f'{msku}已配对，请勿重复配对。'
             else:
-                return msg, message
+                # print(store)
+                seller_id, marketplace_id = self.get_seller_id2(store)
+                data = {'data': [{'msku': msku, 'sku': sku, 'is_sync_pic': 0, 'seller_id': seller_id, 'marketplace_id': marketplace_id}]}
+                # print(data)
+                msg, message = self.pair(data)
+                # print(message)
+                if msg:
+                    country = self.get_seller_country(store)
+                    product_name, supplier = self.get_product_id2(sku)
+                    if country and product_name:
+                        key = country + fnsku
+                        self.sql()
+                        sql = "select * from `data_read`.`listing` where `key` = '%s'" % key
+                        self.cursor.execute(sql)
+                        result = self.cursor.fetchall()
+                        if result:
+                            self.sql_close()
+                            return False, f'{msku}已配对，请勿重复配对。'
+                        sql1 = f"INSERT INTO data_read.listing VALUES('{key}','{store}','{country}'," \
+                              f"'{asin}','{msku}','{fnsku}','{product_name}','{sku}','可采购'," \
+                              f"'可发货', '{version}',85,'60','{supplier}',DEFAULT,DEFAULT)"
+                        self.cursor.execute(sql1)
+                        self.connection.commit()
+                        self.sql_close()
+                        return True, '配对成功'
+                    else:
+                        print('sku: ', sku, product_name, supplier)
+                        return False, '数据库错误'
+                else:
+                    return msg, message
         else:
             return index, index_data
 
@@ -759,32 +785,39 @@ class Quantity(object):
             sku = wb_sheet.cell(row=i, column=6).value
             male_parent = wb_sheet.cell(row=i, column=7).value
             male_sku = wb_sheet.cell(row=i, column=8).value
-            index, index_data = self.get_male (sku, male_parent, male_sku)
+            index, index_data = self.get_male(sku, male_parent, male_sku)
             if index:
-                seller_id, marketplace_id = self.get_seller_id2(store)
-                data = {'data': [{'msku': msku, 'sku': sku, 'is_sync_pic': 0, 'seller_id': seller_id, 'marketplace_id': marketplace_id}]}
-                msg, message = self.pair(data)
-                if msg:
-                    country = self.get_seller_country(store)
-                    product_name, supplier = self.get_product_id2(sku)
-                    if country and product_name and supplier:
-                        key = country + fnsku
-                        self.sql()
-                        sql = f"INSERT INTO data_read.listing VALUES('{key}','{store}','{country}'," \
-                              f"'{asin}','{msku}','{fnsku}','{product_name}','{sku}','可采购'," \
-                              f"'可发货', '{version}',85,'60','{supplier}',DEFAULT,DEFAULT)"
-                        self.cursor.execute(sql)
-                        self.connection.commit()
-                        self.sql_close()
-                        wb_sheet.cell(row=i, column=9).value = '配对成功'
-                    else:
-                        wb_sheet.cell(row=i, column=9).value = f"错误：sku: , {sku}, {product_name}, {supplier}"
+                country = self.get_seller_country(store)
+                key = country + fnsku
+                self.sql()
+                sql = "select * from `data_read`.`listing` where `key` = '%s'" % key
+                self.cursor.execute(sql)
+                result = self.cursor.fetchall()
+                if result:
+                    self.sql_close()
+                    wb_sheet.cell(row=i, column=9).value = f'{msku}已配对，请勿重复配对。'
                 else:
-                    wb_sheet.cell(row=i, column=9).value = f"{message}"
+                    seller_id, marketplace_id = self.get_seller_id2(store)
+                    data = {'data': [{'msku': msku, 'sku': sku, 'is_sync_pic': 0, 'seller_id': seller_id, 'marketplace_id': marketplace_id}]}
+                    msg, message = self.pair(data)
+                    if msg:
+                        product_name, supplier = self.get_product_id2(sku)
+                        if country and product_name and supplier:
+                            sql1 = f"INSERT INTO data_read.listing VALUES('{key}','{store}','{country}'," \
+                                   f"'{asin}','{msku}','{fnsku}','{product_name}','{sku}','可采购'," \
+                                   f"'可发货', '{version}',85,'60','{supplier}',DEFAULT,DEFAULT)"
+                            self.cursor.execute(sql1)
+                            self.connection.commit()
+                            self.sql_close()
+                            wb_sheet.cell(row=i, column=9).value = '配对成功'
+                        else:
+                            wb_sheet.cell(row=i, column=9).value = f"错误：sku: , {sku}, {product_name}, {supplier}"
+                    else:
+                        wb_sheet.cell(row=i, column=9).value = f"{message}"
             else:
                 wb_sheet.cell(row=i, column=9).value = f"{index_data}"
         time_now = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        wb.save(f'D:/html_windows/static/批量配对/批量配对详情_{time_now}.xlsx')
+        wb.save(f'./static/批量配对/批量配对详情_{time_now}.xlsx')
         return f"../批量配对/批量配对详情_{time_now}.xlsx", f"批量配对详情_{time_now}"
 
     def pair(self, data):
@@ -817,6 +850,7 @@ class Quantity(object):
         if result1['code'] == 0 and result1['message'] == 'success':
             return True, True
         else:
+            print(result1)
             return False, result1['error_details'][0]['message']
 
     def get_male(self, sku, male_parent, male_sku):
@@ -827,6 +861,7 @@ class Quantity(object):
         sql2 = "select * from `amazon_form`.`male_sku` where `SKU` = '%s'" % sku
         self.cursor.execute(sql2)
         result2 = self.cursor.fetchall()
+        # print(len(result1), len(result2))
         if result1 and result2:
             return True, True
         else:
@@ -846,37 +881,49 @@ class Quantity(object):
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
         if result:
-            sql1 = "insert into `amazon_form`.`male_parent`(`本地父体`, `SKU`)values('%s', '%s')" % (male_parent, sku)
-            try:
-                self.cursor.execute(sql1)
-                self.connection.commit()
+            sql2 = "select * from `amazon_form`.`male_parent` where `本地父体` = '%s' and `SKU` = '%s'" % (male_parent, sku)
+            self.cursor.execute(sql2)
+            result2 = self.cursor.fetchall()
+            if result2:
                 return True, True
-            except Exception as e:
-                self.connection.rollback()
-                return False, e
+            else:
+                sql1 = "insert into `amazon_form`.`male_parent`(`本地父体`, `SKU`)values('%s', '%s')" % (male_parent, sku)
+                try:
+                    self.cursor.execute(sql1)
+                    self.connection.commit()
+                    return True, True
+                except Exception as e:
+                    self.connection.rollback()
+                    return False, e
         else:
             self.sql_close()
             return False, f"{sku}没有{male_parent}本地父体，请检查"
 
     def relevance_sku(self, local_sku, sku):
         self.sql()
-        sql = "select * from `amazon_form`.`list_parent` where `本地父体` = '%s'" % local_sku
+        sql = "select * from `amazon_form`.`list_local_sku` where `本地品名` = '%s'" % local_sku
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
         if result:
-            sql1 = "insert into `amazon_form`.`male_sku`(`本地品名`, `SKU`)values('%s', '%s')" % (local_sku, sku)
-            try:
-                self.cursor.execute(sql1)
-                self.connection.commit()
-                self.sql_close()
+            sql2 = "select * from `amazon_form`.`male_sku` where `本地品名` = '%s' and `SKU` = '%s'" % (local_sku, sku)
+            self.cursor.execute(sql2)
+            result2 = self.cursor.fetchall()
+            if result2:
                 return True, True
-            except Exception as e:
-                self.connection.rollback()
-                self.sql_close()
-                return False, e
+            else:
+                sql1 = "insert into `amazon_form`.`male_sku`(`本地品名`, `SKU`)values('%s', '%s')" % (local_sku, sku)
+                try:
+                    self.cursor.execute(sql1)
+                    self.connection.commit()
+                    self.sql_close()
+                    return True, True
+                except Exception as e:
+                    self.connection.rollback()
+                    self.sql_close()
+                    return False, e
         else:
             self.sql_close()
-            return False, f"没有{local_sku}这个本地父体，请检查"
+            return False, f"没有{local_sku}这个本地品名，请检查"
 
 
 class Find_order():
@@ -935,6 +982,7 @@ class Find_order():
             sql = "select * from `amazon_form`.`pre_msku` where `状态` = '未匹配'"
             self.cursor.execute(sql)
             result = self.cursor.fetchall()
+            self.sql_close()
             if result:
                 auth_token = self.s.cookies.get('auth-token')
                 auth_token = auth_token.replace('%25', '%')
@@ -955,37 +1003,50 @@ class Find_order():
                     # asin = i['ASIN']
                     country = i['国家'].strip()
                     supplier = i['供应商'].strip()
-                    # fnsku, asin, shop_name = self.find_fnsku(msku, country, auth_token)
-                    # # print(asin)
-                    # if fnsku:
-                    #     product_name = self.get_productname(sku)
-                    #     # list_asin = self.get_asin(sku, auth_token)
-                    #     list_msku.append([asin, country, fnsku, supplier, sku, 1.0, shop_name, msku, product_name])
                     self.dict_msku[msku] = [sku, country, supplier]
+                # print(self.dict_msku)
                 index, list_asin = self.downloads(auth_token)
+                # print(self.dict_msku)
+                # list_asin = self.read_excl('517288065326436352')
                 # print(self.dict_msku)
                 if list_asin:
                     self.sql()
                     for i in self.dict_msku:
-                        if list_asin.count(self.dict_msku[i][5]) > 1:
-                            sql = "update `amazon_form`.`pre_msku` set `FNSKU` = '%s' , `状态` = '存在相同ASIN', `ASIN` = '%s' " \
-                                  "where `MSKU` = '%s'" % (self.dict_msku[i][4], self.dict_msku[i][5], i)
-                            # print(111)
-                        else:
-                            quantity = Quantity()
-                            msg, message = quantity.pair_msku(self.dict_msku[i][0], self.dict_msku[i][5], self.dict_msku[i][3], 1.0, i, self.dict_msku[i][4])
-                            if msg:
-                                sql = "update `amazon_form`.`pre_msku` set `FNSKU` = '%s' , `状态` = '未使用', `ASIN` = '%s' " \
+                        if len(self.dict_msku[i]) > 3:
+                            if list_asin.count(self.dict_msku[i][5]) > 1:
+                                sql = "update `amazon_form`.`pre_msku` set `FNSKU` = '%s' , `状态` = '存在相同ASIN', `ASIN` = '%s' " \
                                       "where `MSKU` = '%s'" % (self.dict_msku[i][4], self.dict_msku[i][5], i)
-                                    # list_asin.append(i[0])
-                        self.cursor.execute(sql)
-                        self.connection.commit()
+                                # print(111)
+                            else:
+                                # print(self.dict_msku[i])
+                                quantity = Quantity()
+                                msg, message = quantity.pair_msku(self.dict_msku[i][0], self.dict_msku[i][5], self.dict_msku[i][3], 1.0, i, self.dict_msku[i][4])
+                                # print(message)
+                                if msg:
+                                    sql = "update `amazon_form`.`pre_msku` set `FNSKU` = '%s' , `状态` = '未使用', `ASIN` = '%s' " \
+                                          "where `MSKU` = '%s'" % (self.dict_msku[i][4], self.dict_msku[i][5], i)
+                                    list_asin.append(i[0])
+                            self.cursor.execute(sql)
+                            self.connection.commit()
+                    self.sql_close()
+                self.sql()
+                sql = "update `flag`.`amazon_form_flag` set `flag_num` = 0 where `flag_name` = 'pre_msku'"
+                self.cursor.execute(sql)
+                self.connection.commit()
+                self.sql_close()
+            else:
+                self.sql()
                 sql = "update `flag`.`amazon_form_flag` set `flag_num` = 0 where `flag_name` = 'pre_msku'"
                 self.cursor.execute(sql)
                 self.connection.commit()
                 self.sql_close()
         except Exception as e:
             print(e)
+            self.sql()
+            sql = "update `flag`.`amazon_form_flag` set `flag_num` = 0 where `flag_name` = 'pre_msku'"
+            self.cursor.execute(sql)
+            self.connection.commit()
+            self.sql_close()
             return False
 
     def get_productname(self, sku):
@@ -1091,8 +1152,8 @@ class Find_order():
                     continue
                 else:
                     list_asin.append(asin)
-            if msku in self.dict_msku and country == self.dict_msku[msku][2]:
-                shop_name = wb_sheet.cell(row=i, column=2).value
+            if msku in self.dict_msku and country == self.dict_msku[msku][1]:
+                shop_name = wb_sheet.cell(row=i, column=1).value
                 fnsku = wb_sheet.cell(row=i, column=8).value
                 self.dict_msku[msku].append(shop_name)
                 self.dict_msku[msku].append(fnsku)

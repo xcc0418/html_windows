@@ -59,7 +59,7 @@ class Quantity(object):
         }
         response = requests.post(url, data=payload, headers=headers, params=querystring)
         result = json.loads(response.text)
-        # print(response.text)
+        print(result)
         self.access_token = result['data']['access_token']
         self.refresh_token = result['data']['refresh_token']
         self.time = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -69,6 +69,26 @@ class Quantity(object):
         self.time = self.time.strftime("%Y-%m-%d")
         self.start_time = self.start_time.strftime("%Y-%m-%d")
         # self.start_time = '2022-03-07'
+
+    def get_access_token(self):
+        try:
+            self.app_id = "ak_nEfE94OSogf3x"
+            app_secret = "g2BcerjK4fWmhGZoetCJHeVqJmHEmfLt3gWFjDrBLB1yxiapgUKH6kOVs2N9JH7SFuBKuOF8K/CrNNSeFO1KKtsL05z24j" \
+                         "+AdWTW+V4op5QxDkmlTllvlprT8FfjctDdNDGrwHvBvE6s9h0pO0dNgopBAYiA7oosPzQhDF1A6XC1X/cZZmgBy3XRHyEv" \
+                         "xTT40xzwVGish53R8dZt3YIxNtKSgrBloo/CRQsV01yU40nyQR9L9oML32VT0C16jBrxcoWthlGDwfBn+CtVUvws4imyZi" \
+                         "+sG/CqZQeaVLkBCqLCgqw1VK4/a4jZws6HO3FMeBgvuf0aS5euNmfhkudQmg=="
+            querystring = {"appId": f"{self.app_id}", "appSecret": f"{app_secret}"}
+            url = "https://openapi.lingxing.com/api/auth-server/oauth/access-token"
+            payload = ""
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+            response = requests.post(url, data=payload, headers=headers, params=querystring)
+            result = json.loads(response.text)
+            # print(response.text)
+            self.access_token = result['data']['access_token']
+        except Exception as e:
+            print(e)
 
     def sql(self):
         self.connection = pymysql.connect(host='3354n8l084.goho.co',  # 数据库地址
@@ -267,63 +287,70 @@ class Quantity(object):
     def get_order_msg(self, list_order, dict_order=None):
         list_sku = {}
         list_id = self.get_product_id(list_order)
-        # print(list_id)
-        time_stamp = int(time.time())
-        url = "https://openapi.lingxing.com/erp/sc/routing/data/local_inventory/batchGetProductInfo"
-        body = {"access_token": self.access_token,
-                "timestamp": time_stamp,
-                "app_key": "ak_nEfE94OSogf3x",
-                "productIds": list_id
-                }
-        res = self.get_sign(body)
-        querystring = {"access_token": self.access_token,
-                       "timestamp": time_stamp,
-                       "app_key": self.app_id,
-                       "sign": res
-                       }
-        payload = {"productIds": list_id}
-        payload = json.dumps(payload)
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": "bearer {{access_token}}"
-        }
-        response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
-        result1 = json.loads(response.text)
-        # print(result1)
-        if result1['code'] == 0 and result1['message'] == 'success':
-            for i in result1['data']:
-                warehouse_sku = i['sku']
-                if warehouse_sku.find('GCWL') >= 0:
-                    warehouse_num = dict_order[warehouse_sku]
-                    if warehouse_sku not in list_sku:
-                        list_sku[warehouse_sku] = [warehouse_num, i['product_name']]
+        if list_id:
+            self.get_access_token()
+            time_stamp = int(time.time())
+            url = "https://openapi.lingxing.com/erp/sc/routing/data/local_inventory/batchGetProductInfo"
+            body = {"access_token": self.access_token,
+                    "timestamp": time_stamp,
+                    "app_key": "ak_nEfE94OSogf3x",
+                    "productIds": list_id
+                    }
+            res = self.get_sign(body)
+            querystring = {"access_token": self.access_token,
+                           "timestamp": time_stamp,
+                           "app_key": self.app_id,
+                           "sign": res
+                           }
+            payload = {"productIds": list_id}
+            payload = json.dumps(payload)
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": "bearer {{access_token}}"
+            }
+            response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
+            result1 = json.loads(response.text)
+            # print(result1)
+            if result1['code'] == 0 and result1['message'] == 'success':
+                for i in result1['data']:
+                    warehouse_sku = i['sku']
+                    if warehouse_sku.find('GCWL') >= 0:
+                        warehouse_num = dict_order[warehouse_sku]
+                        if warehouse_sku not in list_sku:
+                            list_sku[warehouse_sku] = [warehouse_num, i['product_name']]
+                        else:
+                            num_order = int(list_sku[warehouse_sku][0])
+                            list_sku[warehouse_sku][0] = num_order + int(warehouse_num)
                     else:
-                        num_order = int(list_sku[warehouse_sku][0])
-                        list_sku[warehouse_sku][0] = num_order + int(warehouse_num)
-                else:
-                    for j in i['combo_product_list']:
-                        product_id = j['product_id']
-                        product_name = self.get_product_name('ID', product_id)
-                        # print(product_name, product_id)
-                        sku = j['sku']
-                        if product_name.find('/100码') >= 0:
-                            warehouse_num = int(j['quantity']) * dict_order[warehouse_sku]
-                        elif product_name.find('0.01米') >= 0:
-                            if product_name.find('肩带') >= 0 or product_name.find('松紧带') >= 0:
+                        for j in i['combo_product_list']:
+                            product_id = j['product_id']
+                            product_name = self.get_product_name('ID', product_id)
+                            # print(product_name, product_id)
+                            sku = j['sku']
+                            if product_name.find('/100码') >= 0:
                                 warehouse_num = int(j['quantity']) * dict_order[warehouse_sku]
+                            elif product_name.find('0.01米') >= 0:
+                                if product_name.find('肩带') >= 0 or product_name.find('松紧带') >= 0:
+                                    warehouse_num = int(j['quantity']) * dict_order[warehouse_sku]
+                                else:
+                                    warehouse_num = int(j['quantity']) * dict_order[warehouse_sku] * 0.01
+                            elif product_name.find('0.001方') >= 0:
+                                warehouse_num = int(j['quantity']) * dict_order[warehouse_sku] * 0.001
                             else:
-                                warehouse_num = int(j['quantity']) * dict_order[warehouse_sku] * 0.01
-                        elif product_name.find('0.001方') >= 0:
-                            warehouse_num = int(j['quantity']) * dict_order[warehouse_sku] * 0.001
-                        else:
-                            warehouse_num = int(j['quantity']) * dict_order[warehouse_sku]
-                        if sku not in list_sku:
-                            list_sku[sku] = [warehouse_num, product_name]
-                        else:
-                            num_order = int(list_sku[sku][0])
-                            list_sku[sku][0] = num_order + int(warehouse_num)
-        # print(list_sku)
-        return list_sku
+                                warehouse_num = int(j['quantity']) * dict_order[warehouse_sku]
+                            if sku not in list_sku:
+                                list_sku[sku] = [warehouse_num, product_name]
+                            else:
+                                num_order = int(list_sku[sku][0])
+                                list_sku[sku][0] = num_order + int(warehouse_num)
+                # print(list_sku)
+                return list_sku
+            else:
+                print(result1)
+                return False
+        else:
+            print(list_sku)
+            return False
 
     def get_product_name(self, index, id):
         self.sql()
@@ -458,7 +485,7 @@ class Quantity(object):
                                 dict_sku[po_id].append([sku, num, name])
                             else:
                                 dict_sku[po_id].append([sku, num, name])
-            # print(dict_sku)
+            print(len(dict_sku))
             dict_gcwl = {}
             for i in dict_sku:
                 list_sku = []
@@ -467,10 +494,15 @@ class Quantity(object):
                     if j[0] not in dict_order:
                         dict_order[j[0]] = j[1]
                         list_sku.append(j[0])
-                # print(list_sku)
+                # print(list_sku, dict_order)
                 list_gcwl = self.get_order_msg(list_sku, dict_order)
-                dict_gcwl[i] = list_gcwl
-            # print(dict_gcwl)
+                if list_gcwl:
+                    dict_gcwl[i] = list_gcwl
+                    continue
+                else:
+                    return False, False
+                # print(list_gcwl)
+            print(len(dict_gcwl))
             msg, message = self.insert_sql(dict_gcwl, dict_sku)
             if msg:
                 return True, True
@@ -526,6 +558,8 @@ class Quantity(object):
             print(e)
             return False, e
 
+
 if __name__ == '__main__':
     quantity = Quantity()
-    quantity.write_sql('PO230328002', 'K22-2022-壳子款', [['GC.587', 100], ['GC.586', 100]])
+    # quantity.get_order_msg(['GC.410'], {'GC.410': 800})
+    quantity.upload_sql('D:/生产日程表/生产日程表202305171418.xlsx')

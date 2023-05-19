@@ -66,6 +66,7 @@
 	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
     outline:none;
 	border:none;/*取消文本框内外边框*/
+	font-size: 14px;
 }
 .method_item{
     width:110px;
@@ -92,7 +93,7 @@ font-size: 18px;
      margin:10px 0px 0px 0px;
 }
 .table_list{
-    width:100%;
+    width:2400px;
     height:780px;
 }
 .table_item1{
@@ -103,13 +104,13 @@ font-size: 18px;
     overflow: auto;
 }
 .table_item2{
-    width:600px;
+    width:900px;
     height:100%;
     border:1px solid black;
     background-color:white;
     overflow: auto;
 }
-tr,th {
+tr,td {
         box-sizing: border-box;/* 设置表格样式 */
         border: 1px solid #DDDDDD;
         overflow: hidden;
@@ -117,9 +118,9 @@ tr,th {
         text-overflow: ellipsis;
         text-align: center;
         background: #F4F4F5;
-        height: 50px;
+        height: 40px;
     }
-thead tr th{
+thead tr td{
             position: sticky;
             top: 0;
         }
@@ -128,6 +129,38 @@ thead tr th{
       top: 0; /* 固定第一行，前7列 */
       z-index:1;
     }
+.list_control1{
+    text-align: center;
+    position: sticky;
+    height: 40px;
+    width: 90px;
+}
+.list_control2{
+    text-align: center;
+    position: sticky;
+    height: 40px;
+    width: 100px;
+}
+.list_control3{
+    overflow: hidden;
+    text-overflow:ellipsis;
+    text-align: center;
+    position: sticky;
+    height: 40px;
+    width: 250px;
+}
+.list_control4{
+    text-align: center;
+    position: sticky;
+    height: 40px;
+    width: 40px;
+}
+.list_control5{
+    text-align: center;
+    position: sticky;
+    height: 40px;
+    width: 190px;
+}
 .table-sort {
     display: inline-block;
     width: 10px;
@@ -166,12 +199,6 @@ thead tr th{
 .table-sort .sort-desc.cur, .table-sort .sort-desc:hover {
     border-top-color: #fff
 }
-.list_control1{
-    height: 40px;
-    width:190px;
-    text-align: center;
-}
-
 .windows {
 	display: none;
 	position: fixed;
@@ -184,7 +211,7 @@ thead tr th{
 }
 #div1 {
 	background-color:rgb(220, 220, 220);
-	width: 730px;
+	width: 1130px;
 	height: 480px;
 	z-index: 1;
 	margin: 12% auto;
@@ -193,7 +220,7 @@ thead tr th{
 
 #table_item5 {
 	margin: auto;
-	width: 650px;
+	width: 1050px;
 	height: 390px;
 	padding: 0 20px;
 	border:1px solid black;
@@ -231,20 +258,20 @@ margin:0px 0px 0px 50px;
 #button_control9{
 margin:-41px 0px 0px 220px;
 }
-#button_control2{
+#button_control10{
 margin:-41px 0px 0px 600px;
 }
-#button_control10{
-margin:-41px 0px 0px 770px;
-}
 #button_control3{
-margin:-41px 0px 0px 1050px;
+margin:-41px 0px 0px 950px;
+}
+#box_control4{
+margin:-41px 0px 0px 1260px;
 }
 #box_control3{
-margin:-41px 0px 0px 1300px;
+margin:-41px 0px 0px 1430px;
 }
 #button_control7{
-margin:-41px 0px 0px 1480px;
+margin:-41px 0px 0px 1600px;
 }
 #box_control1{
 margin:0px 0px 0px 50px;
@@ -262,7 +289,7 @@ margin:-41px 0px 0px 600px;
 margin:-41px 0px 0px 770px;
 }
 #button_control6{
-margin:-41px 0px 0px 1050px;
+margin:-41px 0px 0px 950px;
 }
 #button_control8{
 margin:-41px 0px 0px 1300px;
@@ -277,7 +304,7 @@ margin:-781px 0px 0px 270px;
 margin:-781px 0px 0px 490px;
 }
 #table_item4{
-margin:-781px 0px 0px 1110px;
+margin:-781px 0px 0px 1410px;
 }
 </style>
 <body>
@@ -290,14 +317,14 @@ margin:-781px 0px 0px 1110px;
             <div class="button_item1" id="button_control9">
                 <button class="button1" onclick="derive_table(event)" data-name="table1">导出本地父体表格</button>
             </div>
-            <div class="button_item1" id="button_control2">
-                <button class="button1" onclick="get_list_asin()" id="button2">获取亚马逊父体</button>
-            </div>
             <div class="button_item1" id="button_control10">
                 <button class="button1" onclick="derive_table(event)" data-name="table2">导出亚马逊父体表格</button>
             </div>
             <div class="button_item2" id="button_control3">
                 <button class="button2" onclick="contrast_parent()" id="button4">对比</button>
+            </div>
+            <div class="box_search" id="box_control4">
+                <input type="date" name="start_time" class="input_po" id="data_time" value="" />
             </div>
             <div class="box_search" id="box_control3">
                 <input type="text" placeholder="  父ASIN" class="input_po" autocomplete="off" id="parent_asin">
@@ -315,19 +342,26 @@ margin:-781px 0px 0px 1110px;
             </div>
             <div class="method_item" id="method_control1">
                 <select class="method" id="list_country">
-                    <option value="美国">美国</option>
-                    <option value="英国">英国</option>
-                    <option value="法国">法国</option>
-                    <option value="巴西">巴西</option>
-                    <option value="波兰">波兰</option>
-                    <option value="荷兰">荷兰</option>
-                    <option value="墨西哥">墨西哥</option>
-                    <option value="加拿大">加拿大</option>
-                    <option value="日本">日本</option>
-                    <option value="德国">德国</option>
-                    <option value="意大利">意大利</option>
-                    <option value="西班牙">西班牙</option>
-                    <option value="瑞典">瑞典</option>
+                    <option value=""></option>
+                    <option value="iDLEHANDS-US">iDLEHANDS-US</option>
+                    <option value="iDLEHANDS-CA">iDLEHANDS-CA</option>
+                    <option value="iDLEHANDS-MX">iDLEHANDS-MX</option>
+                    <option value="CoBak-CA">CoBak-CA</option>
+                    <option value="CoBak-M">CoBak-MX</option>
+                    <option value="CoBak-US">CoBak-US</option>
+                    <option value="CoBak-BR">CoBak-BR</option>
+                    <option value="CoBak-JP">CoBak-JP</option>
+                    <option value="SMIFACE-US">SMIFACE-US</option>
+                    <option value="SMIFACE-CA">SMIFACE-CA</option>
+                    <option value="CoBak Direct-BE">CoBak Direct-BE</option>
+                    <option value="CoBak-SE">CoBak-SE</option>
+                    <option value="CoBak-NL">CoBak-NL</option>
+                    <option value="CoBak-DE">CoBak-DE</option>
+                    <option value="CoBak-ES">CoBak-ES</option>
+                    <option value="CoBak-IT">CoBak-IT</option>
+                    <option value="CoBak-FR">CoBak-FR</option>
+                    <option value="CoBak-UK">CoBak-UK</option>
+                    <option value="CoBak-SG">CoBak-SG</option>
                 </select>
             </div>
             <div class="box_search" id="box_control2">
@@ -391,7 +425,18 @@ margin:-781px 0px 0px 1110px;
 <script src="../JavaScript/jquery-3.0.0.min.js"></script>
 <script src="../JavaScript/axios.min.js"></script>
 <script>
+    var start = document.getElementById("data_time");
+    var date = new Date();
+    var month_t = date.getMonth().toString();
+    if (date.getMonth() + 1 < 10)
+        month_t = '0' + (date.getMonth() + 1);
 
+    var day_t = date.getDate().toString();
+    if (date.getDate() < 10)
+        day_t = '0' + (date.getDate() + 1)
+
+    var dateString = date.getFullYear() + "-" + (month_t) + "-" + day_t;
+    start.value = dateString;
     function get_list_male(){
     document.getElementById("button1").disabled = "ture";
     var button = document.getElementById('button1');
@@ -408,6 +453,8 @@ margin:-781px 0px 0px 1110px;
     document.getElementById("button1").disabled = false;
     }
     if (msg['msg'] == 'error'){
+    var tab = document.getElementById("control_item1");
+    tab.innerHTML = '';
     alert(msg['message']);
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("button1").disabled = false;
@@ -418,42 +465,6 @@ margin:-781px 0px 0px 1110px;
     alert('请求超时，请重试！');
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("button1").disabled = false;
-    }
-    }
-    })
-    }
-
-    function get_list_asin(){
-    var background = document.getElementById("background_control");
-	background.innerHTML = "正在查询亚马逊父体信息";
-    document.getElementById("button2").disabled = "ture";
-    var button = document.getElementById('button2');
-    button.style.backgroundColor = 'rgb(220, 220, 220)';
-    $.ajax({
-    url: "/parent_message/get_list_asin",
-    headers:{Accept: "application/json; charset=utf-8"},
-    type: "get",
-    dataType: 'json',
-    success: function(msg){
-    if (msg['msg'] == 'success'){
-    create_table(msg['data'], "亚马逊父体");
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("button2").disabled = false;
-    background.innerHTML = "";
-    }
-    if (msg['msg'] == 'error'){
-    alert(msg['message']);
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("button2").disabled = false;
-    background.innerHTML = "";
-    }
-    },
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-    if (textStatus === 'timeout') {
-    alert('请求超时，请重试！');
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("button2").disabled = false;
-    background.innerHTML = "";
     }
     }
     })
@@ -466,7 +477,8 @@ margin:-781px 0px 0px 1110px;
     document.getElementById("input2").disabled = "ture";
     var button = document.getElementById('input2');
     button.style.backgroundColor = 'rgb(220, 220, 220)';
-    var data = {"data": JSON.stringify({"asin": asin})};
+    var country = document.getElementById("list_country").value;
+    var data = {"data": JSON.stringify({"asin": asin, "country": country})};
     $.ajax({
     url: "/parent_message/find_list_asin",
     headers:{Accept: "application/json; charset=utf-8"},
@@ -476,16 +488,10 @@ margin:-781px 0px 0px 1110px;
     success: function(msg){
     if (msg['msg'] == 'success'){
     document.getElementById("control_item2").innerHTML = '';
-    if (asin){
     var tab = document.getElementById("control_item4");
     tab.innerHTML = '';
     tab.dataset.asin = asin;
-    create_table([asin], "亚马逊父体");
     create_table2(msg['data'], "亚马逊父体", asin);
-    }
-    else{
-    create_table(msg['data'], "亚马逊父体");
-    }
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("input2").disabled = false;
     document.getElementById("asin_input").value = "";
@@ -553,25 +559,29 @@ margin:-781px 0px 0px 1110px;
     function create_table(list_data, heard_name1){
     var heard_tr = document.createElement("tr");
     heard_tr.className = "list_control_header";
-    var heard_name1_str = create_control(['list_control1', heard_name1]);
+    var heard_name1_str = create_control(['list_control', heard_name1]);
     heard_tr.innerHTML = heard_name1_str;
     if (heard_name1 == "本地父体"){
     document.getElementById("control_item1").appendChild(heard_tr);
-    }
-    if (heard_name1 == "亚马逊父体"){
-    document.getElementById("control_item2").appendChild(heard_tr);
-    }
     for (var i = 0; i < list_data.length; i++){
     var tr = document.createElement("tr");
     tr.className = "list_control_tr";
     var name = list_data[i];
-    var name_str = drag_control(['list_control1', name, 0]);
+    var name_str = drag_control(['list_control3', name, 0]);
     var str = name_str;
     tr.innerHTML = str;
-    if (heard_name1 == "本地父体"){
     document.getElementById("control_item1").appendChild(tr);
     }
+    }
     if (heard_name1 == "亚马逊父体"){
+    document.getElementById("control_item2").appendChild(heard_tr);
+    for (var i = 0; i < list_data.length; i++){
+    var tr = document.createElement("tr");
+    tr.className = "list_control_tr";
+    var name = list_data[i];
+    var name_str = create_control(['list_control5', name, 0]);
+    var str = name_str;
+    tr.innerHTML = str;
     document.getElementById("control_item2").appendChild(tr);
     }
     }
@@ -581,13 +591,16 @@ margin:-781px 0px 0px 1110px;
     var msg = msg_data;
     var str = '';
     if (msg[2] == 1){
-    str = "<td class="+ msg[0] +"><div class=\"header_text\"><span ondblclick=\"windows_msg(event)\" class="+ msg[3] +" oncontextmenu=\"menu_bar(event)\" onclick=\"close_menu()\">"+ msg[1] +"</span></div></td>";
+    str = "<td class="+ msg[0] +"><div class="+ msg[0]+"><span ondblclick=\"windows_msg(event)\" class="+ msg[3] +" oncontextmenu=\"menu_bar(event)\" onclick=\"close_menu()\">"+ msg[1] +"</span></div></td>";
     }
     else if(msg[2] == 2){
-    str = "<td class="+ msg[0] +"><div class=\"header_text\"><span>"+ msg[1] +"</span><span class=\"table-sort\"><i class=\"sort-asc\" onclick=\"ascending_sort(event)\" sort_name="+ msg[1] +" sort_asin="+ msg[3] +"></i><i class=\"sort-desc\" onclick=\"descending_sort(event)\" sort_name="+ msg[1] +" sort_asin="+ msg[3] +"></i></span></div></td>";
+    str = "<td class="+ msg[0] +"><div class="+ msg[0]+"><span>"+ msg[1] +"</span><span class=\"table-sort\"><i class=\"sort-asc\" onclick=\"ascending_sort(event)\" sort_name="+ msg[1] +" sort_asin="+ msg[3] +"></i><i class=\"sort-desc\" onclick=\"descending_sort(event)\" sort_name="+ msg[1] +" sort_asin="+ msg[3] +"></i></span></div></td>";
+    }
+    else if(msg[2] == 3){
+    str = "<td class="+ msg[0] +"><div class="+ msg[0]+"><span>"+ msg[1] +"</span><span class=\"table-sort\"><i class=\"sort-asc\" onclick=\"ascending_sort2(event)\" sort_name="+ msg[1] +"></i><i class=\"sort-desc\" onclick=\"descending_sort2(event)\" sort_name="+ msg[1] +"></i></span></div></td>";
     }
     else{
-    str = "<td class="+ msg[0] +"><div class=\"header_text\"><span>"+ msg[1] +"</span></div></td>";
+    str = "<td class="+ msg[0] +"><div class="+ msg[0]+"><span>"+ msg[1] +"</span></div></td>";
     }
     return str
     }
@@ -595,7 +608,7 @@ margin:-781px 0px 0px 1110px;
     function drag_control(msg_data){
     var msg = msg_data;
     var str = '';
-    str = "<td class="+ msg[0] +"><div class=\"header_text\" ondragend=\"drop(event)\" ondragover=\"allowDrop(event)\" draggable=\"true\" ondragstart=\"drag(event)\" id="+ msg[1] +">"+ msg[1] +"</div></td>";
+    str = "<td class="+ msg[0] +"><div class="+ msg[0] +" ondragend=\"drop(event)\" ondragover=\"allowDrop(event)\" draggable=\"true\" ondragstart=\"drag(event)\" id="+ msg[1] +" ondblclick=\"amazon_parent(event)\">"+ msg[1] +"</div></td>";
     return str
     }
 
@@ -612,6 +625,31 @@ margin:-781px 0px 0px 1110px;
     var data = ev.target.innerHTML;
     console.log(data)
     find_asin_parent(data)
+    }
+
+    function amazon_parent(event){
+    var male_parent = event.target.innerHTML;
+    var data = {"data": JSON.stringify({"male_parent": male_parent})};
+    $.ajax({
+    url: "/parent_message/get_amazon_parent",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    create_table(msg['data'], "亚马逊父体");
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
     }
 
     function find_asin_parent(asin){
@@ -660,14 +698,15 @@ margin:-781px 0px 0px 1110px;
     function create_table2(list_data, heard_name, asin){
     var heard_tr = document.createElement("tr");
     heard_tr.className = "list_control_header";
-    var heard_name1_str = create_control(['list_control1', heard_name, 0, 0]);
-    var heard_name2_str = create_control(['list_control1', 'SKU', 0, 0]);
+    var heard_name8_str = create_control(['list_control4', '序号', 0, 0]);
+    var heard_name1_str = create_control(['list_control2', heard_name, 0, 0]);
+    var heard_name2_str = create_control(['list_control3', '本地品名', 0, 0]);
     var heard_name3_str = create_control(['list_control1', 'FBA库存', 2, asin]);
     var heard_name4_str = create_control(['list_control1', 'FBA在途', 2, asin]);
     var heard_name5_str = create_control(['list_control1', '本地库存', 2, asin]);
     var heard_name6_str = create_control(['list_control1', '预计库存', 2, asin]);
     var heard_name7_str = create_control(['list_control1', '30天销量', 2, asin]);
-    heard_tr.innerHTML = heard_name1_str + heard_name2_str + heard_name3_str + heard_name4_str + heard_name5_str + heard_name6_str + heard_name7_str;
+    heard_tr.innerHTML = heard_name8_str + heard_name1_str + heard_name2_str + heard_name3_str + heard_name4_str + heard_name5_str + heard_name6_str + heard_name7_str;
     if (heard_name == "本地父体"){
     document.getElementById("control_item3").appendChild(heard_tr);
     }
@@ -677,10 +716,12 @@ margin:-781px 0px 0px 1110px;
     for (var i = 0; i < list_data.length; i++){
     var tr = document.createElement("tr");
     tr.className = "list_control_tr";
+    var serial = i+1;
+    var serial_str = create_control(['list_control4', serial, 0, 0]);
     var name = list_data[i][0];
-    var name_str = create_control(['list_control1', name, 0, 0]);
+    var name_str = create_control(['list_control2', name, 0, 0]);
     var sku = list_data[i][1];
-    var sku_str = create_control(['list_control1', sku, 1, asin]);
+    var sku_str = create_control(['list_control3', sku, 1, asin]);
     var num = list_data[i][2];
     var num_str = create_control(['list_control1', num, 0, 0]);
     var order = list_data[i][5];
@@ -691,7 +732,7 @@ margin:-781px 0px 0px 1110px;
     var predict_num_str = create_control(['list_control1', predict_num, 0, 0]);
     var predict_fba = list_data[i][3];
     var predict_fba_str = create_control(['list_control1', predict_fba, 0, 0]);
-    var str = name_str + sku_str + num_str + predict_fba_str + order_str + predict_num_str + sale_num_str;
+    var str = serial_str + name_str + sku_str + num_str + predict_fba_str + order_str + predict_num_str + sale_num_str;
     tr.innerHTML = str;
     if (heard_name == "本地父体"){
     document.getElementById("control_item3").appendChild(tr);
@@ -759,7 +800,9 @@ margin:-781px 0px 0px 1110px;
     data1[i][0] = asin;
     }
     }
+    if (data1.length >= 1){
     data1[0][0] = "本地父体";
+    }
     var tabObj2 = document.getElementById('table_control4');
     var tab2 = document.getElementById("control_item4");
     var asin2 = tab2.dataset.asin;
@@ -773,7 +816,9 @@ margin:-781px 0px 0px 1110px;
     data2[i][0] = asin2;
     }
     }
+    if (data2.length >= 1){
     data2[0][0] = "亚马逊父体";
+    }
     return [data1, data2];
     }
 
@@ -799,6 +844,20 @@ margin:-781px 0px 0px 1110px;
     }
     }
     return [data1, data2];
+    }
+
+    function get_table3(){
+    var tabObj = document.getElementById('table_control5');
+    var data = [];
+    for(var i=0,rows=tabObj.rows.length; i<rows; i++){
+    for(var j=0,cells=tabObj.rows[i].cells.length; j<cells; j++){
+    if(!data[i]){
+    data[i] = new Array();
+    }
+    data[i][j] = tabObj.rows[i].cells[j].getElementsByTagName('span')[0].innerHTML;
+    }
+    }
+    return data;
     }
 
     function windows_msg(ev){
@@ -846,36 +905,48 @@ margin:-781px 0px 0px 1110px;
     function create_table3(list_data){
     var heard_tr = document.createElement("tr");
     heard_tr.className = "list_control_tr";
-    var heard_name1_str = create_control(['list_control1', 'SKU', 0]);
-    var heard_name2_str = create_control(['list_control1', 'FNSKU', 0]);
-    var heard_name3_str = create_control(['list_control1', 'FBA库存', 0]);
-    var heard_name4_str = create_control(['list_control1', 'FBA在途', 0]);
-    var heard_name5_str = create_control(['list_control1', '30天销量', 0]);
-    var heard_name6_str = create_control(['list_control1', '本地库存', 0]);
-    var heard_name7_str = create_control(['list_control1', '预计库存', 0]);
-    var heard_name8_str = create_control(['list_control1', '国家', 0]);
-    heard_tr.innerHTML = heard_name1_str + heard_name2_str + heard_name3_str + heard_name4_str + heard_name5_str + heard_name6_str + heard_name7_str + heard_name8_str;
+    var heard_name9_str = create_control(['list_control4', '序号', 0]);
+    var heard_name1_str = create_control(['list_control2', 'SKU', 0]);
+    var heard_name2_str = create_control(['list_control2', 'FNSKU', 0]);
+    var heard_name10_str = create_control(['list_control2', 'ASIN', 0]);
+    var heard_name11_str = create_control(['list_control2', '父ASIN', 0]);
+    var heard_name3_str = create_control(['list_control1', 'FBA库存', 3]);
+    var heard_name4_str = create_control(['list_control1', 'FBA在途', 3]);
+    var heard_name5_str = create_control(['list_control1', '30天销量', 3]);
+    var heard_name6_str = create_control(['list_control1', '本地库存', 3]);
+    var heard_name7_str = create_control(['list_control1', '预计库存',3]);
+    var heard_name8_str = create_control(['list_control2', '店铺', 0]);
+    var heard_name12_str = create_control(['list_control2', '创建时间', 0]);
+    heard_tr.innerHTML = heard_name9_str + heard_name1_str + heard_name2_str + heard_name10_str + heard_name11_str + heard_name3_str + heard_name4_str + heard_name5_str + heard_name6_str + heard_name7_str + heard_name8_str + heard_name12_str;
     document.getElementById("control_item5").appendChild(heard_tr);
     for (var i = 0; i < list_data.length; i++){
     var tr = document.createElement("tr");
     tr.className = "list_control_tr";
+    var serial = i+1;
+    var serial_str = create_control(['list_control4', serial, 0, 0]);
     var sku = list_data[i][0];
-    var sku_str = create_control(['list_control1', sku, 0, 0]);
+    var sku_str = create_control(['list_control2', sku, 0, 0]);
     var fnsku = list_data[i][1];
-    var fnsku_str = create_control(['list_control1', fnsku, 0, 0]);
-    var num = list_data[i][2];
+    var fnsku_str = create_control(['list_control2', fnsku, 0, 0]);
+    var asin = list_data[i][2];
+    var asin_str = create_control(['list_control2', asin, 0, 0]);
+    var parent_asin = list_data[i][3];
+    var parent_asin_str = create_control(['list_control2', parent_asin, 0, 0]);
+    var num = list_data[i][4];
     var num_str = create_control(['list_control1', num, 0, 0]);
-    var predict_fba = list_data[i][3];
+    var predict_fba = list_data[i][5];
     var predict_fba_str = create_control(['list_control1', predict_fba, 0, 0]);
-    var sale_num = list_data[i][4];
+    var sale_num = list_data[i][6];
     var sale_num_str = create_control(['list_control1', sale_num, 0, 0]);
-    var order = list_data[i][5];
+    var order = list_data[i][7];
     var order_str = create_control(['list_control1', order, 0, 0]);
-    var predict_num = list_data[i][6];
+    var predict_num = list_data[i][8];
     var predict_num_str = create_control(['list_control1', predict_num, 0, 0]);
-    var country = list_data[i][7];
-    var country_str = create_control(['list_control1', country, 0, 0]);
-    var str = sku_str + fnsku_str + num_str + predict_fba_str + sale_num_str + order_str + predict_num_str + country_str;
+    var country = list_data[i][9];
+    var country_str = create_control(['list_control2', country, 0, 0]);
+    var create_time = list_data[i][10];
+    var create_time_str = create_control(['list_control2', create_time, 0, 0]);
+    var str = serial_str + sku_str + fnsku_str + asin_str + parent_asin_str + num_str + predict_fba_str + sale_num_str + order_str + predict_num_str + country_str + create_time_str;
     tr.innerHTML = str;
     document.getElementById("control_item5").appendChild(tr);
     }
@@ -958,10 +1029,67 @@ margin:-781px 0px 0px 1110px;
     })
     }
 
+    function ascending_sort2(event){
+    var index = event.target.getAttribute("sort_name");
+	var list_data = get_table3();
+    var data = {"data": JSON.stringify({"list_msg": list_data, "index": index})};
+    $.ajax({
+    url: "/parent_message/ascending_sort2",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    var tab = document.getElementById("control_item5");
+    tab.innerHTML = '';
+    create_table3(msg['data']);
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
+    function descending_sort2(event){
+    var index = event.target.getAttribute("sort_name");
+	var list_data = get_table3();
+    var data = {"data": JSON.stringify({"list_msg": list_data, "index": index})};
+    $.ajax({
+    url: "/parent_message/descending_sort2",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    var tab = document.getElementById("control_item5");
+    tab.innerHTML = '';
+    create_table3(msg['data']);
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
     function download_parent(){
     var asin = document.getElementById("parent_asin").value;
     console.log(asin)
-    var data = {"data": JSON.stringify({"asin": asin})};
+    var data_time = document.getElementById("data_time").value;
+    var data = {"data": JSON.stringify({"asin": asin, "data_time": data_time})};
     $.ajax({
     url: "/parent_message/download_parent",
     headers:{Accept: "application/json; charset=utf-8"},
@@ -1008,10 +1136,15 @@ margin:-781px 0px 0px 1110px;
 
     function show_menu(sku, asin, table_asin){
     close_menu();
-    var menu_str = "<div id=\"rk_menubox\" class=\"rk_menubox\">"+
-                   "<div class=\"rk_menuitem\"><span class=\"menu_button\" onclick=\"relieve_sku(event)\" data_sku='"+ sku +"' data_asin="+ asin +" data_table_asin="+ table_asin +">解除关联</span></div>"+
-                   "<div class=\"rk_menuitem\"><span class=\"menu_button\" onclick=\"relevance_sku(event)\" data_sku='"+ sku +"' data_asin="+ asin +" data_table_asin="+ table_asin +">关联</span></div></div>";
-
+    var menu_str = '';
+    if(asin.includes("B0")){
+    menu_str = "<div id=\"rk_menubox\" class=\"rk_menubox\">"+
+               "<div class=\"rk_menuitem\"><span class=\"menu_button\" onclick=\"relieve_sku(event)\" data_sku='"+ sku +"' data_asin="+ asin +" data_table_asin="+ table_asin +">解除关联</span></div></div>";
+    }
+    else{
+    menu_str = "<div id=\"rk_menubox\" class=\"rk_menubox\">"+
+               "<div class=\"rk_menuitem\"><span class=\"menu_button\" onclick=\"relevance_sku(event)\" data_sku='"+ sku +"' data_asin="+ asin +" data_table_asin="+ table_asin +">关联</span></div></div>";
+    }
     if($('#rk_menubox')[0]==null){
       $('body').append(menu_str);
     }
@@ -1019,14 +1152,14 @@ margin:-781px 0px 0px 1110px;
     var evt=window.event || arguments[0];
 
     // 获取鼠标右键按下后的位置,据此定义菜单显示的位置
-    var rightedge=$('#rk_menubox').width()+evt.clientX;
+    var rightedge=$('#rk_menubox').width()+evt.pageX;
 
     // 判断弹出的菜单是否有溢出浏览器窗口的宽度
     if(rightedge>$(window).width()){
       var _left=evt.clientX-$('#rk_menubox').width();
       $('#rk_menubox').css({top:evt.clientY+'px',left:_left+'px'});
     }else{
-      $('#rk_menubox').css({top:evt.clientY+'px',left:evt.clientX+'px'});
+      $('#rk_menubox').css({top:evt.clientY+'px',left:evt.pageX+'px'});
     }
     }
 
@@ -1131,7 +1264,8 @@ margin:-781px 0px 0px 1110px;
     function get_msg(){
     var local_sku = document.getElementById("local_sku").value;
     var list_msg = get_table();
-    var data = {"data": JSON.stringify({"list_male": list_msg[0], "list_asin": list_msg[1], "local_sku": local_sku})};
+    var shop = document.getElementById("list_country").value;
+    var data = {"data": JSON.stringify({"list_male": list_msg[0], "list_asin": list_msg[1], "local_sku": local_sku, "shop": shop})};
     $.ajax({
     url: "/parent_message/find_parent_sku",
     headers:{Accept: "application/json; charset=utf-8"},
@@ -1141,14 +1275,18 @@ margin:-781px 0px 0px 1110px;
     success: function(msg){
     console.log(msg)
     if (msg['msg'] == 'success'){
+    if (msg['list_male'].length > 0){
     var tab = document.getElementById("control_item3");
     tab.innerHTML = '';
     var asin = tab.dataset.asin;
+    create_table2(msg['list_male'], "本地父体", asin);
+    }
+    if (msg['list_asin'].length > 0){
     var tab2 = document.getElementById("control_item4");
     tab2.innerHTML = '';
     var asin2 = tab2.dataset.asin;
-    create_table2(msg['list_male'], "本地父体", asin);
     create_table2(msg['list_asin'], "亚马逊父体", asin2);
+    }
     }
     if (msg['msg'] == 'error'){
     alert(msg['message']);

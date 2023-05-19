@@ -10,6 +10,13 @@
     height:40px;
     border:1px solid black;
 }
+.item_list{
+    width:700px;
+    height:120px;
+    border:1px solid black;
+    background-color:white;
+    position: relative;
+}
 .input_po{
     float: left;
     width: 190px;
@@ -27,6 +34,20 @@
 .button{
 	float:left;
 	width:150px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.button_item2{
+    width:80px;
+    height:40px;
+    border:1px solid black;
+}
+.button2{
+	float:left;
+	width:80px;
 	height:40px;
 	color:black;
 	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
@@ -77,7 +98,7 @@
 }
 .table_item{
     width:700px;
-    height:800px;
+    height:650px;
     border:1px solid black;
     background-color:white;
     overflow: auto;
@@ -111,83 +132,78 @@ width:150px;
 height:40px;
 font-size: 18px;
 }
+#item1{
+margin:0px 0px 0px 50px;
+}
 #box_control1{
 margin:0px 0px 0px 50px;
 }
-#button_control1{
+#box_control2{
 margin:-41px 0px 0px 280px;
+}
+#button_control1{
+margin:-41px 0px 0px 500px;
 }
 #input_control1{
-margin:-41px 0px 0px 470px;
-}
-#input_control3{
-margin:-41px 0px 0px 800px;
-}
-#box_control2{
-margin:-41px 0px 0px 1050px;
-}
-#button_control2{
-margin:-41px 0px 0px 1280px;
-}
-#input_control2{
-margin:-41px 0px 0px 1470px;
-}
-#box_control3{
 margin:0px 0px 0px 50px;
-}
-#button_control3{
-margin:-41px 0px 0px 280px;
-}
-#button_control4{
-margin:-41px 0px 0px 470px;
-}
-#input_control4{
-margin:-41px 0px 0px 800px;
-}
-#box_control5{
-margin:-41px 0px 0px 1050px;
-}
-#button_control5{
-margin:-41px 0px 0px 1280px;
-}
-#button_control6{
-margin:-41px 0px 0px 1470px;
 }
 #method_control1{
+margin:-41px 0px 0px 350px;
+}
+#item2{
+margin:-121px 0px 0px 1000px;
+}
+#box_control3{
+position: absolute;
 margin:0px 0px 0px 50px;
 }
-#box_control6{
-margin:-41px 0px 0px 180px;
+#box_control4{
+position: absolute;
+margin:0px 0px 0px 280px;
 }
-#button_control7{
-margin:-41px 0px 0px 400px;
+#button_control2{
+position: absolute;
+margin:0px 0px 0px 500px;
 }
-#button_control10{
-margin:-41px 0px 0px 800px;
+#input_control2{
+margin:43px 0px 0px 50px;
 }
 #method_control2{
-margin:-41px 0px 0px 1050px;
+position: absolute;
+margin:-41px 0px 0px 350px;
 }
-#box_control7{
-margin:-41px 0px 0px 1180px;
+#item3{
+margin:0px 0px 0px 0px;
 }
-#button_control8{
-margin:-41px 0px 0px 1400px;
-}
-#button_control9{
-margin:-41px 0px 0px 1600px;
-}
-#download_control2{
+#method_control3{
 margin:0px 0px 0px 50px;
 }
-#button_control13{
+#box_control5{
+margin:-41px 0px 0px 180px;
+}
+#button_control3{
+margin:-41px 0px 0px 400px;
+}
+#method_control4{
+margin:-41px 0px 0px 1000px;
+}
+#box_control6{
+margin:-41px 0px 0px 1130px;
+}
+#button_control4{
+margin:-41px 0px 0px 1350px;
+}
+#button_control5{
+margin:-41px 0px 0px 1550px;
+}
+#download_control1{
+margin:0px 0px 0px 50px;
+}
+#button_control6{
 margin:-41px 0px 0px 200px;
 }
-#button_control11{
-margin:-41px 0px 0px 800px;
-}
-#button_control12{
-margin:-41px 0px 0px 1200px;
+#button_control7{
+margin:-41px 0px 0px 1100px;
 }
 #download_control{
 margin:-41px 0px 0px 1400px;
@@ -196,105 +212,99 @@ margin:-41px 0px 0px 1400px;
 margin:0px 0px 0px 50px;
 }
 #table_item2{
-margin:-801px 0px 0px 1000px;
+margin:-651px 0px 0px 1000px;
 }
 </style>
 <body>
 <div class="item">
     <div class="function_item">
-        <div class="item_list">
+        <div class="item_list" id="item1">
+            本地父体：
             <div class="box_search" id="box_control1">
                 <input type="text" placeholder="  本地父体" class="input_po" autocomplete="off" id="male_input">
             </div>
-            <div class="button_item" id="button_control1">
-                <button class="button" onclick="add_male()">添加本地父体</button>
+            <div class="box_search" id="box_control2">
+                <input type="text" placeholder="  SKU/本地品名/亚马逊父体" class="input_po" autocomplete="off" id="sku_input">
+            </div>
+            <div class="button_item2" id="button_control1">
+                <button class="button2" onclick="parent_function()">确定</button>
             </div>
             <div class="button_item" id="input_control1">
                 <input type="file" name="file" id="files1" style="display:none" onchange="upload_male();">
-                <input type="button" value="批量添加本地父体" id="import1" class="upload">
+                <input type="button" value="批量操作本地父体" id="import1" class="upload">
             </div>
-            <div class="button_item" id="input_control3">
-                <input type="file" name="file" id="files3" style="display:none" onchange="upload_parent();">
-                <input type="button" value="批量关联本地父体" id="import3" class="upload">
-            </div>
-            <div class="box_search" id="box_control2">
-                <input type="text" placeholder="  本地品名" class="input_po" autocomplete="off" id="sku_input">
-            </div>
-            <div class="button_item" id="button_control2">
-                <button class="button" onclick="add_sku()">添加本地品名</button>
-            </div>
-            <div class="button_item" id="input_control2">
-                <input type="file" name="file" id="files2" style="display:none" onchange="upload_sku();">
-                <input type="button" value="批量添加本地品名" id="import2" class="upload">
+            <div class="method_item1" id="method_control1">
+                <select class="method1" id="list_function">
+                    <option value="关联">关联</option>
+                    <option value="解除关联">解除关联</option>
+                    <option value="创建父体">创建父体</option>
+                    <option value="创建父体并关联">创建父体并关联</option>
+                    <option value="删除">删除</option>
+                    <option value="关联亚马逊父体">关联亚马逊父体</option>
+                    <option value="解除亚马逊父体关联">解除亚马逊父体关联</option>
+                </select>
             </div>
         </div>
-        <div class="item_list">
+        <div class="item_list" id="item2">
+            本地品名：
             <div class="box_search" id="box_control3">
+                <input type="text" placeholder="  本地品名" class="input_po" autocomplete="off" id="male_sku">
+            </div>
+            <div class="box_search" id="box_control4">
                 <input type="text" placeholder="  SKU" class="input_po" autocomplete="off" name="male_parent" id="parent_sku">
             </div>
-            <div class="button_item" id="button_control3">
-                <button class="button" onclick="relevance_male()">关联本地父体</button>
+            <div class="button_item2" id="button_control2">
+                <button class="button2" onclick="local_function()">确定</button>
             </div>
-            <div class="button_item" id="button_control4">
-                <button class="button" onclick="relieve_male()">解除本地父体关联</button>
+            <div class="button_item" id="input_control2">
+                <input type="file" name="file" id="files2" style="display:none" onchange="upload_name();">
+                <input type="button" value="批量操作本地品名" id="import2" class="upload">
             </div>
-            <div class="button_item" id="input_control4">
-                <input type="file" name="file" id="files4" style="display:none" onchange="upload_name();">
-                <input type="button" value="批量关联本地品名" id="import4" class="upload">
-            </div>
-            <div class="box_search" id="box_control5">
-                <input type="text" placeholder="  SKU" class="input_po" autocomplete="off" name="po_name" id="local_sku">
-            </div>
-            <div class="button_item" id="button_control5">
-                <button class="button" onclick="relevance_sku()">关联本地品名</button>
-            </div>
-            <div class="button_item" id="button_control6">
-                <button class="button" onclick="relieve_sku()">解除本地品名关联</button>
+            <div class="method_item1" id="method_control2">
+                <select class="method1" id="list_function2">
+                    <option value="关联">关联</option>
+                    <option value="解除关联">解除关联</option>
+                    <option value="创建品名">创建品名</option>
+                    <option value="创建品名并关联">创建品名并关联</option>
+                    <option value="删除">删除</option>
+                </select>
             </div>
         </div>
-        <div class="item_list">
-            <div class="method_item1" id="method_control1">
+        <div class="item_list2" id="item3">
+            <div class="method_item1" id="method_control3">
                 <select class="method1" id="list_class1">
                     <option value="本地父体">本地父体</option>
                     <option value="sku">sku</option>
                 </select>
             </div>
-            <div class="box_search" id="box_control6">
+            <div class="box_search" id="box_control5">
                 <input type="text" class="input_po" autocomplete="off" id="get_msg1">
             </div>
-            <div class="button_item" id="button_control7">
+            <div class="button_item" id="button_control3">
                 <button class="button" onclick="get_male()" id="button1">获取本地父体详情</button>
             </div>
-            <div class="button_item" id="button_control10">
-                <input type="file" name="file" id="files5" style="display:none" onchange="upload_relieve_male();">
-                <input type="button" value="批量解除本地父体关联" id="import5" class="upload">
-            </div>
-            <div class="method_item1" id="method_control2">
+            <div class="method_item1" id="method_control4">
                 <select class="method1" id="list_class2">
                     <option value="本地品名">本地品名</option>
                     <option value="sku">sku</option>
                 </select>
             </div>
-            <div class="box_search" id="box_control7">
+            <div class="box_search" id="box_control6">
                 <input type="text" class="input_po" autocomplete="off" id="get_msg2">
             </div>
-            <div class="button_item" id="button_control8">
+            <div class="button_item" id="button_control4">
                 <button class="button" onclick="get_sku()" id="button2">获取本地品名详情</button>
             </div>
-            <div class="clear_item" id="button_control9">
+            <div class="clear_item" id="button_control5">
                 <button class="clear" onclick="clear_html()">清空</button>
             </div>
-            <div class="download_item" id="download_control2">
+            <div class="download_item" id="download_control1">
                 <a href="template_download.html">下载模板</a>
             </div>
-            <div class="button_item" id="button_control13">
+            <div class="button_item" id="button_control6">
                 <button class="button" onclick="derive_table(event)" data-name="table1">导出表格</button>
             </div>
-            <div class="button_item" id="button_control11">
-                <input type="file" name="file" id="files6" style="display:none" onchange="upload_relieve_sku();">
-                <input type="button" value="批量解除本地品名关联" id="import6" class="upload">
-            </div>
-            <div class="button_item" id="button_control12">
+            <div class="button_item" id="button_control7">
                 <button class="button" onclick="derive_table(event)" data-name="table1">导出表格</button>
             </div>
             <div class="download_item" id="download_control">
@@ -334,25 +344,14 @@ margin:-801px 0px 0px 1000px;
         $("#files3").click();
     });
 
-    $("#import4").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
-        $("#files4").click();
-    });
-
-    $("#import5").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
-        $("#files5").click();
-    });
-
-    $("#import6").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
-        $("#files6").click();
-    });
-
-
-    function add_male(){
+    function parent_function(){
     var male_parent = document.getElementById("male_input").value;
-    if (confirm("是否新增本地父体"+ male_parent +"")){
-    var data = {"data": JSON.stringify({"male_parent": male_parent})};
+    var sku = document.getElementById("sku_input").value;
+    var index = document.getElementById("list_function").value;
+    if (confirm("是否"+ index)){
+    var data = {"data": JSON.stringify({"male_parent": male_parent, 'sku': sku, 'index': index})};
     $.ajax({
-    url: "/male_parent/add_male",
+    url: "/male_parent/parent_function",
     headers:{Accept: "application/json; charset=utf-8"},
     type: "post",
     data: data,
@@ -360,9 +359,45 @@ margin:-801px 0px 0px 1000px;
     success: function(msg){
     if (msg['msg'] == 'success'){
     document.getElementById("male_input").value = "";
-    alert('添加成功');
+    document.getElementById("sku_input").value = "";
+    document.getElementById("background_control").innerHTML = "";
+    alert(msg['message']);
     }
     if (msg['msg'] == 'error'){
+    document.getElementById("background_control").innerHTML = msg['message'];
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+    }
+
+    function local_function(){
+    var male_parent = document.getElementById("male_sku").value;
+    var sku = document.getElementById("parent_sku").value;
+    var index = document.getElementById("list_function2").value;
+    if (confirm("是否"+ index)){
+    var data = {"data": JSON.stringify({"male_parent": male_parent, 'sku': sku, 'index': index})};
+    $.ajax({
+    url: "/male_parent/local_function",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    document.getElementById("male_input").value = "";
+    document.getElementById("parent_sku").value = "";
+    document.getElementById("background_control").innerHTML = "";
+    alert(msg['message']);
+    }
+    if (msg['msg'] == 'error'){
+    document.getElementById("background_control").innerHTML = msg['message'];
     alert(msg['message']);
     }
     },
@@ -377,13 +412,14 @@ margin:-801px 0px 0px 1000px;
 
     function upload_male(){
     var filename = document.getElementById("files1").files[0]['name'];
-    console.log(filename)
-    if (confirm("是否上传"+ filename +"")){
+    var index = document.getElementById("list_function").value;
+    if (confirm("是否上传"+ filename +"批量" + index)){
     document.getElementById("import1").disabled = "ture";
     var button = document.getElementById('import1');
     button.style.backgroundColor = 'rgb(220, 220, 220)';
     var formData = new FormData();
     formData.append("myfile", document.getElementById("files1").files[0]);
+    formData.append("index", index);
     $.ajax({
     headers:{Accept: "application/json; charset=utf-8"},
     type: 'POST',
@@ -397,46 +433,20 @@ margin:-801px 0px 0px 1000px;
     if (msg['msg'] == 'success'){
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("import1").disabled = false;
-    alert('添加成功');
+    document.getElementById("background_control").innerHTML = "";
+    alert(msg['message']);
     }
     if (msg['msg'] == 'error'){
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("import1").disabled = false;
-    alert('添加失败');
-    }
-    },
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-    if (textStatus === 'timeout') {
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import1").disabled = false;
-    alert('请求超时，请重试！');
-    }
-    }
-    })
-    }
-    }
-
-    function add_sku(){
-    var sku = document.getElementById("sku_input").value;
-    if (confirm("是否新增本地品名"+ sku +"")){
-    var data = {"data": JSON.stringify({"sku": sku})};
-    $.ajax({
-    url: "/male_parent/add_sku",
-    headers:{Accept: "application/json; charset=utf-8"},
-    type: "post",
-    data: data,
-    dataType: 'json',
-    success: function(msg){
-    if (msg['msg'] == 'success'){
-    document.getElementById("sku_input").value = "";
-    alert('添加成功');
-    }
-    if (msg['msg'] == 'error'){
+    document.getElementById("background_control").innerHTML = msg['message'];
     alert(msg['message']);
     }
     },
     error: function(XMLHttpRequest, textStatus, errorThrown) {
     if (textStatus === 'timeout') {
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import1").disabled = false;
     alert('请求超时，请重试！');
     }
     }
@@ -444,15 +454,17 @@ margin:-801px 0px 0px 1000px;
     }
     }
 
-    function upload_sku(){
+
+    function upload_name(){
     var filename = document.getElementById("files2").files[0]['name'];
-    console.log(filename)
-    if (confirm("是否上传"+ filename +"")){
+    var index = document.getElementById("list_function2").value;
+    if (confirm("是否上传"+ filename +"批量" + index)){
     document.getElementById("import2").disabled = "ture";
     var button = document.getElementById('import2');
     button.style.backgroundColor = 'rgb(220, 220, 220)';
     var formData = new FormData();
     formData.append("myfile", document.getElementById("files2").files[0]);
+    formData.append("index", index);
     $.ajax({
     headers:{Accept: "application/json; charset=utf-8"},
     type: 'POST',
@@ -466,12 +478,14 @@ margin:-801px 0px 0px 1000px;
     if (msg['msg'] == 'success'){
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("import2").disabled = false;
-    alert('添加成功');
+    document.getElementById("background_control").innerHTML = "";
+    alert(msg['message']);
     }
     if (msg['msg'] == 'error'){
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("import2").disabled = false;
-    alert('添加失败');
+    document.getElementById("background_control").innerHTML = msg['message'];
+    alert(msg['message']);
     }
     },
     error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -485,89 +499,6 @@ margin:-801px 0px 0px 1000px;
     }
     }
 
-    function upload_parent(){
-    var filename = document.getElementById("files3").files[0]['name'];
-    console.log(filename)
-    if (confirm("是否上传"+ filename +"")){
-    document.getElementById("import3").disabled = "ture";
-    var button = document.getElementById('import3');
-    button.style.backgroundColor = 'rgb(220, 220, 220)';
-    var formData = new FormData();
-    formData.append("myfile", document.getElementById("files3").files[0]);
-    $.ajax({
-    headers:{Accept: "application/json; charset=utf-8"},
-    type: 'POST',
-    url: '/male_parent/upload_parent',
-    dataType: 'json',
-    data: formData,
-    cache: false,
-    processData: false,
-    contentType: false,
-    success: function(msg){
-    if (msg['msg'] == 'success'){
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import3").disabled = false;
-    download_excl(msg['data']['filename'], msg['data']['file'], "本地父体关联详情");
-    alert('关联成功');
-    }
-    if (msg['msg'] == 'error'){
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import3").disabled = false;
-    alert(msg['data']);
-    }
-    },
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-    if (textStatus === 'timeout') {
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import3").disabled = false;
-    alert('请求超时，请重试！');
-    }
-    }
-    })
-    }
-    }
-
-    function upload_name(){
-    var filename = document.getElementById("files4").files[0]['name'];
-    console.log(filename)
-    if (confirm("是否上传"+ filename +"")){
-    document.getElementById("import4").disabled = "ture";
-    var button = document.getElementById('import4');
-    button.style.backgroundColor = 'rgb(220, 220, 220)';
-    var formData = new FormData();
-    formData.append("myfile", document.getElementById("files4").files[0]);
-    $.ajax({
-    headers:{Accept: "application/json; charset=utf-8"},
-    type: 'POST',
-    url: '/male_parent/upload_name',
-    dataType: 'json',
-    data: formData,
-    cache: false,
-    processData: false,
-    contentType: false,
-    success: function(msg){
-    if (msg['msg'] == 'success'){
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import4").disabled = false;
-    download_excl(msg['data']['filename'], msg['data']['file'], "本地品名关联详情");
-    alert('关联成功');
-    }
-    if (msg['msg'] == 'error'){
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import4").disabled = false;
-    alert(msg['data']);
-    }
-    },
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-    if (textStatus === 'timeout') {
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import4").disabled = false;
-    alert('请求超时，请重试！');
-    }
-    }
-    })
-    }
-    }
 
     function download_excl(filename, file, download_name){
     document.getElementById("download_control").innerHTML = "";
@@ -576,214 +507,12 @@ margin:-801px 0px 0px 1000px;
     document.getElementById("download_control").innerHTML = str;
     }
 
-    function relevance_male(){
-    var male_parent = document.getElementById("male_input").value;
-    var sku = document.getElementById("parent_sku").value;
-    if (confirm("是否关联"+ male_parent +"与"+ sku)){
-    var data = {"data": JSON.stringify({"male_parent": male_parent, "sku": sku})};
-    $.ajax({
-    url: "/male_parent/relevance_male",
-    headers:{Accept: "application/json; charset=utf-8"},
-    type: "post",
-    data: data,
-    dataType: 'json',
-    success: function(msg){
-    if (msg['msg'] == 'success'){
-    document.getElementById("male_input").value = "";
-    document.getElementById("parent_sku").value = "";
-    alert('关联成功');
-    }
-    if (msg['msg'] == 'error'){
-    alert(msg['message']);
-    }
-    },
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-    if (textStatus === 'timeout') {
-    alert('请求超时，请重试！');
-    }
-    }
-    })
-    }
-    }
-
-    function relieve_male(){
-    var male_parent = document.getElementById("male_input").value;
-    var sku = document.getElementById("parent_sku").value;
-    if (confirm("是否解除"+ male_parent +"与"+ sku +"的关联")){
-    var data = {"data": JSON.stringify({"male_parent": male_parent, "sku": sku})};
-    $.ajax({
-    url: "/male_parent/relieve_male",
-    headers:{Accept: "application/json; charset=utf-8"},
-    type: "post",
-    data: data,
-    dataType: 'json',
-    success: function(msg){
-    if (msg['msg'] == 'success'){
-    document.getElementById("male_input").value = "";
-    document.getElementById("parent_sku").value = "";
-    alert('解除成功');
-    }
-    if (msg['msg'] == 'error'){
-    alert(msg['message']);
-    }
-    },
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-    if (textStatus === 'timeout') {
-    alert('请求超时，请重试！');
-    }
-    }
-    })
-    }
-    }
-
-    function relevance_sku(){
-    var local_sku = document.getElementById("sku_input").value;
-    var sku = document.getElementById("local_sku").value;
-    if (confirm("是否关联"+ local_sku +"与"+ sku)){
-    var data = {"data": JSON.stringify({"local_sku": local_sku, "sku": sku})};
-    $.ajax({
-    url: "/male_parent/relevance_sku",
-    headers:{Accept: "application/json; charset=utf-8"},
-    type: "post",
-    data: data,
-    dataType: 'json',
-    success: function(msg){
-    if (msg['msg'] == 'success'){
-    document.getElementById("sku_input").value = "";
-    document.getElementById("local_sku").value = "";
-    alert('关联成功');
-    }
-    if (msg['msg'] == 'error'){
-    alert(msg['message']);
-    }
-    },
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-    if (textStatus === 'timeout') {
-    alert('请求超时，请重试！');
-    }
-    }
-    })
-    }
-    }
-
-    function upload_relieve_male(){
-    var filename = document.getElementById("files5").files[0]['name'];
-    console.log(filename)
-    if (confirm("是否上传"+ filename +"")){
-    document.getElementById("import5").disabled = "ture";
-    var button = document.getElementById('import5');
-    button.style.backgroundColor = 'rgb(220, 220, 220)';
-    var formData = new FormData();
-    formData.append("myfile", document.getElementById("files5").files[0]);
-    $.ajax({
-    headers:{Accept: "application/json; charset=utf-8"},
-    type: 'POST',
-    url: '/male_parent/upload_relieve_male',
-    dataType: 'json',
-    data: formData,
-    cache: false,
-    processData: false,
-    contentType: false,
-    success: function(msg){
-    if (msg['msg'] == 'success'){
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import5").disabled = false;
-    download_excl(msg['data']['filename'], msg['data']['file'], "解除本地父体详情");
-    alert('解除成功');
-    }
-    if (msg['msg'] == 'error'){
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import5").disabled = false;
-    alert(msg['data']);
-    }
-    },
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-    if (textStatus === 'timeout') {
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import5").disabled = false;
-    alert('请求超时，请重试！');
-    }
-    }
-    })
-    }
-    }
-
-    function relieve_sku(){
-    var local_sku = document.getElementById("sku_input").value;
-    var sku = document.getElementById("local_sku").value;
-    if (confirm("是否解除"+ local_sku +"与"+ sku +"的关联")){
-    var data = {"data": JSON.stringify({"local_sku": local_sku, "sku": sku})};
-    $.ajax({
-    url: "/male_parent/relieve_sku",
-    headers:{Accept: "application/json; charset=utf-8"},
-    type: "post",
-    data: data,
-    dataType: 'json',
-    success: function(msg){
-    if (msg['msg'] == 'success'){
-    document.getElementById("local_sku").value = "";
-    document.getElementById("sku_input").value = "";
-    alert('解除成功');
-    }
-    if (msg['msg'] == 'error'){
-    alert(msg['message']);
-    }
-    },
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-    if (textStatus === 'timeout') {
-    alert('请求超时，请重试！');
-    }
-    }
-    })
-    }
-    }
-
-    function upload_relieve_sku(){
-    var filename = document.getElementById("files6").files[0]['name'];
-    console.log(filename)
-    if (confirm("是否上传"+ filename +"")){
-    document.getElementById("import6").disabled = "ture";
-    var button = document.getElementById('import6');
-    button.style.backgroundColor = 'rgb(220, 220, 220)';
-    var formData = new FormData();
-    formData.append("myfile", document.getElementById("files6").files[0]);
-    $.ajax({
-    headers:{Accept: "application/json; charset=utf-8"},
-    type: 'POST',
-    url: '/male_parent/upload_relieve_sku',
-    dataType: 'json',
-    data: formData,
-    cache: false,
-    processData: false,
-    contentType: false,
-    success: function(msg){
-    if (msg['msg'] == 'success'){
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import6").disabled = false;
-    download_excl(msg['data']['filename'], msg['data']['file'], "解除本地品名详情");
-    alert('解除成功');
-    }
-    if (msg['msg'] == 'error'){
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import6").disabled = false;
-    alert(msg['data']);
-    }
-    },
-    error: function(XMLHttpRequest, textStatus, errorThrown) {
-    if (textStatus === 'timeout') {
-    button.style.backgroundColor = 'rgb(252, 252, 252)';
-    document.getElementById("import6").disabled = false;
-    alert('请求超时，请重试！');
-    }
-    }
-    })
-    }
-    }
-
     function get_male(){
     var index = document.getElementById("list_class1").value;
     var index_data = document.getElementById("get_msg1").value;
     document.getElementById("button1").disabled = "ture";
+    var button = document.getElementById('button1');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
     var data = {"data": JSON.stringify({"index": index, "index_data": index_data})};
     $.ajax({
     url: "/male_parent/get_male",
@@ -796,6 +525,8 @@ margin:-801px 0px 0px 1000px;
     if (msg['msg'] == 'success'){
     document.getElementById("button1").disabled = false;
     document.getElementById("control_item1").innerHTML = '';
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("background_control").innerHTML = "";
     if (msg['index'] == 0){
     create_table3(msg['data'])
     }
@@ -805,6 +536,7 @@ margin:-801px 0px 0px 1000px;
     }
     if (msg['msg'] == 'error'){
     document.getElementById("button1").disabled = false;
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
     alert(msg['message']);
     }
     },
@@ -812,6 +544,7 @@ margin:-801px 0px 0px 1000px;
         if (textStatus === 'timeout') {
             alert('请求超时，请重试！');
             document.getElementById("button1").disabled = false;
+            button.style.backgroundColor = 'rgb(252, 252, 252)';
         }
         }
     })
@@ -821,6 +554,8 @@ margin:-801px 0px 0px 1000px;
     var index = document.getElementById("list_class2").value;
     var index_data = document.getElementById("get_msg2").value;
     document.getElementById("button2").disabled = "ture";
+    var button = document.getElementById('button2');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
     var data = {"data": JSON.stringify({"index": index, "index_data": index_data})};
     $.ajax({
     url: "/male_parent/get_sku",
@@ -833,6 +568,8 @@ margin:-801px 0px 0px 1000px;
     if (msg['msg'] == 'success'){
     document.getElementById("button2").disabled = false;
     document.getElementById("control_item2").innerHTML = '';
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("background_control").innerHTML = "";
     if (msg['index'] == 0){
     create_table(msg['data'], "本地品名", "sku")
     }
@@ -842,6 +579,7 @@ margin:-801px 0px 0px 1000px;
     }
     if (msg['msg'] == 'error'){
     document.getElementById("button2").disabled = false;
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
     alert(msg['message']);
     }
     },
@@ -849,6 +587,7 @@ margin:-801px 0px 0px 1000px;
         if (textStatus === 'timeout') {
             alert('请求超时，请重试！');
             document.getElementById("button2").disabled = false;
+            button.style.backgroundColor = 'rgb(252, 252, 252)';
         }
         }
     })
@@ -866,10 +605,9 @@ margin:-801px 0px 0px 1000px;
     document.getElementById("button2").disabled = false;
     document.getElementById("import1").disabled = false;
     document.getElementById("import2").disabled = false;
-    document.getElementById("import3").disabled = false;
-    document.getElementById("import4").disabled = false;
     document.getElementById("control_item1").innerHTML = '';
     document.getElementById("control_item2").innerHTML = '';
+    document.getElementById("background_control").innerHTML = "";
     }
     }
 

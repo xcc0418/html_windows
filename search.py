@@ -405,6 +405,7 @@ class Quantity (object):
                         list_re[result[0]['关联箱标']][i] = 1
                 else:
                     list_re[i] = 1
+            self.sql_close()
         return list_re
 
     def write_re(self, list_re):
