@@ -236,7 +236,7 @@ class Quantity(object):
                     male_sku = wb_sheet.cell(row=i, column=1).value
                     if male_sku:
                         msg, message = self.add_sku(male_sku)
-                        print(message)
+                        # print(message)
                         if msg or message == "已经有这个本地品名了，请检查":
                             continue
                         else:
@@ -849,13 +849,11 @@ class Quantity(object):
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
         if result:
+            dict_sku = self.get_dict_sku ()
             list_data = []
             for i in result:
-                sql2 = f"select * from `amazon_form`.`male_sku` where `SKU` = '{i['SKU']}'"
-                self.cursor.execute(sql2)
-                result2 = self.cursor.fetchall()
-                if result2:
-                    list_data.append([i['本地父体'], i['SKU'], result2[0]['本地品名']])
+                if i['SKU'] in dict_sku:
+                    list_data.append([i['本地父体'], i['SKU'], dict_sku[i['SKU']]])
                 else:
                     list_data.append([i['本地父体'], i['SKU'], '当前没有本地品名'])
             self.sql_close()
@@ -863,6 +861,15 @@ class Quantity(object):
         else:
             self.sql_close()
             return False, 0
+
+    def get_dict_sku(self):
+        dict_sku = {}
+        sql = "select * from `amazon_form`.`male_sku`"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        for i in result:
+            dict_sku[i['SKU']] = i['本地品名']
+        return dict_sku
 
     def get_male_sku(self, index, index_data):
         self.sql()

@@ -554,14 +554,19 @@ class Quantity(object):
             return False
 
     def update_json(self):
-        f1 = open('./static/json/sku_info.json', 'r')
-        dict_sku = json.load(f1)
-        # f2 = open('./static/json/asin_info.json', 'r')
-        # dict_asin = json.load(f2)
-        f3 = open('./static/json/order_info.json', 'r')
-        dict_order = json.load(f3)
-        self.parent_json(dict_sku, dict_order)
-        # self.asin_json(dict_asin, dict_order)
+        try:
+            f1 = open('./static/json/sku_info.json', 'r')
+            dict_sku = json.load(f1)
+            # f2 = open('./static/json/asin_info.json', 'r')
+            # dict_asin = json.load(f2)
+            f3 = open('./static/json/order_info.json', 'r')
+            dict_order = json.load(f3)
+            self.parent_json(dict_sku, dict_order)
+            # self.asin_json(dict_asin, dict_order)
+            return True, True
+        except Exception as e:
+            print(e)
+            return False, str(e)
 
     def read_json(self, asin_son_json):
         time_now = datetime.now().strftime('%Y%m%d%H%M%S')

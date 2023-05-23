@@ -896,7 +896,7 @@ def parent_function():
                 else:
                     msg, message = False, "请先输入亚马逊父体"
             if msg:
-                if index == '关联' or index == '解除关联' or index == '创建父体并关联':
+                if index == '关联' or index == '解除关联' or index == '创建父体并关联' or index == '删除':
                     upload_json = parent_message.Quantity()
                     executor.submit(upload_json.update_json)
                 return json.dumps({'msg': "success", 'message': f"{index}成功"})
@@ -944,7 +944,7 @@ def local_function():
             elif index == "删除":
                 msg, message = quantity.delete_sku(parent.strip(''))
             if msg:
-                if index == '关联' or index == '解除关联' or index == '创建品名并关联':
+                if index == '关联' or index == '解除关联' or index == '创建品名并关联' or index == '删除':
                     upload_json = parent_message.Quantity()
                     executor.submit(upload_json.update_json)
                 return json.dumps({'msg': "success", 'message': f"{index}成功"})
@@ -993,7 +993,7 @@ def upload_male():
         else:
             return json.dumps({'msg': "error", 'message': "暂不支持批量操作亚马逊父体"})
         if msg:
-            if index == '关联' or index == '解除关联' or index == '创建父体并关联':
+            if index == '关联' or index == '解除关联' or index == '创建父体并关联' or index == '删除':
                 upload_json = parent_message.Quantity()
                 executor.submit(upload_json.update_json)
             return json.dumps({'msg': "success", 'message': f"{index}成功"})
@@ -1038,7 +1038,7 @@ def upload_sku():
             quantity = male_parent.Quantity()
             msg = quantity.upload_delete_sku(path)
         if msg:
-            if index == '关联' or index == '解除关联' or index == '创建品名并关联':
+            if index == '关联' or index == '解除关联' or index == '创建品名并关联' or index == '删除':
                 upload_json = parent_message.Quantity()
                 executor.submit(upload_json.update_json)
             return json.dumps({'msg': "success", 'message': f"{index}成功"})
@@ -1141,6 +1141,19 @@ def get_amazon_parent():
             return json.dumps({'msg': "success", 'data': list_msg})
         else:
             return json.dumps({'msg': "error", 'message': f"{male_parent}没有关联的亚马逊父体"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/update_male', methods=["POST"])
+def update_male_message():
+    if request.method == "GET":
+        quantity = parent_message.Quantity()
+        msg, message = quantity.update_json()
+        if msg:
+            return json.dumps({'msg': "success", 'message': '更新成功'})
+        else:
+            return json.dumps({'msg': "error", 'message': message})
     else:
         return json.dumps({'msg': 'error'})
 

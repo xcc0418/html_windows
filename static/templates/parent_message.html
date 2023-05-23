@@ -261,6 +261,9 @@ margin:-41px 0px 0px 220px;
 #button_control10{
 margin:-41px 0px 0px 600px;
 }
+#button_control11{
+margin:-41px 0px 0px 770px;
+}
 #button_control3{
 margin:-41px 0px 0px 950px;
 }
@@ -320,6 +323,9 @@ margin:-781px 0px 0px 1410px;
             <div class="button_item1" id="button_control10">
                 <button class="button1" onclick="derive_table(event)" data-name="table2">导出亚马逊父体表格</button>
             </div>
+            <div class="button_item2" id="button_control11">
+                <button class="button2" onclick="update_male()" id="button5">更新本地数据</button>
+            </div>
             <div class="button_item2" id="button_control3">
                 <button class="button2" onclick="contrast_parent()" id="button4">对比</button>
             </div>
@@ -335,7 +341,7 @@ margin:-781px 0px 0px 1410px;
         </div>
         <div class="item_list">
             <div class="box_search" id="box_control1">
-                <input type="text" placeholder="  本地父体" class="input_po" autocomplete="off" id="male_input">
+                <input type="text" placeholder="  本地父体" class="input_po" autocomplete="off" id="male_input" onkeydown="myFunction()">
             </div>
             <div class="button_item2" id="button_control4">
                 <button class="button2" onclick="find_list_male()" id="input1">查询本地父体</button>
@@ -437,6 +443,13 @@ margin:-781px 0px 0px 1410px;
 
     var dateString = date.getFullYear() + "-" + (month_t) + "-" + day_t;
     start.value = dateString;
+
+    function myFunction() {
+    if(event.keyCode==13) {
+    document.getElementById("input1").click();
+    }
+    }
+
     function get_list_male(){
     document.getElementById("button1").disabled = "ture";
     var button = document.getElementById('button1');
@@ -579,7 +592,7 @@ margin:-781px 0px 0px 1410px;
     var tr = document.createElement("tr");
     tr.className = "list_control_tr";
     var name = list_data[i];
-    var name_str = create_control(['list_control5', name, 0]);
+    var name_str = drag_control(['list_control5', name, 0]);
     var str = name_str;
     tr.innerHTML = str;
     document.getElementById("control_item2").appendChild(tr);
@@ -689,6 +702,29 @@ margin:-781px 0px 0px 1410px;
     error: function(XMLHttpRequest, textStatus, errorThrown) {
     if (textStatus === 'timeout') {
     background.innerHTML = "";
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
+    function update_male(){
+    $.ajax({
+    url: "/parent_message/update_male",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "get",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    alert(msg['message']);
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
     alert('请求超时，请重试！');
     }
     }
