@@ -19,7 +19,7 @@
 }
 .input_po{
     float: left;
-    width: 190px;
+    width: 195px;
     height: 38px;
     color:black;
 	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
@@ -132,6 +132,42 @@ width:150px;
 height:40px;
 font-size: 18px;
 }
+.windows {
+	display: none;
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	z-index:3;
+	background-color: rgba(0,0,0,0.5);
+}
+.content {
+    background-color:rgb(220, 220, 220);
+	width: 400px;
+	height: 200px;
+	z-index: 2;
+	margin: 12% auto;
+	overflow: auto;
+}
+h2 {
+	margin: 10px 0;
+	color: black;
+	padding-left: 15px;
+}
+.close {
+	padding: 5px;
+}
+
+.close-button {
+	float: right;
+	font-size: 30px;
+	color: black;
+	padding-top: 12px;
+	cursor: pointer;
+	padding-right: 15px;
+}
+
 #item1{
 margin:0px 0px 0px 50px;
 }
@@ -150,6 +186,9 @@ margin:0px 0px 0px 50px;
 #method_control1{
 margin:-41px 0px 0px 350px;
 }
+#button_control8{
+margin:-41px 0px 0px 500px;
+}
 #item2{
 margin:-121px 0px 0px 1000px;
 }
@@ -166,11 +205,16 @@ position: absolute;
 margin:0px 0px 0px 500px;
 }
 #input_control2{
-margin:43px 0px 0px 50px;
+position: absolute;
+margin:44px 0px 0px 50px;
 }
 #method_control2{
 position: absolute;
-margin:-41px 0px 0px 350px;
+margin:44px 0px 0px 350px;
+}
+#button_control9{
+position: absolute;
+margin:44px 0px 0px 500px;
 }
 #item3{
 margin:0px 0px 0px 0px;
@@ -214,6 +258,31 @@ margin:0px 0px 0px 50px;
 #table_item2{
 margin:-651px 0px 0px 1000px;
 }
+#box_control7{
+position: absolute;
+margin:0px 0px 0px 100px;
+}
+#box_control8{
+position: absolute;
+margin:44px 0px 0px 100px;
+}
+#button_control10{
+position: absolute;
+margin:88px 0px 0px 100px;
+}
+#box_control9{
+position: absolute;
+margin:0px 0px 0px 100px;
+}
+#box_control10{
+position: absolute;
+margin:44px 0px 0px 100px;
+}
+#button_control11{
+position: absolute;
+margin:88px 0px 0px 100px;
+}
+
 </style>
 <body>
 <div class="item">
@@ -244,6 +313,9 @@ margin:-651px 0px 0px 1000px;
                     <option value="解除亚马逊父体关联">解除亚马逊父体关联</option>
                 </select>
             </div>
+            <div class="button_item" id="button_control8">
+                <button class="button" onclick="windows_msg(event)">更改本地父体名称</button>
+            </div>
         </div>
         <div class="item_list" id="item2">
             本地品名：
@@ -268,6 +340,9 @@ margin:-651px 0px 0px 1000px;
                     <option value="创建品名并关联">创建品名并关联</option>
                     <option value="删除">删除</option>
                 </select>
+            </div>
+            <div class="button_item" id="button_control9">
+                <button class="button" onclick="windows_msg(event)">更改本地品名名称</button>
             </div>
         </div>
         <div class="item_list2" id="item3">
@@ -326,6 +401,40 @@ margin:-651px 0px 0px 1000px;
             </table>
         </div>
     </div>
+    <div id="windows1" class="windows">
+        <div id="div1" class="content">
+            <div id="close" class="close">
+                <span id="close-button1" onclick="close_windows()" class="close-button">×</span>
+                <h2 class="msg">更改本地父体名称</h2>
+            </div>
+            <div class="box_search" id="box_control7">
+                <input type="text" placeholder="  原本地父体" class="input_po" autocomplete="off" id="parent">
+            </div>
+            <div class="box_search" id="box_control8">
+                <input type="text" placeholder="  本地父体" class="input_po" autocomplete="off" id="change_parent">
+            </div>
+            <div class="button_item2" id="button_control10">
+                <button class="button2" onclick="change_parent()">更改</button>
+            </div>
+        </div>
+	</div>
+    <div id="windows2" class="windows">
+        <div id="div2" class="content">
+            <div id="close2" class="close">
+                <span id="close-button2" onclick="close_windows()" class="close-button">×</span>
+                <h2 class="msg">更改本地品名名称</h2>
+            </div>
+            <div class="box_search" id="box_control9">
+                <input type="text" placeholder="  原本地品名" class="input_po" autocomplete="off" id="sku">
+            </div>
+            <div class="box_search" id="box_control10">
+                <input type="text" placeholder="  本地品名" class="input_po" autocomplete="off" id="change_sku">
+            </div>
+            <div class="button_item2" id="button_control11">
+                <button class="button2" onclick="change_male_sku()">更改</button>
+            </div>
+        </div>
+	</div>
 </div>
 </body>
 <script src="../JavaScript/jquery-3.0.0.min.js"></script>
@@ -756,5 +865,90 @@ margin:-651px 0px 0px 1000px;
     return str
     }
 
+    function windows_msg(ev){
+    var index = ev.target.innerHTML;
+    var div = "";
+    if (index == "更改本地父体名称"){
+    div = document.getElementById('windows1');
+    }
+    if (index == "更改本地品名名称"){
+    div = document.getElementById('windows2');
+    }
+    div.style.display = "block";
+    }
+
+    function close_windows() {
+    var div1 = document.getElementById('windows1');
+	div1.style.display = "none";
+	var div2 = document.getElementById('windows2');
+	div2.style.display = "none";
+    }
+
+    window.onclick = function close(e) {
+	if (e.target == div1) {
+	var div1 = document.getElementById('windows1');
+	div1.style.display = "none";
+	}
+	if (e.target == div2) {
+	var div2 = document.getElementById('windows2');
+	div2.style.display = "none";
+	}
+    }
+
+    function change_parent(){
+    var parent = document.getElementById('parent').value;
+    var change_parent = document.getElementById('change_parent').value;
+    var data = {"data": JSON.stringify({"parent": parent, "change_parent": change_parent})};
+    $.ajax({
+    url: "/male_parent/change_parent",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "POST",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    console.log(msg)
+    if (msg['msg'] == 'success'){
+    alert(msg['message']);
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+            document.getElementById("button2").disabled = false;
+        }
+        }
+    })
+    }
+
+    function change_male_sku(){
+    var sku = document.getElementById('sku').value;
+    var change_sku = document.getElementById('change_sku').value;
+    var data = {"data": JSON.stringify({"sku": sku, "change_sku": change_sku})};
+    $.ajax({
+    url: "/male_parent/change_male_sku",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "POST",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    console.log(msg)
+    if (msg['msg'] == 'success'){
+    alert(msg['message']);
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+            document.getElementById("button2").disabled = false;
+        }
+        }
+    })
+    }
 </script>
 </html>

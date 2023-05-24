@@ -524,7 +524,7 @@ class Quantity(object):
         sql1 = "select * from `amazon_form`.`list_parent` where `本地父体` = '%s'" % male_parent
         self.cursor.execute(sql1)
         result1 = self.cursor.fetchall()
-        print(sql1)
+        # print(sql1)
         if result1:
             sql2 = "select * from `amazon_form`.`male_amazon` where `本地父体` = '%s' and `亚马逊父体` = '%s'" % (male_parent, amazon_parent)
             self.cursor.execute(sql2)
@@ -798,6 +798,52 @@ class Quantity(object):
                 return False, str(e)
         else:
             return False, "当前正在进行关联操作，请稍后再试"
+
+    def change_parent(self, parent, change_parent):
+        self.sql()
+        sql1 = "select * from `amazon_form`.`list_parent` where `本地父体` = '%s'" % parent
+        self.cursor.execute(sql1)
+        result = self.cursor.fetchall()
+        if result:
+            sql2 = "UPDATE `amazon_form`.`list_parent` SET `本地父体` = '%s' WHERE `本地父体` = '%s'" % (change_parent, parent)
+            sql3 = "UPDATE `amazon_form`.`male_parent` SET `本地父体` = '%s' WHERE `本地父体` = '%s'" % (change_parent, parent)
+            try:
+                self.cursor.execute(sql2)
+                self.cursor.execute(sql3)
+                self.connection.commit()
+                self.sql_close()
+                return True, True
+            except Exception as e:
+                self.connection.rollback()
+                self.sql_close()
+                print(e)
+                return False, str(e)
+        else:
+            self.sql_close()
+            return False, f'没有找到{parent}, 请检查'
+
+    def change_sku(self, sku, change_sku):
+        self.sql()
+        sql1 = "select * from `amazon_form`.`list_local_sku` where `本地品名` = '%s'" % sku
+        self.cursor.execute(sql1)
+        result = self.cursor.fetchall()
+        if result:
+            sql2 = "UPDATE `amazon_form`.`list_local_sku` SET `本地品名` = '%s' WHERE `本地品名` = '%s'" % (change_sku, sku)
+            sql3 = "UPDATE `amazon_form`.`male_sku` SET `本地品名` = '%s' WHERE `本地品名` = '%s'" % (change_sku, sku)
+            try:
+                self.cursor.execute(sql2)
+                self.cursor.execute(sql3)
+                self.connection.commit()
+                self.sql_close()
+                return True, True
+            except Exception as e:
+                self.connection.rollback()
+                self.sql_close()
+                print(e)
+                return False, str(e)
+        else:
+            self.sql_close()
+            return False, f'没有找到{sku}, 请检查'
 
     def write_xlsx(self, list_data):
         wb = openpyxl.Workbook()

@@ -461,6 +461,7 @@ margin:-781px 0px 0px 1410px;
     dataType: 'json',
     success: function(msg){
     if (msg['msg'] == 'success'){
+    document.getElementById("control_item1").innerHTML = '';
     create_table(msg['data'], "本地父体");
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("button1").disabled = false;
@@ -709,23 +710,31 @@ margin:-781px 0px 0px 1410px;
     }
 
     function update_male(){
+    document.getElementById("button5").disabled = "ture";
+    var button = document.getElementById('button5');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
     $.ajax({
     url: "/parent_message/update_male",
     headers:{Accept: "application/json; charset=utf-8"},
     type: "get",
-    data: data,
     dataType: 'json',
     success: function(msg){
     if (msg['msg'] == 'success'){
+    document.getElementById("button5").disabled = false;
     alert(msg['message']);
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
     }
     if (msg['msg'] == 'error'){
     alert(msg['message']);
+    document.getElementById("button5").disabled = false;
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
     }
     },
     error: function(XMLHttpRequest, textStatus, errorThrown) {
     if (textStatus === 'timeout') {
     alert('请求超时，请重试！');
+    document.getElementById("button5").disabled = false;
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
     }
     }
     })
@@ -938,6 +947,7 @@ margin:-781px 0px 0px 1410px;
 		div.style.display = "none";
 	}
     }
+
     function create_table3(list_data){
     var heard_tr = document.createElement("tr");
     heard_tr.className = "list_control_tr";
@@ -1175,11 +1185,11 @@ margin:-781px 0px 0px 1410px;
     var menu_str = '';
     if(asin.includes("B0")){
     menu_str = "<div id=\"rk_menubox\" class=\"rk_menubox\">"+
-               "<div class=\"rk_menuitem\"><span class=\"menu_button\" onclick=\"relieve_sku(event)\" data_sku='"+ sku +"' data_asin="+ asin +" data_table_asin="+ table_asin +">解除关联</span></div></div>";
+               "<div class=\"rk_menuitem\"><span class=\"menu_button\" onclick=\"relevance_sku(event)\" data_sku='"+ sku +"' data_asin="+ asin +" data_table_asin="+ table_asin +">关联</span></div></div>";
     }
     else{
     menu_str = "<div id=\"rk_menubox\" class=\"rk_menubox\">"+
-               "<div class=\"rk_menuitem\"><span class=\"menu_button\" onclick=\"relevance_sku(event)\" data_sku='"+ sku +"' data_asin="+ asin +" data_table_asin="+ table_asin +">关联</span></div></div>";
+               "<div class=\"rk_menuitem\"><span class=\"menu_button\" onclick=\"relieve_sku(event)\" data_sku='"+ sku +"' data_asin="+ asin +" data_table_asin="+ table_asin +">解除关联</span></div></div>";
     }
     if($('#rk_menubox')[0]==null){
       $('body').append(menu_str);

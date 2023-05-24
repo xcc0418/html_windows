@@ -1048,6 +1048,44 @@ def upload_sku():
         return json.dumps({'msg': "error"})
 
 
+@app.route('/male_parent/change_parent', methods=["POST"])
+def change_parent():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        parent = dict_data['parent']
+        change_parent = dict_data['change_parent']
+        if parent and change_parent:
+            quantity = male_parent.Quantity()
+            msg, message = quantity.change_parent(parent.strip(''), change_parent.strip(''))
+            if msg:
+                return json.dumps({'msg': "success", 'message': "更改成功"})
+            else:
+                return json.dumps({'msg': "error", 'message': message})
+        else:
+            return json.dumps({'msg': "error", 'message': "请先输入要更改的本地父体"})
+    else:
+        return json.dumps({'msg': "error"})
+
+
+@app.route('/male_parent/change_male_sku', methods=["POST"])
+def change_male_sku():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        sku = dict_data['sku']
+        change_sku = dict_data['change_sku']
+        if sku and change_sku:
+            quantity = male_parent.Quantity()
+            msg, message = quantity.change_sku(sku.strip(''), change_sku.strip(''))
+            if msg:
+                return json.dumps({'msg': "success", 'message': "更改成功"})
+            else:
+                return json.dumps({'msg': "error", 'message': message})
+        else:
+            return json.dumps({'msg': "error", 'message': "请先输入要更改的本地父体"})
+    else:
+        return json.dumps({'msg': "error"})
+
+
 @app.route('/male_parent/derive_table', methods=["POST"])
 def derive_table():
     if request.method == "POST":
@@ -1145,7 +1183,7 @@ def get_amazon_parent():
         return json.dumps({'msg': 'error'})
 
 
-@app.route('/parent_message/update_male', methods=["POST"])
+@app.route('/parent_message/update_male', methods=["GET"])
 def update_male_message():
     if request.method == "GET":
         quantity = parent_message.Quantity()
@@ -1390,5 +1428,5 @@ def find_parent_sku():
 
 if __name__ == '__main__':
     app.after_request(after_request)
-    app.run(port=80, debug=False, threaded=False, processes=100)
-    # app.run(port=80, debug=False)
+    # app.run(port=80, debug=False, threaded=False, processes=100)
+    app.run(port=80, debug=False)
