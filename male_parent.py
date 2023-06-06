@@ -845,9 +845,13 @@ class Quantity(object):
             self.sql_close()
             return False, f'没有找到{sku}, 请检查'
 
-    def write_xlsx(self, list_data):
+    def write_xlsx(self, list_data, list_header):
         wb = openpyxl.Workbook()
         wb_sheet = wb.active
+        if list_header:
+            list_header.insert(0, '本地品名')
+            list_header.insert(0, '父体')
+            wb_sheet.append(list_header)
         for i in list_data:
             if i[1] and i[1] != '...':
                 wb_sheet.append(i)
@@ -863,10 +867,16 @@ class Quantity(object):
             filename = f'本地品名详情_{time_now}'
             download_name = "本地品名详情"
         else:
-            path = f'./static/本地父体/亚马逊父体详情_{time_now}.xlsx'
-            file = f'../本地父体/亚马逊父体详情_{time_now}.xlsx'
-            filename = f'亚马逊父体详情_{time_now}'
-            download_name = "亚马逊父体详情"
+            if list_data[0][0].find('B0') >= 0:
+                path = f'./static/本地父体/亚马逊父体详情_{time_now}.xlsx'
+                file = f'../本地父体/亚马逊父体详情_{time_now}.xlsx'
+                filename = f'亚马逊父体详情_{time_now}'
+                download_name = "亚马逊父体详情"
+            else:
+                path = f'./static/本地父体/本地父体详情_{time_now}.xlsx'
+                file = f'../本地父体/本地父体详情_{time_now}.xlsx'
+                filename = f'本地父体详情_{time_now}'
+                download_name = "本地父体详情"
         wb.save(path)
         return file, filename, download_name
 

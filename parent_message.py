@@ -12,6 +12,7 @@ import time
 import os
 from datetime import datetime
 import pandas as pd
+import string_html
 
 
 class EncryptDate:
@@ -337,22 +338,24 @@ class Quantity(object):
                 fba_order4 = int(wb_sheet.cell(row=i, column=23).value)
                 fba_order = fba_order3 + fba_order2 + fba_order1
                 sale_num = int(wb_sheet.cell(row=i, column=31).value)
+                sale_num_7 = int(wb_sheet.cell(row=i, column=29).value)
+                sale_num_14 = int(wb_sheet.cell(row=i, column=30).value)
                 create_time = str(wb_sheet.cell(row=i, column=43).value)
                 if asin in dict_asin:
                     if sku in dict_asin[asin]:
                         if shop in dict_asin[asin][sku]:
-                            dict_asin[asin][sku][shop].append([fnsku, fba_order, fba_order4, sale_num, shop, asin_son, asin, create_time])
+                            dict_asin[asin][sku][shop].append([fnsku, fba_order, fba_order4, sale_num, shop, asin_son, asin, create_time, sale_num_14, sale_num_7])
                     else:
-                        dict_asin[asin][sku] = {shop: [[fnsku, fba_order, fba_order4, sale_num, shop, asin_son, asin, create_time]]}
+                        dict_asin[asin][sku] = {shop: [[fnsku, fba_order, fba_order4, sale_num, shop, asin_son, asin, create_time, sale_num_14, sale_num_7]]}
                 else:
-                    dict_asin[asin] = {sku: {shop: [[fnsku, fba_order, fba_order4, sale_num, shop, asin_son, asin, create_time]]}}
+                    dict_asin[asin] = {sku: {shop: [[fnsku, fba_order, fba_order4, sale_num, shop, asin_son, asin, create_time, sale_num_14, sale_num_7]]}}
                 if sku in dict_sku:
                     if shop in dict_sku[sku]:
-                        dict_sku[sku][shop].append([fnsku, fba_order, fba_order4, sale_num, shop, asin_son, asin, create_time])
+                        dict_sku[sku][shop].append([fnsku, fba_order, fba_order4, sale_num, shop, asin_son, asin, create_time, sale_num_14, sale_num_7])
                     else:
-                        dict_sku[sku][shop] = [[fnsku, fba_order, fba_order4, sale_num, shop, asin_son, asin, create_time]]
+                        dict_sku[sku][shop] = [[fnsku, fba_order, fba_order4, sale_num, shop, asin_son, asin, create_time, sale_num_14, sale_num_7]]
                 else:
-                    dict_sku[sku] = {shop: [[fnsku, fba_order, fba_order4, sale_num, shop, asin_son, asin, create_time]]}
+                    dict_sku[sku] = {shop: [[fnsku, fba_order, fba_order4, sale_num, shop, asin_son, asin, create_time, sale_num_14, sale_num_7]]}
                 if asin in dict_asin_son:
                     if asin_son not in dict_asin_son[asin]:
                         dict_asin_son[asin].append(asin_son)
@@ -458,6 +461,7 @@ class Quantity(object):
                 else:
                     dict_parent_new[i][dict_parent[i][j]] = [j]
         # print(len(dict_parent_new))
+        print(dict_parent_new['KPW5黑色壳子款父体']['KPW5-支架机框款-黑色巴黎之星'])
         for i in dict_parent_new:
             for p in dict_parent_new[i]:
                 for j in dict_parent_new[i][p]:
@@ -466,24 +470,30 @@ class Quantity(object):
                             if k in dict_male[i]:
                                 if p in dict_male[i][k]:
                                     for q in dict_sku[j][k]:
-                                        dict_male[i][k][p][0] += q[1]
-                                        dict_male[i][k][p][1] += q[2]
-                                        dict_male[i][k][p][2] += q[3]
+                                        dict_male[i][k][p]['FBA库存'] += q[1]
+                                        dict_male[i][k][p]['FBA在途'] += q[2]
+                                        dict_male[i][k][p]['30天销量'] += q[3]
+                                        dict_male[i][k][p]['14天销量'] += q[8]
+                                        dict_male[i][k][p]['7天销量'] += q[9]
                                 else:
-                                    dict_male[i][k][p] = [0, 0, 0, 0, 0]
+                                    dict_male[i][k][p] = {'FBA库存': 0, 'FBA在途': 0, '7天销量': 0, '14天销量': 0, '30天销量': 0, '本地库存': 0, '预计库存': 0}
                                     for q in dict_sku[j][k]:
-                                        dict_male[i][k][p][0] += q[1]
-                                        dict_male[i][k][p][1] += q[2]
-                                        dict_male[i][k][p][2] += q[3]
+                                        dict_male[i][k][p]['FBA库存'] += q[1]
+                                        dict_male[i][k][p]['FBA在途'] += q[2]
+                                        dict_male[i][k][p]['30天销量'] += q[3]
+                                        dict_male[i][k][p]['14天销量'] += q[8]
+                                        dict_male[i][k][p]['7天销量'] += q[9]
                             else:
-                                dict_male[i][k] = {p: [0, 0, 0, 0, 0]}
+                                dict_male[i][k] = {p: {'FBA库存': 0, 'FBA在途': 0, '7天销量': 0, '14天销量': 0, '30天销量': 0, '本地库存': 0, '预计库存': 0}}
                                 for q in dict_sku[j][k]:
-                                    dict_male[i][k][p][0] += q[1]
-                                    dict_male[i][k][p][1] += q[2]
-                                    dict_male[i][k][p][2] += q[3]
+                                    dict_male[i][k][p]['FBA库存'] += q[1]
+                                    dict_male[i][k][p]['FBA在途'] += q[2]
+                                    dict_male[i][k][p]['30天销量'] += q[3]
+                                    dict_male[i][k][p]['14天销量'] += q[8]
+                                    dict_male[i][k][p]['7天销量'] += q[9]
                             if j in dict_order and k in dict_order[j]:
-                                dict_male[i][k][p][3] += dict_order[j][k][0]
-                                dict_male[i][k][p][4] += dict_order[j][k][1]
+                                dict_male[i][k][p]['本地库存'] += dict_order[j][k][0]
+                                dict_male[i][k][p]['预计库存'] += dict_order[j][k][1]
         dict_parent_json = json.dumps(dict_male)
         f1 = open('./static/json/dict_male.json', 'w')
         f1.write(dict_parent_json)
@@ -509,52 +519,69 @@ class Quantity(object):
                     if k in dict_amazon[i]:
                         if local_sku in dict_amazon[i][k]:
                             for q in dict_asin[i][j][k]:
-                                dict_amazon[i][k][local_sku][0] += q[1]
-                                dict_amazon[i][k][local_sku][1] += q[2]
-                                dict_amazon[i][k][local_sku][2] += q[3]
+                                dict_amazon[i][k][local_sku]['FBA库存'] += q[1]
+                                dict_amazon[i][k][local_sku]['FBA在途'] += q[2]
+                                dict_amazon[i][k][local_sku]['30天销量'] += q[3]
+                                dict_amazon[i][k][local_sku]['14天销量'] += q[8]
+                                dict_amazon[i][k][local_sku]['7天销量'] += q[9]
                         else:
-                            dict_amazon[i][k][local_sku] = [0, 0, 0, 0, 0]
+                            dict_amazon[i][k][local_sku] = {'FBA库存': 0, 'FBA在途': 0, '7天销量': 0, '14天销量': 0, '30天销量': 0, '本地库存': 0, '预计库存': 0}
                             for q in dict_asin[i][j][k]:
-                                dict_amazon[i][k][local_sku][0] += q[1]
-                                dict_amazon[i][k][local_sku][1] += q[2]
-                                dict_amazon[i][k][local_sku][2] += q[3]
+                                dict_amazon[i][k][local_sku]['FBA库存'] += q[1]
+                                dict_amazon[i][k][local_sku]['FBA在途'] += q[2]
+                                dict_amazon[i][k][local_sku]['30天销量'] += q[3]
+                                dict_amazon[i][k][local_sku]['14天销量'] += q[8]
+                                dict_amazon[i][k][local_sku]['7天销量'] += q[9]
                     else:
-                        dict_amazon[i][k] = {local_sku: [0, 0, 0, 0, 0]}
+                        dict_amazon[i][k] = {local_sku: {'FBA库存': 0, 'FBA在途': 0, '7天销量': 0, '14天销量': 0, '30天销量': 0, '本地库存': 0, '预计库存': 0}}
                         for q in dict_asin[i][j][k]:
-                            dict_amazon[i][k][local_sku][0] += q[1]
-                            dict_amazon[i][k][local_sku][1] += q[2]
-                            dict_amazon[i][k][local_sku][2] += q[3]
+                            dict_amazon[i][k][local_sku]['FBA库存'] += q[1]
+                            dict_amazon[i][k][local_sku]['FBA在途'] += q[2]
+                            dict_amazon[i][k][local_sku]['30天销量'] += q[3]
+                            dict_amazon[i][k][local_sku]['14天销量'] += q[8]
+                            dict_amazon[i][k][local_sku]['7天销量'] += q[9]
                     if j in dict_order and k in dict_order[j]:
-                        dict_amazon[i][k][local_sku][3] += dict_order[j][k][0]
-                        dict_amazon[i][k][local_sku][4] += dict_order[j][k][1]
+                        dict_amazon[i][k][local_sku]['本地库存'] += dict_order[j][k][0]
+                        dict_amazon[i][k][local_sku]['预计库存'] += dict_order[j][k][1]
         dict_amazon_json = json.dumps(dict_amazon)
         f1 = open('./static/json/dict_amazon.json', 'w')
         f1.write(dict_amazon_json)
 
-    def get_male_msg(self, parent, shop):
+    def get_male_msg(self, parent, shop, list_header):
         f = open('./static/json/dict_male.json', 'r')
         dict_parent = json.load(f)
         list_msg = []
         if parent in dict_parent and shop in dict_parent[parent]:
+            k = 0
             for i in dict_parent[parent][shop]:
-                list_msg.append([parent, i, dict_parent[parent][shop][i][0], dict_parent[parent][shop][i][1], dict_parent[parent][shop][i][2], dict_parent[parent][shop][i][3], dict_parent[parent][shop][i][4]])
+                list_msg.append([])
+                list_msg[k] = [parent, i]
+                for j in list_header:
+                    list_msg[k].append(dict_parent[parent][shop][i][j])
+                k += 1
             return list_msg
         else:
             return False
 
-    def get_amazon_msg(self, parent, shop):
+    def get_amazon_msg(self, parent, shop, list_header):
         f = open('./static/json/dict_amazon.json', 'r')
         dict_amazon = json.load(f)
         list_msg = []
         if parent in dict_amazon and shop in dict_amazon[parent]:
+            k = 0
             for i in dict_amazon[parent][shop]:
-                list_msg.append([parent, i, dict_amazon[parent][shop][i][0], dict_amazon[parent][shop][i][1], dict_amazon[parent][shop][i][2], dict_amazon[parent][shop][i][3], dict_amazon[parent][shop][i][4]])
+                list_msg.append([])
+                list_msg[k] = [parent, i]
+                for j in list_header:
+                    list_msg[k].append(dict_amazon[parent][shop][i][j])
+                k += 1
             return list_msg
         else:
             return False
 
     def update_json(self):
         try:
+            print("更新本地父体数据")
             f1 = open('./static/json/sku_info.json', 'r')
             dict_sku = json.load(f1)
             # f2 = open('./static/json/asin_info.json', 'r')
@@ -593,32 +620,213 @@ class Quantity(object):
             if file_day >= 30:
                 os.remove(path)
 
-    def read_excl(self, asin_parent=None):
-        # file = zipfile.ZipFile('D:/listing/listing.zip')
-        # file.extractall('D:/listing/')
-        # file.close()
-        # filename = f"D:/listing/listing.xlsx"
-        # mtime = os.path.getmtime(filename)  # 修改时间
-        # mtime_string = time.localtime(mtime)
-        # time_create = time.strftime("%Y-%m-%d %H:%M:%S", mtime_string)
-        # time_create = datetime.strptime(time_create, "%Y-%m-%d %H:%M:%S")
-        # time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # time_now = datetime.strptime(time_now, "%Y-%m-%d %H:%M:%S")
-        # seconds = (time_now - time_create).total_seconds()
-        seconds = 100
-        if int(seconds) <= 3600:
-            f = open('./static/json/dict_amazon.json', 'r')
-            info_data = json.load(f)
-            # print(info_data[asin_parent])
-            if asin_parent:
-                if asin_parent in info_data:
-                    return info_data[asin_parent]
-                else:
-                    return False
+    def get_list_parent(self, list_data, length):
+        list_parent = []
+        for i in range(1, len(list_data)):
+            if list_data[i][1] != "...":
+                list_col = []
+                for j in range(1, length+3):
+                    list_col.append(list_data[i][j])
+                list_parent.append(list_col)
+        return list_parent
+
+    def get_list_amazon(self, list_data, length):
+        list_amazon = []
+        for i in range(1, len(list_data)):
+            if list_data[i][length+3] != "...":
+                list_col = []
+                for j in range(length+3, length+length+5):
+                    list_col.append(list_data[i][j])
+                list_amazon.append(list_col)
+        return list_amazon
+
+    def string_splicing(self, list_parent, list_amazon, list_header, parent_asin, amazon_asin):
+        if list_parent and list_amazon:
+            if len(list_amazon) < len(list_parent):
+                length = len(list_amazon)
             else:
-                list_asin = list(info_data.keys())
-                return list_asin
-        return False
+                length = len(list_parent)
+            str_header1 = string_html.str_header_html1()
+            str_header2 = string_html.str_header_html2()
+            str_header3 = ''
+            str_header4 = ''
+            for i in list_header:
+                str_header_col = string_html.str_header_html3(i, parent_asin)
+                str_header3 += str_header_col
+            for i in list_header:
+                str_header_col = string_html.str_header_html3(i, amazon_asin)
+                str_header4 += str_header_col
+            str_header = f'<tr class="list_control_header">{str_header1}{str_header3}{str_header2}{str_header4}</tr>'
+            str_control = ''
+            for i in range(0, length):
+                str_control_col1 = string_html.str_content_html(i+1, "list_control4")
+                for j in range(0, len(list_parent[i])):
+                    if j == 0:
+                        str_control_col2 = string_html.str_content_html(list_parent[i][j], "list_control2")
+                    elif j == 1:
+                        str_control_col2 = string_html.str_content_name(list_parent[i][j], parent_asin)
+                    else:
+                        str_control_col2 = string_html.str_content_html(list_parent[i][j], "list_control1")
+                    str_control_col1 += str_control_col2
+                for j in range(0, len(list_amazon[i])):
+                    if j == 0:
+                        str_control_col2 = string_html.str_content_html(list_amazon[i][j], "list_control2")
+                    elif j == 1:
+                        str_control_col2 = string_html.str_content_name(list_amazon[i][j], amazon_asin)
+                    else:
+                        str_control_col2 = string_html.str_content_html(list_amazon[i][j], "list_control1")
+                    str_control_col1 += str_control_col2
+                str_control_tr = f'<tr class="list_control_tr">{str_control_col1}</tr>'
+                str_control += str_control_tr
+            str_control2 = ''
+            if len(list_amazon) != len(list_parent):
+                if length == len(list_parent):
+                    for i in range(length, len(list_amazon)):
+                        str_control_col1 = string_html.str_content_html(i+1, "list_control4")
+                        for j in range(0, len(list_amazon[i])):
+                            if j == 0:
+                                str_control_col2 = string_html.str_content_html("...", "list_control2")
+                            elif j == 1:
+                                str_control_col2 = string_html.str_content_html("...", "list_control3")
+                            else:
+                                str_control_col2 = string_html.str_content_html("...", "list_control1")
+                            str_control_col1 += str_control_col2
+                        for j in range(0, len(list_amazon[i])):
+                            if j == 0:
+                                str_control_col2 = string_html.str_content_html(list_amazon[i][j], "list_control2")
+                            elif j == 1:
+                                str_control_col2 = string_html.str_content_name(list_amazon[i][j], amazon_asin)
+                            else:
+                                str_control_col2 = string_html.str_content_html(list_amazon[i][j], "list_control1")
+                            str_control_col1 += str_control_col2
+                        str_control_tr = f'<tr class="list_control_tr">{str_control_col1}</tr>'
+                        str_control2 += str_control_tr
+                else:
+                    for i in range(length, len(list_parent)):
+                        str_control_col1 = string_html.str_content_html(i+1, "list_control4")
+                        for j in range(0, len(list_parent[i])):
+                            if j == 0:
+                                str_control_col2 = string_html.str_content_html(list_parent[i][j], "list_control2")
+                            elif j == 1:
+                                str_control_col2 = string_html.str_content_name(list_parent[i][j], parent_asin)
+                            else:
+                                str_control_col2 = string_html.str_content_html(list_parent[i][j], "list_control1")
+                            str_control_col1 += str_control_col2
+                        for j in range(0, len(list_parent[i])):
+                            if j == 0:
+                                str_control_col2 = string_html.str_content_html("...", "list_control2")
+                            elif j == 1:
+                                str_control_col2 = string_html.str_content_html("...", "list_control3")
+                            else:
+                                str_control_col2 = string_html.str_content_html("...", "list_control1")
+                            str_control_col1 += str_control_col2
+                        str_control_tr = f'<tr class="list_control_tr">{str_control_col1}</tr>'
+                        str_control2 += str_control_tr
+            str_html = str_header + str_control + str_control2
+            return str_html
+        else:
+            if list_amazon:
+                str_header1 = string_html.str_header_html1()
+                str_header2 = string_html.str_header_html2()
+                str_header3 = ''
+                str_header4 = ''
+                for i in list_header:
+                    str_header_col = string_html.str_header_html3(i, "")
+                    str_header3 += str_header_col
+                for i in list_header:
+                    str_header_col = string_html.str_header_html3(i, amazon_asin)
+                    str_header4 += str_header_col
+                str_header = f'<tr class="list_control_header">{str_header1}{str_header3}{str_header2}{str_header4}</tr>'
+                str_control = ''
+                for i in range(0, len(list_amazon)):
+                    str_control_col1 = string_html.str_content_html(i + 1, "list_control4")
+                    for j in range(0, len(list_amazon[i])):
+                        if j == 0:
+                            str_control_col2 = string_html.str_content_html("...", "list_control2")
+                        elif j == 1:
+                            str_control_col2 = string_html.str_content_html("...", "list_control3")
+                        else:
+                            str_control_col2 = string_html.str_content_html("...", "list_control1")
+                        str_control_col1 += str_control_col2
+                    for j in range(0, len(list_amazon[i])):
+                        if j == 0:
+                            str_control_col2 = string_html.str_content_html(list_amazon[i][j], "list_control2")
+                        elif j == 1:
+                            str_control_col2 = string_html.str_content_name(list_amazon[i][j], parent_asin)
+                        else:
+                            str_control_col2 = string_html.str_content_html(list_amazon[i][j], "list_control1")
+                        str_control_col1 += str_control_col2
+                    str_control_tr = f'<tr class="list_control_tr">{str_control_col1}</tr>'
+                    str_control += str_control_tr
+                str_html = str_header + str_control
+                return str_html
+            else:
+                str_header1 = string_html.str_header_html1()
+                str_header2 = string_html.str_header_html2()
+                str_header3 = ''
+                str_header4 = ''
+                for i in list_header:
+                    str_header_col = string_html.str_header_html3(i, parent_asin)
+                    str_header3 += str_header_col
+                for i in list_header:
+                    str_header_col = string_html.str_header_html3(i, '')
+                    str_header4 += str_header_col
+                str_header = f'<tr class="list_control_header">{str_header1}{str_header3}{str_header2}{str_header4}</tr>'
+                str_control = ''
+                for i in range(0, len(list_parent)):
+                    str_control_col1 = string_html.str_content_html(i + 1, "list_control4")
+                    for j in range(0, len(list_parent[i])):
+                        if j == 0:
+                            str_control_col2 = string_html.str_content_html(list_parent[i][j], "list_control2")
+                        elif j == 1:
+                            str_control_col2 = string_html.str_content_name(list_parent[i][j], amazon_asin)
+                        else:
+                            str_control_col2 = string_html.str_content_html(list_parent[i][j], "list_control1")
+                        str_control_col1 += str_control_col2
+                    for j in range(0, len(list_parent[i])):
+                        if j == 0:
+                            str_control_col2 = string_html.str_content_html("...", "list_control2")
+                        elif j == 1:
+                            str_control_col2 = string_html.str_content_html("...", "list_control3")
+                        else:
+                            str_control_col2 = string_html.str_content_html("...", "list_control1")
+                        str_control_col1 += str_control_col2
+                    str_control_tr = f'<tr class="list_control_tr">{str_control_col1}</tr>'
+                    str_control += str_control_tr
+                str_html = str_header + str_control
+                return str_html
+
+    def get_list_header(self, username):
+        self.sql()
+        sql = "select * from `amazon_form`.`user_headers` where `账号` = '%s'" % username
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        if result:
+            self.sql_close()
+            str_header = result[0]['list_header']
+            list_header = str_header.split('.')
+            return list_header
+        else:
+            str_header = "FBA库存.FBA在途.本地库存.预计库存.30天销量"
+            list_header = str_header.split('.')
+            sql2 = "insert into `amazon_form`.`user_headers`(`账号`, `list_header`)values('%s', '%s')" % (username, str_header)
+            self.cursor.execute(sql2)
+            self.connection.commit()
+            self.sql_close()
+            return list_header
+
+    def change_list_header(self, username, list_header):
+        str_header = '.'.join(list_header)
+        sql = "update `amazon_form`.`user_headers` set `list_header` = '%s' where `账号` = '%s'" % (str_header, username)
+        try:
+            self.sql()
+            self.cursor.execute(sql)
+            self.connection.commit()
+            self.sql_close()
+            return True, True
+        except Exception as e:
+            print(e)
+            return False, str(e)
 
     def amazon_parent(self, male_parent):
         self.sql()
@@ -634,121 +842,6 @@ class Quantity(object):
         else:
             return False
 
-    # def get_order(self, dict_asin, shop):
-    #     dict_asin_new = {}
-    #     for i in dict_asin:
-    #         dict_asin_new[i] = [0, 0, 0]
-    #         if type(dict_asin[i][0]) is list:
-    #             shop = dict_asin[i][0][4]
-    #             for j in dict_asin[i]:
-    #                 dict_asin_new[i][0] += j[1]
-    #                 dict_asin_new[i][1] += j[2]
-    #                 dict_asin_new[i][2] += j[3]
-    #             dict_asin_new[i].append(0)
-    #             dict_asin_new[i].append(0)
-    #             f = open('./static/json/fnsku_info.json', 'r')
-    #             info_data = json.load(f)
-    #             if i in info_data:
-    #                 for j in info_data[i]:
-    #                     for k in range(0, len(info_data[i][j])):
-    #                         if info_data[i][j][k][2] == shop:
-    #                             dict_asin_new[i][3] +=info_data[i][j][k][0]
-    #                             dict_asin_new[i][4] += info_data[i][j][k][1]
-    #         else:
-    #             dict_asin_new[i][0] += dict_asin[i][0]
-    #             dict_asin_new[i][1] += dict_asin[i][1]
-    #             dict_asin_new[i][2] += dict_asin[i][2]
-    #             f = open('./static/json/order_info.json', 'r')
-    #             info_data = json.load(f)
-    #             if i in info_data and shop in info_data[i]:
-    #                 dict_asin_new[i].append(info_data[i][shop][0])
-    #                 dict_asin_new[i].append(info_data[i][shop][1])
-    #             else:
-    #                 dict_asin_new[i].append(0)
-    #                 dict_asin_new[i].append(0)
-    #     return dict_asin_new
-
-    # def read_sku_info(self):
-    #     f = open('./static/json/dict_male.json', 'r')
-    #     info_data = json.load(f)
-    #     return info_data
-
-    # def find_excl(self, asin):
-    #     # asin = "B07KYYSQN6"
-    #     list_asin = []
-    #     dict_asin = self.read_excl(asin)
-    #     if dict_asin:
-    #         # print(dict_asin)
-    #         dict_asin = self.get_order(dict_asin, None)
-    #         # print(dict_asin)
-    #         dict_sku = self.select_male_name(dict_asin)
-    #         # print(dict_sku)
-    #         for i in dict_sku:
-    #             list_asin.append([asin, i, dict_sku[i][0], dict_sku[i][1], dict_sku[i][2], dict_sku[i][3], dict_sku[i][4]])
-    #         # print(list_asin)
-    #         str_json = json.dumps({asin: list_asin})
-    #         f = open(f'./static/列表详情/{asin}_info.json', 'w')
-    #         f.write(str_json)
-    #         return list_asin
-    #     else:
-    #         return False
-
-    # def select_male_name(self, dict_sku):
-    #     self.sql()
-    #     dict_sku_new = {}
-    #     for i in dict_sku:
-    #         sql = f"select * from `amazon_form`.`male_sku` where `SKU` = '{i}'"
-    #         self.cursor.execute(sql)
-    #         result = self.cursor.fetchall()
-    #         if result:
-    #             if result[0]['本地品名'] in dict_sku_new:
-    #                 dict_sku_new[result[0]['本地品名']][0] += dict_sku[i][0]
-    #                 dict_sku_new[result[0]['本地品名']][1] += dict_sku[i][1]
-    #                 dict_sku_new[result[0]['本地品名']][2] += dict_sku[i][2]
-    #                 dict_sku_new[result[0]['本地品名']][3] += dict_sku[i][3]
-    #                 dict_sku_new[result[0]['本地品名']][4] += dict_sku[i][4]
-    #             else:
-    #                 dict_sku_new[result[0]['本地品名']] = dict_sku[i]
-    #         else:
-    #             dict_sku_new[i] = dict_sku[i]
-    #     self.sql_close()
-    #     return dict_sku_new
-
-    # def find_list_male(self, asin, country):
-    #     self.sql()
-    #     sql = f"select * from `amazon_form`.`male_parent` where `本地父体` like '%{asin}%'"
-    #     # print(sql)
-    #     self.cursor.execute(sql)
-    #     result = self.cursor.fetchall()
-    #     # print(result)
-    #     if result:
-    #         list_sku = []
-    #         dict_data = {}
-    #         dict_sku = self.read_sku_info()
-    #         # print(dict_sku)
-    #         for i in result:
-    #             sku = i['SKU']
-    #             list_num = [0, 0, 0]
-    #             if sku in dict_sku:
-    #                 for j in dict_sku[sku]:
-    #                     if country == j[4]:
-    #                         list_num[0] += j[1]
-    #                         list_num[1] += j[2]
-    #                         list_num[2] += j[3]
-    #             dict_data[sku] = list_num
-    #         dict_data = self.get_order(dict_data, country)
-    #         dict_data = self.select_male_name(dict_data)
-    #         # print(dict_data)
-    #         for i in dict_data:
-    #             list_sku.append([asin, i, dict_data[i][0], dict_data[i][1], dict_data[i][2], dict_data[i][3], dict_data[i][4]])
-    #         # print(list_sku)
-    #         str_json = json.dumps({asin: list_sku})
-    #         f = open(f'./static/列表详情/{asin}_info.json', 'w')
-    #         f.write(str_json)
-    #         return list_sku
-    #     else:
-    #         return False
-
     def contrast_parent(self, list1, list2):
         # print(list2)
         dict1 = {}
@@ -756,46 +849,54 @@ class Quantity(object):
         list_male = []
         list_asin = []
         for i in list1:
-            if i[2]:
-                if i[2] == '本地品名':
+            if i[1]:
+                if i[1] == '本地品名':
                     continue
-                if i[2] == '...':
+                if i[1] == '...':
                     continue
-                dict1[i[2]] = i
+                dict1[i[1]] = i
         for i in list2:
-            if i[2]:
-                if i[2] == '本地品名':
+            if i[1]:
+                if i[1] == '本地品名':
                     continue
-                if i[2] == '...':
+                if i[1] == '...':
                     continue
-                dict2[i[2]] = i
+                dict2[i[1]] = i
         list_sku = []
         for i in dict1:
             if i in dict2:
-                list_male.append([dict2[i][0], dict1[i][2], dict1[i][3], dict1[i][4], dict1[i][5], dict1[i][6], dict1[i][7]])
+                list_i_1 = [dict2[i][0]]
+                list_i_2 = [dict1[i][0]]
+                for j in range(1, len(dict1[i])):
+                    list_i_1.append(dict1[i][j])
+                    list_i_2.append(dict2[i][j])
+                list_male.append(list_i_1)
                 list_sku.append(i)
-                list_asin.append([dict1[i][0], dict2[i][2], dict2[i][3], dict2[i][4], dict2[i][5], dict2[i][6], dict2[i][7]])
+                list_asin.append(list_i_2)
         # print(list_sku)
         # print(list_male)
-        list_male.append(['...', '...', '...', '...', '...', '...', '...'])
-        list_asin.append(['...', '...', '...', '...', '...', '...', '...'])
+        list_null = []
+        for i in range(1, len(list1[0])):
+            list_null.append('...')
+        list_male.append(list_null)
+        list_asin.append(list_null)
         for i in dict1:
             if i in list_sku:
                 continue
             else:
-                list_male.append(['无亚马逊父体', dict1[i][2], dict1[i][3], dict1[i][4], dict1[i][5], dict1[i][6], dict1[i][7]])
+                list_i = ['无亚马逊父体']
+                for j in range(1, len(dict1[i])):
+                    list_i.append(dict1[i][j])
+                list_male.append(list_i)
         for i in dict2:
             if i in list_sku:
                 continue
             else:
-                list_asin.append(['无本地父体', dict2[i][2], dict2[i][3], dict2[i][4], dict2[i][5], dict2[i][6], dict2[i][7]])
-        list_male_new = []
-        for i in list_male:
-            list_male_new.append([i[0], i[1], i[2], i[3], i[6], i[4], i[5]])
-        list_asin_new = []
-        for i in list_asin:
-            list_asin_new.append([i[0], i[1], i[2], i[3], i[6], i[4], i[5]])
-        return list_male_new, list_asin_new
+                list_i = ['无本地父体']
+                for j in range(1, len(dict2[i])):
+                    list_i.append(dict2[i][j])
+                list_male.append(list_i)
+        return list_male, list_asin
 
     def windows_msg(self, sku, asin, country):
         if asin.find('B0') >= 0:
@@ -867,35 +968,28 @@ class Quantity(object):
     def ascending_sort(self, list1, list2, index, sort_asin):
         list1_pop = []
         if list1:
-            list1.pop(0)
             for i in list1:
                 if i[1]:
                     if i[2] == '...':
                         continue
-                    list1_pop.append([i[1], i[2], i[3], i[4], i[5], i[6], i[7]])
+                    list_i = []
+                    for j in range(0, len(i)):
+                        list_i.append(i[j])
+                    list1_pop.append(list_i)
         list2_pop = []
         if list2:
-            list2.pop(0)
             for i in list2:
                 if i[1]:
                     if i[2] == '...':
                         continue
-                    list2_pop.append([i[1], i[2], i[3], i[4], i[5], i[6], i[7]])
+                    list_i = []
+                    for j in range(0, len(i)):
+                        list_i.append(i[j])
+                    list1_pop.append(list_i)
         list1_new = []
         list2_new = []
         if sort_asin.find('B0') >= 0:
-            if index == 'FBA库存':
-                list2_new = sorted(list2_pop, key=lambda d: int(d[2]), reverse=False)
-            if index == 'FBA在途':
-                list2_new = sorted(list2_pop, key=lambda d: int(d[3]), reverse=False)
-            if index == '本地库存':
-                list2_new = sorted(list2_pop, key=lambda d: int(d[4]), reverse=False)
-            if index == '预计库存':
-                list2_new = sorted(list2_pop, key=lambda d: int(d[5]), reverse=False)
-            if index == '30天销量':
-                list2_new = sorted(list2_pop, key=lambda d: int(d[6]), reverse=False)
-            for i in list2_new:
-                i[4], i[5], i[6] = i[6], i[4], i[5]
+            list2_new = sorted(list2_pop, key=lambda d: int(d[index]), reverse=False)
             if list1_pop:
                 for i in list2_new:
                     flag = 1
@@ -904,7 +998,10 @@ class Quantity(object):
                             flag = 0
                             list1_new.append(j)
                     if flag:
-                        list1_new.append(['...', '...', '...', '...', '...', '...', '...'])
+                        list_null = []
+                        for j in range(0, len(list1[0])):
+                            list_null.append('...')
+                        list1_new.append(list_null)
                 for i in list1_pop:
                     flag = 1
                     for j in list1_new:
@@ -912,21 +1009,8 @@ class Quantity(object):
                             flag = 0
                     if flag:
                         list1_new.append(i)
-                for i in list1_new:
-                    i[4], i[5], i[6] = i[6], i[4], i[5]
         else:
-            if index == 'FBA库存':
-                list1_new = sorted(list1_pop, key=lambda d: int(d[2]), reverse=False)
-            if index == 'FBA在途':
-                list1_new = sorted(list1_pop, key=lambda d: int(d[3]), reverse=False)
-            if index == '本地库存':
-                list1_new = sorted(list1_pop, key=lambda d: int(d[4]), reverse=False)
-            if index == '预计库存':
-                list1_new = sorted(list1_pop, key=lambda d: int(d[5]), reverse=False)
-            if index == '30天销量':
-                list1_new = sorted(list1_pop, key=lambda d: int(d[6]), reverse=False)
-            for i in list1_new:
-                i[4], i[5], i[6] = i[6], i[4], i[5]
+            list1_new = sorted(list1_pop, key=lambda d: int(d[index]), reverse=False)
             if list2_pop:
                 for i in list1_new:
                     flag = 1
@@ -935,7 +1019,10 @@ class Quantity(object):
                             flag = 0
                             list2_new.append(j)
                     if flag:
-                        list2_new.append(['...', '...', '...', '...', '...', '...', '...'])
+                        list_null = []
+                        for j in range(0, len(list1[0])):
+                            list_null.append('...')
+                        list2_new.append(list_null)
                 for i in list2_pop:
                     flag = 1
                     for j in list2_new:
@@ -943,42 +1030,33 @@ class Quantity(object):
                             flag = 0
                     if flag:
                         list2_new.append(i)
-                for i in list2_new:
-                    i[4], i[5], i[6] = i[6], i[4], i[5]
         return list1_new, list2_new
 
     def descending_sort(self, list1, list2, index, sort_asin):
         list1_pop = []
         if list1:
-            list1.pop(0)
             for i in list1:
                 if i[1]:
                     if i[2] == '...':
                         continue
-                    list1_pop.append([i[1], i[2], i[3], i[4], i[5], i[6], i[7]])
+                    list_i = []
+                    for j in range(0, len(i)):
+                        list_i.append(i[j])
+                    list1_pop.append(list_i)
         list2_pop = []
         if list2:
-            list2.pop(0)
             for i in list2:
                 if i[1]:
                     if i[2] == '...':
                         continue
-                    list2_pop.append([i[1], i[2], i[3], i[4], i[5], i[6], i[7]])
+                    list_i = []
+                    for j in range(0, len(i)):
+                        list_i.append(i[j])
+                    list2_pop.append(list_i)
         list1_new = []
         list2_new = []
         if sort_asin.find('B0') >= 0:
-            if index == 'FBA库存':
-                list2_new = sorted(list2_pop, key=lambda d: int(d[2]), reverse=True)
-            if index == 'FBA在途':
-                list2_new = sorted(list2_pop, key=lambda d: int(d[3]), reverse=True)
-            if index == '本地库存':
-                list2_new = sorted(list2_pop, key=lambda d: int(d[4]), reverse=True)
-            if index == '预计库存':
-                list2_new = sorted(list2_pop, key=lambda d: int(d[5]), reverse=True)
-            if index == '30天销量':
-                list2_new = sorted(list2_pop, key=lambda d: int(d[6]), reverse=True)
-            for i in list2_new:
-                i[4], i[5], i[6] = i[6], i[4], i[5]
+            list2_new = sorted(list2_pop, key=lambda d: int(d[index]), reverse=True)
             if list1_pop:
                 for i in list2_new:
                     flag = 1
@@ -987,7 +1065,10 @@ class Quantity(object):
                             flag = 0
                             list1_new.append(j)
                     if flag:
-                        list1_new.append(['...', '...', '...', '...', '...', '...', '...'])
+                        list_null = []
+                        for j in range(0, len(list1[0])):
+                            list_null.append('...')
+                        list1_new.append(list_null)
                 for i in list1_pop:
                     flag = 1
                     for j in list1_new:
@@ -995,21 +1076,8 @@ class Quantity(object):
                             flag = 0
                     if flag:
                         list1_new.append(i)
-                for i in list1_new:
-                    i[4], i[5], i[6] = i[6], i[4], i[5]
         else:
-            if index == 'FBA库存':
-                list1_new = sorted(list1_pop, key=lambda d: int(d[2]), reverse=True)
-            if index == 'FBA在途':
-                list1_new = sorted(list1_pop, key=lambda d: int(d[3]), reverse=True)
-            if index == '本地库存':
-                list1_new = sorted(list1_pop, key=lambda d: int(d[4]), reverse=True)
-            if index == '预计库存':
-                list1_new = sorted(list1_pop, key=lambda d: int(d[5]), reverse=True)
-            if index == '30天销量':
-                list1_new = sorted(list1_pop, key=lambda d: int(d[6]), reverse=True)
-            for i in list1_new:
-                i[4], i[5], i[6] = i[6], i[4], i[5]
+            list1_new = sorted(list1_pop, key=lambda d: int(d[index]), reverse=True)
             if list2_pop:
                 for i in list1_new:
                     flag = 1
@@ -1018,7 +1086,10 @@ class Quantity(object):
                             flag = 0
                             list2_new.append(j)
                     if flag:
-                        list2_new.append(['...', '...', '...', '...', '...', '...', '...'])
+                        list_null = []
+                        for j in range(0, len(list1[0])):
+                            list_null.append('...')
+                        list2_new.append(list_null)
                 for i in list2_pop:
                     flag = 1
                     for j in list2_new:
@@ -1026,8 +1097,6 @@ class Quantity(object):
                             flag = 0
                     if flag:
                         list2_new.append(i)
-                for i in list2_new:
-                    i[4], i[5], i[6] = i[6], i[4], i[5]
         return list1_new, list2_new
 
     def ascending_sort2(self, list_msg, index):
@@ -1182,19 +1251,17 @@ class Quantity(object):
             else:
                 return False, f"没有找到{asin}父ASIN的详情，请检查"
 
-    def find_parent_sku(self, list_male, list_sku, local_sku, shop):
+    def find_parent_sku(self, list_male, list_sku, local_sku, shop, parent_asin, amazon_asin, list_header):
         if list_sku or list_male:
             list_sku_new = []
             if list_sku:
-                asin = list_sku[1][0]
-                list_amazon = self.get_amazon_msg(asin, shop)
+                list_amazon = self.get_amazon_msg(amazon_asin, shop, list_header)
                 for i in list_amazon:
                     if i[1] and i[1].find(local_sku) >= 0:
                         list_sku_new.append(i)
             list_male_new = []
             if list_male:
-                asin = list_male[1][0]
-                list_male_parent = self.get_male_msg(asin, shop)
+                list_male_parent = self.get_male_msg(parent_asin, shop, list_header)
                 for i in list_male_parent:
                     if i[1] and i[1].find(local_sku) >= 0:
                         list_male_new.append(i)
@@ -1202,12 +1269,19 @@ class Quantity(object):
         else:
             return list_male, list_sku
 
+    def get_json(self):
+        f1 = open('./static/json/asin_info.json', 'r')
+        dict_asin = json.load(f1)
+        list_msg = dict_asin['B0C4GJR2GZ']['[PDD]400']
+        print(list_msg)
+
 
 if __name__ == '__main__':
     quantity = Quantity()
+    # quantity.get_json()
     quantity.download_asin()
     # quantity.update_json()
-    # quantity.write_asin('517699558108459008')
+    # quantity.write_asin('520571596564553728')
     # quantity.write_order()
     # quantity.find_parent_sku([['0'], ['Fire10父体']], [['0'], ['B0BRRTKF11']], 'Fire8')
     # quantity.read_json()

@@ -233,9 +233,11 @@ class Quantity(object):
             if list_order:
                 time_now = datetime.datetime.now().strftime("%Y%m%d%H%M")
                 po_id = f'{po_name}-{class_name}-{time_now}'
+                self.sql()
                 for i in range(0, len(list_sku)):
                     product_name = self.get_product_name('sku', list_sku[i][0])
                     list_sku[i].append(product_name)
+                self.sql_close()
                 self.sql()
                 for i in list_order:
                     num = list_order[i][0]
@@ -312,6 +314,7 @@ class Quantity(object):
             result1 = json.loads(response.text)
             # print(result1)
             if result1['code'] == 0 and result1['message'] == 'success':
+                self.sql()
                 for i in result1['data']:
                     warehouse_sku = i['sku']
                     if warehouse_sku.find('GCWL') >= 0:
@@ -343,6 +346,7 @@ class Quantity(object):
                             else:
                                 num_order = int(list_sku[sku][0])
                                 list_sku[sku][0] = num_order + int(warehouse_num)
+                self.sql_close()
                 # print(list_sku)
                 return list_sku
             else:
@@ -353,7 +357,6 @@ class Quantity(object):
             return False
 
     def get_product_name(self, index, id):
-        self.sql()
         sql = ''
         if index == 'ID':
             sql = "select * from `data_read`.`product_id` where `ID` = '%s'" % id
@@ -361,7 +364,6 @@ class Quantity(object):
             sql = "select * from `data_read`.`product_id` where `SKU` = '%s'" % id
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
-        self.sql_close()
         if result:
             return result[0]['品名']
         else:
@@ -562,4 +564,4 @@ class Quantity(object):
 if __name__ == '__main__':
     quantity = Quantity()
     # quantity.get_order_msg(['GC.410'], {'GC.410': 800})
-    quantity.upload_sql('D:/生产日程表/生产日程表202305171418.xlsx')
+    quantity.upload_sql('D:/生产日程表/生产日程表202305251434.xlsx')

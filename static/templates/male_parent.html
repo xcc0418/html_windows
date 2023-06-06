@@ -380,7 +380,7 @@ margin:88px 0px 0px 100px;
                 <button class="button" onclick="derive_table(event)" data-name="table1">导出表格</button>
             </div>
             <div class="button_item" id="button_control7">
-                <button class="button" onclick="derive_table(event)" data-name="table1">导出表格</button>
+                <button class="button" onclick="derive_table(event)" data-name="table2">导出表格</button>
             </div>
             <div class="download_item" id="download_control">
             </div>
@@ -805,7 +805,6 @@ margin:88px 0px 0px 100px;
     function derive_table(event){
     var list_msg = get_table();
     var table_name = event.target.dataset.name
-    console.log(table_name)
     var data = {"data": JSON.stringify({"list_msg": list_msg, "table_name": table_name})};
     $.ajax({
     url: "/male_parent/derive_table",

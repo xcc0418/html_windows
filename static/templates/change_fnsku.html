@@ -151,22 +151,24 @@ margin:41px 0px 0px 100px;
 margin:-600px 0px 0px 750px;
 }
 #text_control4{
+position: absolute;
 margin:41px 0px 0px 100px;
 }
 #method_control2{
-margin:-41px 0px 0px 200px;
+0position: absolute;
+margin:41px 0px 0px 200px;
 }
 #input_control4{
-margin:41px 0px 0px 100px;
-}
-#import2{
-margin:-247px 0px 0px 0px;
+position: absolute;
+margin:82px 0px 0px 100px;
 }
 #button_control4{
-margin:-41px 0px 0px 300px;
+position: absolute;
+margin:82px 0px 0px 250px;
 }
-#button_item4{
-margin:-246px 0px 0px 0px;
+#button_control5{
+position: absolute;
+margin:82px 0px 0px 400px;
 }
 </style>
 <body>
@@ -249,6 +251,10 @@ margin:-246px 0px 0px 0px;
         <div class="button_item3" id="button_control4">
             <button class="button" onclick="pair()" id="button_item4">MSKU配对</button>
         </div>
+        <div class="button_item3" id="button_control5">
+            <input type="file" name="file" id="files3" style="display:none" onchange="get_pair_msg();">
+            <input type="button" value="配对详情" id="import3" class="upload">
+        </div>
     </div>
 </div>
 </body>
@@ -261,6 +267,10 @@ margin:-246px 0px 0px 0px;
 
     $("#import2").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
       $("#files2").click();
+    });
+
+    $("#import3").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
+      $("#files3").click();
     });
 
     function find_fnsku(){
@@ -439,6 +449,48 @@ margin:-246px 0px 0px 0px;
         if (textStatus === 'timeout') {
             alert('请求超时，请重试！');
             document.getElementById("button_item4").disabled = false;
+        }
+        }
+    })
+    }
+    }
+
+    function get_pair_msg(){
+    var filename = document.getElementById("files3").files[0]['name'];
+    if (confirm("是否上传"+ filename +"")){
+    document.getElementById("download_control2").innerHTML = '';
+    document.getElementById("import3").disabled = "ture";
+    var button = document.getElementById('import3');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
+    var formData = new FormData();
+    formData.append("myfile", document.getElementById("files3").files[0]);
+    $.ajax({
+    url: "/change_fnsku/get_pair_msg",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "POST",
+    dataType: 'json',
+    data: formData,
+    cache: false,
+    processData: false,
+    contentType: false,
+    success: function(msg){
+    console.log(msg)
+    if (msg['msg'] == 'success'){
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    download_excl2(msg['data']['filename'], msg['data']['file']);
+    document.getElementById("import3").disabled = false;
+    }
+    if (msg['msg'] == 'error'){
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import3").disabled = false;
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+            button.style.backgroundColor = 'rgb(252, 252, 252)';
+            document.getElementById("import3").disabled = false;
         }
         }
     })
