@@ -16,6 +16,7 @@ import create_msku
 import stores_requisition
 import male_parent
 import parent_message
+import upload_image
 from flask import session
 from concurrent.futures import ThreadPoolExecutor
 
@@ -304,8 +305,12 @@ def search_msg():
             if result:
                 if index == 'FNSKU':
                     list_data, num_local = search.get_po(index_data)
-                    msg = {'msg': "success", 'data': {'file': result[0], 'filename': result[1], 'list_data': {'data_list': list_data, '装箱总数量': num_local}}}
-                    return json.dumps(msg)
+                    if list_data:
+                        msg = {'msg': "success", 'data': {'file': result[0], 'filename': result[1], 'list_data': {'data_list': list_data, '装箱总数量': num_local}}}
+                        return json.dumps(msg)
+                    else:
+                        msg = {'msg': "error", 'data': f'{index_data}没有装箱信息'}
+                        return json.dumps(msg)
                 else:
                     msg = {'msg': "success", 'data': result}
                     return json.dumps(msg)
@@ -824,6 +829,7 @@ def pair():
             quantity = create_msku.Quantity()
             msg, message = quantity.pair_msku(sku, asin, store, float(version), msku, fnsku, male_parent, male_sku)
             if msg:
+                quantity.add_image_msg(asin, sku, fnsku)
                 return json.dumps({'msg': "success"})
             else:
                 return json.dumps({'msg': 'error', 'data': message})
@@ -942,12 +948,16 @@ def local_function():
                 sku = dict_data['sku']
                 if sku:
                     msg, message = quantity.relevance_sku(parent.strip(), sku.strip())
+                    if msg:
+                        quantity.add_image_msg([sku.strip(), parent.strip()])
                 else:
                     msg, message = False, "请先输入SKU"
             elif index == "解除关联":
                 sku = dict_data['sku']
                 if sku:
                     msg, message = quantity.relieve_sku(parent.strip(), sku.strip())
+                    if msg:
+                        quantity.add_image_msg([sku.strip(), parent.strip()])
                 else:
                     msg, message = False, "请先输入SKU"
             elif index == "创建品名":
@@ -958,6 +968,8 @@ def local_function():
                     msg, message = quantity.add_sku(parent.strip())
                     if msg:
                         msg, message = quantity.relevance_sku(parent.strip(), sku.strip())
+                        if msg:
+                            quantity.add_image_msg([sku.strip(), parent.strip()])
                     else:
                         msg = False
                 else:
@@ -1177,7 +1189,8 @@ def get_sku_male():
 def get_list_male():
     if request.method == "GET":
         quantity = parent_message.Quantity()
-        list_msg = quantity.get_list_male()
+        username = session.get('username')
+        list_msg = quantity.get_list_male(username=username)
         if list_msg:
             return json.dumps({'msg': "success", 'data': list_msg})
         else:
@@ -1202,8 +1215,9 @@ def find_list_male():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
         asin = dict_data['asin']
+        username = session.get('username')
         quantity = parent_message.Quantity()
-        list_msg = quantity.get_list_male(asin)
+        list_msg = quantity.get_list_male(username=username, parent=asin)
         if list_msg:
             return json.dumps({'msg': "success", 'data': list_msg})
         else:
@@ -1217,8 +1231,44 @@ def get_amazon_parent():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
         male_parent = dict_data['male_parent']
+        if male_parent.find('*') >= 0:
+            male_parent = male_parent[1:]
         quantity = parent_message.Quantity()
         list_msg = quantity.amazon_parent(male_parent)
+        if list_msg:
+            return json.dumps({'msg': "success", 'data': list_msg})
+        else:
+            return json.dumps({'msg': "error", 'message': f"{male_parent}没有关联的亚马逊父体"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/menu_collect', methods=["POST"])
+def menu_collect():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        male_parent = dict_data['male_parent']
+        username = session.get('username')
+        quantity = parent_message.Quantity()
+        quantity.parent_collect(username=username, parent=male_parent)
+        list_msg = quantity.get_list_male(username=username)
+        if list_msg:
+            return json.dumps({'msg': "success", 'data': list_msg})
+        else:
+            return json.dumps({'msg': "error", 'message': f"{male_parent}没有关联的亚马逊父体"})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/parent_message/menu_unbind', methods=["POST"])
+def menu_unbind():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        male_parent = dict_data['male_parent']
+        username = session.get('username')
+        quantity = parent_message.Quantity()
+        quantity.parent_unbind(username=username, parent=male_parent)
+        list_msg = quantity.get_list_male(username=username)
         if list_msg:
             return json.dumps({'msg': "success", 'data': list_msg})
         else:
@@ -1245,6 +1295,8 @@ def find_list_asin():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
         asin = dict_data['asin']
+        if asin.find('*') >= 0:
+            asin = asin[1:]
         country = dict_data['country']
         quantity = parent_message.Quantity()
         if asin and country:
@@ -1277,6 +1329,8 @@ def find_asin_parent():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
         asin = dict_data['asin']
+        if asin.find('*') >= 0:
+            asin = asin[1:]
         country = dict_data['country']
         quantity = parent_message.Quantity()
         # print(asin)
@@ -1303,16 +1357,20 @@ def find_asin_parent():
                 data = dict_data['data']
                 list_header = dict_data['list_header']
                 list_parent = quantity.get_male_msg(asin, country, list_header)
-                if data['list']:
-                    list_amazon = quantity.get_list_amazon(data['list'], len(list_header))
-                    amazon_asin = data['amazon_asin']
-                else:
-                    list_amazon = []
-                    amazon_asin = ''
-                list_msg = quantity.string_splicing(list_parent, list_amazon, list_header, asin, amazon_asin)
-                if list_msg:
-                    # print("success")
-                    return json.dumps({'msg': "success", 'data_html': list_msg, 'male': "本地父体"})
+                if list_parent:
+                    if data['list']:
+                        list_amazon = quantity.get_list_amazon(data['list'], len(list_header))
+                        amazon_asin = data['amazon_asin']
+                    else:
+                        list_amazon = []
+                        amazon_asin = ''
+                    list_msg = quantity.string_splicing(list_parent, list_amazon, list_header, asin, amazon_asin)
+                    if list_msg:
+                        # print("success")
+                        return json.dumps({'msg': "success", 'data_html': list_msg, 'male': "本地父体"})
+                    else:
+                        # print("error")
+                        return json.dumps({'msg': "error", 'message': "没有找到这个父体信息"})
                 else:
                     # print("error")
                     return json.dumps({'msg': "error", 'message': "没有找到这个父体信息"})
@@ -1378,6 +1436,8 @@ def windows_msg():
         sku = dict_data['sku']
         if sku:
             asin = dict_data['asin']
+            if asin.find('*') >= 0:
+                asin = asin[1:]
             country = dict_data['country']
             quantity = parent_message.Quantity()
             list_1 = quantity.windows_msg(sku, asin, country)
@@ -1488,6 +1548,8 @@ def menu_relieve_sku():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
         parent_asin = dict_data['parent_asin']
+        if parent_asin.find('*') >= 0:
+            parent_asin = parent_asin[1:]
         sku = dict_data['sku']
         quantity = male_parent.Quantity()
         msg, message = quantity.relieve_male(parent_asin, sku)
@@ -1506,6 +1568,8 @@ def menu_relevance_sku():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
         parent_asin = dict_data['parent_asin']
+        if parent_asin.find('*') >= 0:
+            parent_asin = parent_asin[1:]
         sku = dict_data['sku']
         quantity = male_parent.Quantity()
         msg, message = quantity.relevance_male(parent_asin, sku)
@@ -1542,7 +1606,71 @@ def find_parent_sku():
         return json.dumps({'msg': 'error'})
 
 
+@app.route('/upload_image/get_sku_image', methods=["GET"])
+def get_sku_image():
+    if request.method == "GET":
+        quantity = upload_image.Upload_Image()
+        list_msg = quantity.get_sql_sku()
+        if list_msg:
+            return json.dumps({'msg': "success", 'data': list_msg})
+        else:
+            return json.dumps({'msg': "error", 'message': '当前没有未同步图片的SKU'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/upload_image/get_class_image', methods=["POST"])
+def get_class_image():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        index = dict_data['index']
+        index_data = dict_data['index_data']
+        if index:
+            quantity = upload_image.Upload_Image()
+            if index_data:
+                list_msg = quantity.get_class_sku(index, index_data)
+            else:
+                list_msg = quantity.get_sql_sku()
+            if list_msg:
+                return json.dumps({'msg': "success", 'data': list_msg})
+            else:
+                return json.dumps({'msg': "error", 'message': '当前没有未同步图片的SKU'})
+        else:
+            return json.dumps({'msg': "error", 'message': '请先选择索引'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/upload_image/get_image_msg', methods=["POST"])
+def get_image_msg():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        male_name = dict_data['male_name']
+        quantity = upload_image.Upload_Image()
+        list_msg = quantity.get_image_msg(male_name)
+        if list_msg:
+            return json.dumps({'msg': "success", 'data': list_msg})
+        else:
+            return json.dumps({'msg': "error", 'message': '当前没有有图片的SKU'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/upload_image/update_image_msg', methods=["GET"])
+def update_image_msg():
+    if request.method == "GET":
+        quantity = upload_image.Quantity()
+        msg = quantity.get_flag()
+        if msg:
+            executor.submit(quantity.update_image_msg())
+            return json.dumps({'msg': "success"})
+        else:
+            return json.dumps({'msg': "error", 'message': '正在更新图片信息，请稍后再试'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
 if __name__ == '__main__':
     app.after_request(after_request)
-    # app.run(port=80, debug=False, threaded=False, processes=100)
-    app.run(port=80, debug=False)
+    app.run(port=80, debug=False, threaded=False, processes=100)
+    # app.run(port=80, debug=False)

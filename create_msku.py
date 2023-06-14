@@ -14,7 +14,7 @@ import global_var
 import shutil
 import copy
 import os
-
+import upload_image
 
 ######## AES-128-ECS 加密
 class EncryptDate:
@@ -278,7 +278,7 @@ class Quantity(object):
             self.sql()
             ws = openpyxl.Workbook()
             ws_sheet = ws.active
-            ws_sheet.append(['*SKU', '品名', '原FNSKU', '调整FNSKU', '调整量'])
+            ws_sheet.append(['*SKU', '品名', '原FNSKU', '店铺名称', '调整FNSKU', '店铺名称', '调整量'])
             sql = "select * from `amazon_form`.`pre_msku` where `SKU` = '%s' and `状态` = '未使用' and " \
                   "`国家` = '%s'" % (sku, country)
             # print(sql)
@@ -293,7 +293,7 @@ class Quantity(object):
                 for j in result:
                     k += 1
                     self.change_sql(j['FNSKU'])
-                    ws_sheet.append([sku, product_name, '', j['FNSKU']])
+                    ws_sheet.append([sku, product_name, '', '', j['FNSKU']])
                     if k == num:
                         break
                 time_now = datetime.datetime.now().strftime("%Y%m%d%H%M")
@@ -544,7 +544,7 @@ class Quantity(object):
         wb = openpyxl.Workbook()
         wb_sheet = wb.active
         wb_sheet.append(['单据编号', '仓库名称', '单据类型', '单据状态', '创建人', '创建时间', '操作人', '调整时间', 'SKU', '品名',
-                         '店铺', 'FNSKU', '可用调整量', '调整数', '备注'])
+                         '店铺', 'FNSKU', '可用调整量', '调整量', '备注'])
         time_stamp = int(time.time())
         url = "https://openapi.lingxing.com/erp/sc/routing/inventoryReceipt/StorageAdjustment/getStorageAdjustOrderList"
         body = {"access_token": self.access_token,
@@ -579,12 +579,13 @@ class Quantity(object):
                     creat_time = i['create_time']
                     remark = i['remark']
                     for j in i['item_list']:
+                        product_num = j['to_available_bin_list'][0]['product_num']
                         wb_sheet.append([order_sn, warehouse_name, type, status, realname, creat_time, None, None,
                                          j['sku'], j['product_name'], j['seller_name'], j['fnsku'],
-                                         j['adjustment_valid_num'], -int(j['available_bin_list'][0]['product_num']), remark])
+                                         j['adjustment_valid_num'], -int(product_num), remark])
                         wb_sheet.append([order_sn, warehouse_name, type, status, realname, creat_time, None, None,
                                          j['sku'], j['product_name'], j['to_seller_name'], j['to_fnsku'],
-                                         None, j['to_available_bin_list'][0]['product_num'], remark])
+                                         None, product_num, remark])
         wb.save(f'D:/html_windows/static/换标调整/{time_now}-{msg_id}/换标调整单-{msg_id}.xlsx')
 
     def login_asinking3(self, username, password):
@@ -754,6 +755,22 @@ class Quantity(object):
         else:
             return index, index_data
 
+    def add_image_msg(self, asin, sku, fnsku):
+        self.sql()
+        sql1 = "select * from `amazon_form`.`list_asin` where `ASIN` = '%s'" % asin
+        self.cursor.execute(sql1)
+        result = self.cursor.fetchall()
+        if result:
+            self.sql_close()
+            upload = upload_image.Upload_Image()
+            upload.upload_image([sku])
+        else:
+            sql2 = "insert into `amazon_form`.`asin_image`(`ASIN`, `FNSKU`, `SKU`, `状态`)values" \
+                   "('%s', '%s', ''%s', %s')" % (asin, fnsku, sku, '未同步')
+            self.cursor.execute(sql2)
+            self.connection.commit()
+            self.sql_close()
+
     def batch_pair(self, path):
         wb = openpyxl.load_workbook(path)
         wb_sheet = wb.active
@@ -796,6 +813,7 @@ class Quantity(object):
                             self.cursor.execute(sql1)
                             self.connection.commit()
                             self.sql_close()
+                            self.add_image_msg(asin, sku, fnsku)
                             wb_sheet.cell(row=i, column=9).value = '配对成功'
                         else:
                             self.sql_close()
@@ -1042,6 +1060,7 @@ class Find_order():
                 # list_asin = self.read_excl('522367034090377216')
                 # print(self.dict_msku)
                 list_msku = []
+                list_sku = []
                 if list_asin:
                     for i in self.dict_msku:
                         if len(self.dict_msku[i]) > 3:
@@ -1059,6 +1078,11 @@ class Find_order():
                                           "where `MSKU` = '%s'" % (self.dict_msku[i][4], self.dict_msku[i][5], i)
                                     list_msku.append(i)
                                     list_asin.append(i[0])
+                                    sql2 = "insert into `amazon_form`.`asin_image`(`ASIN`, `FNSKU`, `SKU`, `状态`)values" \
+                                           "('%s', '%s', ''%s', %s')" % (self.dict_msku[i][4], self.dict_msku[i][5], self.dict_msku[i][0], '未同步')
+                                    sql3 = "insert into `amazon_form.`list_asin`(`ASIN`)VALUES('%s')" % self.dict_msku[i][5]
+                                    self.cursor.execute(sql2)
+                                    self.cursor.execute(sql3)
                                 else:
                                     sql = f"update `amazon_form`.`pre_msku` set `FNSKU` = '%s' , `状态` = '{str(message)}', `ASIN` = '%s' " \
                                           "where `MSKU` = '%s'" % (self.dict_msku[i][4], self.dict_msku[i][5], i)
@@ -1225,9 +1249,23 @@ class Find_order():
                 else:
                     list_asin.append(asin)
         if len(list_asin) > 5000 and 'B0BLCS9J5G' in list_asin:
+            self.save_asin(list_asin)
             return list_asin
         else:
             return False
+
+    def save_asin(self, list_asin):
+        self.sql()
+        flag = 0
+        for i in list_asin:
+            sql = "insert into `amazon_form`.`list_asin`(`ASIN`)values('%s')" % i
+            self.cursor.execute(sql)
+            flag += 1
+            if flag% 100 == 0:
+                self.connection.commit()
+        self.connection.commit()
+        self.sql_close()
+
 
     def find_fnsku(self, msku, country, auth_token):
         post_url = "https://gw.lingxingerp.com/listing-api/api/product/showOnline"
@@ -1421,3 +1459,5 @@ if __name__ == '__main__':
     quantity = Find_order()
     quantity.get_msku()
     quantity.update_listing()
+    # quantity_ = Quantity()
+    # quantity_.get_order_sn('AD230606003', '20230606', '1461')

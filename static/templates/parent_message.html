@@ -161,6 +161,14 @@ thead tr td{
     height: 40px;
     width: 190px;
 }
+.list_control_collect{
+    overflow: hidden;
+    text-overflow:ellipsis;
+    text-align: center;
+    position: sticky;
+    height: 40px;
+    width: 250px;
+}
 .table-sort {
     display: inline-block;
     width: 10px;
@@ -759,11 +767,20 @@ margin:100px 0px 0px 550px;
     heard_tr.innerHTML = heard_name1_str;
     if (heard_name1 == "本地父体"){
     document.getElementById("control_item1").appendChild(heard_tr);
-    for (var i = 0; i < list_data.length; i++){
+    for (var i = 0; i < list_data[0].length; i++){
     var tr = document.createElement("tr");
     tr.className = "list_control_tr";
-    var name = list_data[i];
-    var name_str = drag_control(['list_control3', name, 0]);
+    var name = list_data[0][i];
+    var name_str = drag_control(['list_control_collect', name, 2]);
+    var str = name_str;
+    tr.innerHTML = str;
+    document.getElementById("control_item1").appendChild(tr);
+    }
+    for (var i = 0; i < list_data[1].length; i++){
+    var tr = document.createElement("tr");
+    tr.className = "list_control_tr";
+    var name = list_data[1][i];
+    var name_str = drag_control(['list_control3', name, 1]);
     var str = name_str;
     tr.innerHTML = str;
     document.getElementById("control_item1").appendChild(tr);
@@ -804,8 +821,110 @@ margin:100px 0px 0px 550px;
     function drag_control(msg_data){
     var msg = msg_data;
     var str = '';
+    if (msg[2] == 1){
+    str = "<td class="+ msg[0] +"><div class="+ msg[0] +" ondragend=\"drop(event)\" oncontextmenu=\"collect_menu(event)\" ondragover=\"allowDrop(event)\" draggable=\"true\" ondragstart=\"drag(event)\" id="+ msg[1] +" ondblclick=\"amazon_parent(event)\" onclick=\"close_menu()\">"+ msg[1] +"</div></td>";
+    }
+    else if (msg[2] == 2){
+    str = "<td class="+ msg[0] +"><div class="+ msg[0] +" ondragend=\"drop(event)\" oncontextmenu=\"collect_menu(event)\" ondragover=\"allowDrop(event)\" draggable=\"true\" ondragstart=\"drag(event)\" id="+ msg[1] +" ondblclick=\"amazon_parent(event)\" onclick=\"close_menu()\">*"+ msg[1] +"</div></td>";
+    }
+    else{
     str = "<td class="+ msg[0] +"><div class="+ msg[0] +" ondragend=\"drop(event)\" ondragover=\"allowDrop(event)\" draggable=\"true\" ondragstart=\"drag(event)\" id="+ msg[1] +" ondblclick=\"amazon_parent(event)\">"+ msg[1] +"</div></td>";
+    }
     return str
+    }
+
+    function menu_collect(event){
+    close_menu();
+    var male_parent = event.target.getAttribute("male_parent");
+    var data = {"data": JSON.stringify({"male_parent": male_parent})};
+    $.ajax({
+    url: "/parent_message/menu_collect",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    document.getElementById("control_item1").innerHTML = '';
+    create_table(msg['data'], "本地父体");
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
+    function menu_unbind(event){
+    close_menu();
+    var male_parent = event.target.getAttribute("male_parent");
+    var data = {"data": JSON.stringify({"male_parent": male_parent})};
+    $.ajax({
+    url: "/parent_message/menu_unbind",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    document.getElementById("control_item1").innerHTML = '';
+    create_table(msg['data'], "本地父体");
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
+    function collect_menu(event){
+    event.preventDefault();
+    if (event.which == 3){
+    var male_parent = String(event.target.innerHTML);
+    console.log(male_parent)
+    show_collect(male_parent);
+    }
+    else{
+    close_menu();
+    }
+    }
+
+    function show_collect(male_parent){
+    close_menu();
+    var menu_str = '';
+    if(male_parent.includes("*")){
+    menu_str = "<div id=\"rk_menubox\" class=\"rk_menubox\">"+
+               "<div class=\"rk_menuitem\"><span class=\"menu_button\" onclick=\"menu_unbind(event)\" male_parent='"+ male_parent +"'>取消收藏</span></div></div>";
+    }
+    else{
+    menu_str = "<div id=\"rk_menubox\" class=\"rk_menubox\">"+
+               "<div class=\"rk_menuitem\"><span class=\"menu_button\" onclick=\"menu_collect(event)\" male_parent='"+ male_parent +"'>收藏</span></div></div>";
+    }
+    if($('#rk_menubox')[0]==null){
+      $('body').append(menu_str);
+    }
+    var evt=window.event || arguments[0];
+
+    // 获取鼠标右键按下后的位置,据此定义菜单显示的位置
+    var rightedge=$('#rk_menubox').width()+evt.pageX;
+
+    // 判断弹出的菜单是否有溢出浏览器窗口的宽度
+    if(rightedge>$(window).width()){
+      var _left=evt.clientX-$('#rk_menubox').width();
+      $('#rk_menubox').css({top:evt.clientY+'px',left:_left+'px'});
+    }else{
+      $('#rk_menubox').css({top:evt.clientY+'px',left:evt.pageX+'px'});
+    }
     }
 
     function allowDrop(ev){

@@ -329,6 +329,7 @@ class Quantity(object):
         if result[0]['flag_num'] == 0:
             try:
                 list_error = []
+                list_success = []
                 self.open_downloads()
                 wb = openpyxl.load_workbook(filename)
                 wb_sheet = wb.active
@@ -343,10 +344,12 @@ class Quantity(object):
                     sku = wb_sheet.cell(row=i, column=2).value
                     msg, message = self.relevance_sku(male_parent, sku)
                     if msg:
-                        continue
+                        list_success.append([sku, male_parent])
                     else:
                         list_error.append([male_parent, sku])
                     wb_sheet.cell(row=i, column=3).value = message
+                if list_success:
+                    self.add_image_msg(list_success)
                 time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
                 wb.save(f'./static/本地品名/关联本地品名_{time_now}.xlsx')
                 self.close_downloads()
@@ -363,6 +366,31 @@ class Quantity(object):
                 return False, str(e)
         else:
             return False, "当前正在进行关联操作，请稍后再试"
+
+    def add_image_msg(self, list_sku):
+        self.sql()
+        for i in list_sku:
+            sql1 = "select * from `data_read`.`product_id` where `SKU` = '%s'" % i[0]
+            self.cursor.execute(sql1)
+            result = self.cursor.fetchall()
+            name = '暂无品名'
+            values = '无图片链接'
+            if result:
+                name = result[0]['品名']
+                values = result[0]['图片状态']
+            sql2 = "insert into `data_read`.`product_image`(`本地品名`, `SKU`,`品名`, `状态`) VALUES ('%s','%s','%s','%s')" % (
+                i[1], i[0], name, values)
+            self.cursor.execute(sql2)
+        self.connection.commit()
+        self.sql_close()
+
+    def delete_image_msg(self, list_sku):
+        self.sql()
+        for i in list_sku:
+            sql1 = "DELETE FROM `data_read`.`product_image` where `SKU` = '%s'" % i[0]
+            self.cursor.execute(sql1)
+        self.connection.commit()
+        self.sql_close()
 
     def add_sku(self, local_sku):
         self.sql()
@@ -634,6 +662,7 @@ class Quantity(object):
         if result[0]['flag_num'] == 0:
             try:
                 list_error = []
+                list_succes = []
                 self.open_downloads()
                 wb = openpyxl.load_workbook(filename)
                 wb_sheet = wb.active
@@ -648,10 +677,12 @@ class Quantity(object):
                     sku = wb_sheet.cell(row=i, column=2).value
                     msg, message = self.relieve_sku(male_parent, sku)
                     if msg:
-                        continue
+                        list_succes.append([sku, male_parent])
                     else:
                         list_error.append([male_parent, sku])
                     wb_sheet.cell(row=i, column=3).value = message
+                if list_succes:
+                    self.delete_image_msg(list_succes)
                 time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
                 wb.save(f'./static/本地品名/解除本地品名关联_{time_now}.xlsx')
                 self.close_downloads()

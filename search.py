@@ -388,23 +388,28 @@ class Quantity (object):
             if result:
                 for i in result:
                     list_pa.append(i['箱号'])
-            for i in list_pa:
-                sql = "select * from `storage`.`relevance_hakone` where `箱号` = '%s'" % i
-                self.cursor.execute(sql)
-                result = self.cursor.fetchall()
-                if result:
-                    if result[0]['关联箱标'] in list_re:
-                        list_re[result[0]['关联箱标']][i] = 1
+                for i in list_pa:
+                    sql = "select * from `storage`.`relevance_hakone` where `箱号` = '%s'" % i
+                    self.cursor.execute(sql)
+                    result = self.cursor.fetchall()
+                    if result:
+                        if result[0]['关联箱标'] in list_re:
+                            list_re[result[0]['关联箱标']][i] = 1
+                        else:
+                            list_re[result[0]['关联箱标']] = {}
+                            sql1 = "select * from `storage`.`relevance_hakone` where `关联箱标` = '%s'" % result[0]['关联箱标']
+                            self.cursor.execute(sql1)
+                            result1 = self.cursor.fetchall()
+                            for j in result1:
+                                list_re[result[0]['关联箱标']][j['箱号']] = 0
+                            list_re[result[0]['关联箱标']][i] = 1
                     else:
-                        list_re[result[0]['关联箱标']] = {}
-                        sql1 = "select * from `storage`.`relevance_hakone` where `关联箱标` = '%s'" % result[0]['关联箱标']
-                        self.cursor.execute(sql1)
-                        result1 = self.cursor.fetchall()
-                        for j in result1:
-                            list_re[result[0]['关联箱标']][j['箱号']] = 0
-                        list_re[result[0]['关联箱标']][i] = 1
+                        list_re[i] = 1
+            else:
+                if '这个FNSKU没有装箱信息' in list_re:
+                    list_re['这个FNSKU没有装箱信息'].append(k)
                 else:
-                    list_re[i] = 1
+                    list_re['这个FNSKU没有装箱信息'] = [k]
             self.sql_close()
         return list_re
 
@@ -421,7 +426,7 @@ class Quantity (object):
                 for q in range(2, 8):
                     wb_sheet.cell(row=row1+1, column=q).font = Font(u'微软雅黑', size=11, bold=True, italic=False, strike=False, color='DC143C')
                 row1 += 1
-            if i.find('RE') >= 0:
+            elif i.find('RE') >= 0:
                 list_pa = []
                 for k in list_re[i]:
                     msg = self.get_pa_msg1(k, i, list_re[i][k])
@@ -438,6 +443,12 @@ class Quantity (object):
                     for k in list_pa:
                         wb_sheet.append(k)
                         row1 += 1
+            else:
+                for j in list_re[i]:
+                    wb_sheet.append([i, j, '', '', '', '', 0])
+                    wb_sheet.cell(row=row1 + 1, column=1).font = Font(u'微软雅黑', size=11, bold=True, italic=False, strike=False, color='DC143C')
+                    wb_sheet.cell(row=row1 + 1, column=2).font = Font(u'微软雅黑', size=11, bold=True, italic=False, strike=False, color='DC143C')
+                    row1 += 1
         # print(row1)
         starrow1 = 2
         starrow2 = 2

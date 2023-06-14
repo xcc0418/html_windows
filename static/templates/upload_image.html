@@ -5,6 +5,19 @@
     <title>同步图片</title>
 </head>
 <style>
+.method_item{
+    width:100px;
+    height:40px;
+    border:1px solid black;
+    margin:0px 0px 0px 0px;
+}
+.method {
+    width:100px;
+    height:40px;
+    outline:none;
+    border:none;
+    background-color:white;
+}
 .button_item1{
     width:140px;
     height:40px;
@@ -49,7 +62,7 @@
 	font-size: 14px;
 }
 .table_list{
-    width:1600px;
+    width:1450px;
     height:780px;
 }
 .background_control{
@@ -65,6 +78,77 @@
     background-color:white;
     overflow: auto;
 }
+.windows{
+	display: none;
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,0.5);
+	z-index:2;
+}
+.content {
+	background-color:rgb(220, 220, 220);
+	width: 1530px;
+	height: 480px;
+	z-index: 1;
+	margin: 12% auto;
+	overflow: auto;
+}
+#table_item2 {
+	margin: auto;
+	width: 1450px;
+	height: 390px;
+	padding: 0 20px;
+	border:1px solid black;
+    background-color:white;
+    overflow: auto;
+}
+
+.close {
+	padding: 5px;
+}
+h2 {
+	margin: 10px 0;
+	color: black;
+	padding-left: 15px;
+}
+.close_button {
+	float: right;
+	font-size: 30px;
+	color: black;
+	padding-top: 12px;
+	cursor: pointer;
+	padding-right: 15px;
+}
+
+#foot {
+	padding: 5px 0;
+	text-align: center;
+	background: #5cd31b;
+	color: white;
+}
+.column_sort {
+    list-style: none;
+    font-size: 0;
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -15px -15px 0;
+    touch-action: none;
+    user-select: none;
+}
+.ele {
+    font-size: 16px;
+    width: 100px;
+    height: 40px;
+    border: 1px solid black;
+    background-color: white;
+    margin: 0 15px 15px 0;
+    //padding-left: 10px;
+    color: black;
+    text-align: center;
+}
 tr,td {
         box-sizing: border-box;/* 设置表格样式 */
         border: 1px solid #DDDDDD;
@@ -79,11 +163,48 @@ thead tr td{
             position: sticky;
             top: 0;
         }
-#button_control1{
+.list_control_header{
+      position: sticky;
+      top: 0; /* 固定第一行，前7列 */
+      z-index:1;
+    }
+.list_control1{
+    text-align: center;
+    position: sticky;
+    height: 40px;
+    width: 200px;
+}
+.list_control2{
+    text-align: center;
+    position: sticky;
+    height: 40px;
+    width: 400px;
+}
+.list_control3{
+    overflow: hidden;
+    text-overflow:ellipsis;
+    text-align: center;
+    position: sticky;
+    height: 40px;
+    width: 400px;
+}
+.list_control4{
+    text-align: center;
+    position: sticky;
+    height: 40px;
+    width: 40px;
+}
+#method_control{
 margin:0px 0px 0px 150px;
 }
 #button_control2{
-margin:-41px 0px 0px 350px;
+margin:-41px 0px 0px 280px;
+}
+#button_control1{
+margin:-41px 0px 0px 550px;
+}
+#button_control4{
+margin:-41px 0px 0px 750px;
 }
 #table_item{
 margin:0px 0px 0px 150px;
@@ -93,50 +214,76 @@ margin:0px 0px 0px 150px;
 <div class="item">
     <div class="function_item">
         <div class="item_list">
-            <div class="button_item1" id="button_control1">
-                <button class="button1" onclick="get_list_male()" id="button1">查询</button>
+            <div class="method_item" id="method_control">
+                <select class="method" id="method_value">
+                    <option value="SKU">SKU</option>
+                    <option value="本地品名">本地品名</option>
+                </select>
             </div>
             <div class="button_item2" id="button_control2">
-                <input type="text" placeholder="SKU" class="input_po" autocomplete="off" id="sku">
+                <input type="text" placeholder="  SKU或本地品名" class="input_po" autocomplete="off" id="sku" onkeydown="myFunction()">
                 <input type="submit" value="搜索" class="button2" onclick="get_msg()" id="button_item">
+            </div>
+            <div class="button_item1" id="button_control1">
+                <button class="button1" onclick="get_list_sku()" id="button1">查询SKU图片信息</button>
+            </div>
+            <div class="button_item1" id="button_control4">
+                <button class="button1" onclick="update_msg()" id="button3">更新SKU图片信息</button>
             </div>
         </div>
     </div>
+    <div class="background_control" id="background_control"></div>
     <div class="table_list" id="table_list">
-        <div class="background_control" id="background_control"></div>
         <div class="table_item" id="table_item">
             <table class="table_control" id="table_control">
-                <thead class="header_item" id="control_item">
+                <thead class="header_item" id="control_item1">
                 </thead>
             </table>
         </div>
     </div>
+    <div id="windows" class="windows">
+        <div id="div1" class="content">
+            <div id="close" class="close">
+                <span id="close-button" onclick="close_windows()" class="close_button">×</span>
+                <h2 id="sku_msg"></h2>
+            </div>
+            <div class="table_item" id="table_item2">
+                <table class="table_control" id="table_control2">
+                    <thead class="header_item" id="control_item2">
+                    </thead>
+                </table>
+            </div>
+        </div>
+	</div>
 </div>
 </body>
+<script src="../JavaScript/jquery-3.0.0.min.js"></script>
+<script src="../JavaScript/axios.min.js"></script>
 <script>
-
     function get_list_sku(){
     document.getElementById("button1").disabled = "ture";
     var button = document.getElementById('button1');
     button.style.backgroundColor = 'rgb(220, 220, 220)';
+    document.getElementById("background_control").innerHTML = "正在查询没有图片链接的SKU";
     $.ajax({
-    url: "/upload_image/get_list_sku",
+    url: "/upload_image/get_sku_image",
     headers:{Accept: "application/json; charset=utf-8"},
     type: "get",
     dataType: 'json',
     success: function(msg){
     if (msg['msg'] == 'success'){
     document.getElementById("control_item1").innerHTML = '';
-    create_table(msg['data'], "本地父体");
+    create_table1(msg['data']);
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("button1").disabled = false;
+    document.getElementById("background_control").innerHTML = "";
+    checkValues = [];
     }
     if (msg['msg'] == 'error'){
-    var tab = document.getElementById("control_item1");
-    tab.innerHTML = '';
     alert(msg['message']);
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("button1").disabled = false;
+    document.getElementById("background_control").innerHTML = "";
     }
     },
     error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -144,10 +291,164 @@ margin:0px 0px 0px 150px;
     alert('请求超时，请重试！');
     button.style.backgroundColor = 'rgb(252, 252, 252)';
     document.getElementById("button1").disabled = false;
+    document.getElementById("background_control").innerHTML = "";
     }
     }
     })
     }
+    function myFunction() {
+    if(event.keyCode==13) {
+    document.getElementById("button_item").click();
+    }
+    }
+    function get_msg(){
+    var index = document.getElementById("method_value").value;
+    var index_data = document.getElementById("sku").value;
+    var data = {"data": JSON.stringify({"index": index, "index_data": index_data})};
+    document.getElementById("background_control").innerHTML = "正在查询" + index_data;
+    $.ajax({
+    url: "/upload_image/get_class_image",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    document.getElementById("control_item1").innerHTML = '';
+    create_table1(msg['data']);
+    document.getElementById("background_control").innerHTML = "";
+    checkValues = [];
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    document.getElementById("background_control").innerHTML = "";
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    document.getElementById("background_control").innerHTML = "";
+    }
+    }
+    })
+    }
+
+    function update_msg(){
+    $.ajax({
+    url: "/upload_image/update_image_msg",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "GET",
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    alert('正在更新图片信息')
+    }
+    },
+    })
+    }
+
+    function create_table1(list_msg){
+    var heard_tr = document.createElement("tr");
+    heard_tr.className = "list_control_header";
+    var heard_name1_str = create_control(['list_control2', '本地品名', 0]);
+    var heard_name2_str = create_control(['list_control3', 'SKU', 0]);
+    var heard_name3_str = create_control(['list_control2', '品名', 0]);
+    var heard_name4_str = create_control(['list_control1', '状态', 0]);
+    heard_tr.innerHTML = heard_name1_str + heard_name2_str + heard_name3_str + heard_name4_str;
+    document.getElementById("control_item1").appendChild(heard_tr);
+    for (var i = 0; i < list_msg.length; i++){
+    var tr = document.createElement("tr");
+    tr.className = "list_control_tr";
+    var male_name = list_msg[i][0];
+    var male_name_str = create_control(['list_control3', male_name, 1]);
+    var sku = list_msg[i][1];
+    var sku_str = create_control(['list_control2', sku, 0]);
+    var name = list_msg[i][2];
+    var name_str = create_control(['list_control3', name, 0]);
+    var value_str = create_control(['list_control1', list_msg[i][3], 0]);
+    var str = male_name_str + sku_str + name_str + value_str;
+    tr.innerHTML = str;
+    document.getElementById("control_item1").appendChild(tr);
+    }
+    }
+
+    function create_table2(list_msg){
+    var heard_tr = document.createElement("tr");
+    heard_tr.className = "list_control_header";
+    var heard_name1_str = create_control(['list_control2', '本地品名', 0]);
+    var heard_name2_str = create_control(['list_control3', 'SKU', 0]);
+    var heard_name3_str = create_control(['list_control2', '品名', 0]);
+    var heard_name4_str = create_control(['list_control1', '状态', 0]);
+    heard_tr.innerHTML = heard_name1_str + heard_name2_str + heard_name3_str + heard_name4_str;
+    document.getElementById("control_item2").appendChild(heard_tr);
+    for (var i = 0; i < list_msg.length; i++){
+    var tr = document.createElement("tr");
+    tr.className = "list_control_tr";
+    var male_name = list_msg[i][0];
+    var male_name_str = create_control(['list_control3', male_name, 1]);
+    var sku = list_msg[i][1];
+    var sku_str = create_control(['list_control2', sku, 0]);
+    var name = list_msg[i][2];
+    var name_str = create_control(['list_control3', name, 0]);
+    var value_str = create_control(['list_control1', list_msg[i][3], 0]);
+    var str = male_name_str + sku_str + name_str + value_str;
+    tr.innerHTML = str;
+    document.getElementById("control_item2").appendChild(tr);
+    }
+    }
+
+    function create_control(msg_data){
+    var msg = msg_data;
+    var str = '';
+    if (msg[2] == 1){
+    str = "<td class="+ msg[0] +"><div class="+ msg[0]+"><span ondblclick=\"windows_msg(event)\" class="+ msg[1] +">"+ msg[1] +"</span></div></td>";
+    }
+    else{
+    str = "<td class="+ msg[0] +"><div class="+ msg[0]+"><span>"+ msg[1] +"</span></div></td>";
+    }
+    return str
+    }
+
+    function windows_msg(event){
+    var male_name = event.target.innerHTML;
+    var data = {"data": JSON.stringify({"male_name": male_name})};
+    $.ajax({
+    url: "/upload_image/get_image_msg",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    var div = document.getElementById('windows');
+    div.style.display = "block";
+    document.getElementById('sku_msg').innerHTML = "";
+    document.getElementById('control_item2').innerHTML = "";
+    document.getElementById('sku_msg').innerHTML = male_name + "详情";
+    create_table2(msg['data']);
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
+    function close_windows() {
+    var div1 = document.getElementById('windows');
+	div1.style.display = "none";
+    }
+
+    window.onclick = function close(e){
+	var div1 = document.getElementById('windows');
+	div1.style.display = "none";
+    }
+
 
 </script>
 </html>

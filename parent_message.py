@@ -120,21 +120,66 @@ class Quantity(object):
         # print(eg.decrypt(res))
         return res
 
-    def get_list_male(self, parent=None):
+    def get_list_male(self, username, parent=None):
         self.sql()
+        sql1 = "select * from `amazon_form`.`user_headers` where `账号` = '%s'" % username
+        self.cursor.execute(sql1)
+        result1 = self.cursor.fetchall()
+        list_collect = []
+        if result1:
+            parent_collect = result1[0]['父体收藏']
+            if parent_collect:
+                list_collect = parent_collect.split('&')
         if parent:
-            sql = f"select * from `amazon_form`.`list_parent` where `本地父体` like '%{parent}%'"
+            sql2 = f"select * from `amazon_form`.`list_parent` where `本地父体` like '%{parent}%'"
         else:
-            sql = "select * from `amazon_form`.`list_parent`"
-        self.cursor.execute(sql)
-        result = self.cursor.fetchall()
-        if result:
+            sql2 = "select * from `amazon_form`.`list_parent`"
+        self.cursor.execute(sql2)
+        result2 = self.cursor.fetchall()
+        self.sql_close()
+        if result2:
             list_msg = []
-            for i in result:
-                list_msg.append(i['本地父体'])
-            return list_msg
+            for i in result2:
+                if i['本地父体'] in list_collect:
+                    continue
+                else:
+                    list_msg.append(i['本地父体'])
+            return [list_collect, list_msg]
         else:
             return False
+
+    def parent_collect(self, username, parent):
+        self.sql()
+        sql1 = "select * from `amazon_form`.`user_headers` where `账号` = '%s'" % username
+        self.cursor.execute(sql1)
+        result1 = self.cursor.fetchall()
+        if result1:
+            list_collect = []
+            if result1[0]['父体收藏']:
+                list_collect = result1[0]['父体收藏'].split('&')
+            list_collect.append(parent)
+            str_collect = '&'.join(list_collect)
+            sql2 = "update `amazon_form`.`user_headers` set `父体收藏` = '%s' where `账号` = '%s'" % (str_collect, username)
+        else:
+            str_header = "FBA库存.FBA在途.本地库存.预计库存.30天销量"
+            sql2 = "insert into `amazon_form`.`user_headers`(`账号`, `list_header`, `父体收藏`)values('%s', '%s', '%s')" % (username, str_header, parent)
+        self.cursor.execute(sql2)
+        self.connection.commit()
+        self.sql_close()
+
+    def parent_unbind(self, username, parent):
+        self.sql()
+        parent = parent[1:]
+        sql1 = "select * from `amazon_form`.`user_headers` where `账号` = '%s'" % username
+        self.cursor.execute(sql1)
+        result1 = self.cursor.fetchall()
+        list_collect = result1[0]['父体收藏'].split('&')
+        list_collect.remove(parent)
+        str_collect = '&'.join(list_collect)
+        sql2 = "update `amazon_form`.`user_headers` set `父体收藏` = '%s' where `账号` = '%s'" % (str_collect, username)
+        self.cursor.execute(sql2)
+        self.connection.commit()
+        self.sql_close()
 
     def download_asin(self):
         self.sql()
@@ -325,22 +370,34 @@ class Quantity(object):
         wb = openpyxl.load_workbook(filename)
         wb_sheet = wb.active
         max_row = wb_sheet.max_row
+        column1 = wb_sheet.max_column
+        list_heard = []
+        for i in range(1, column1 + 1):
+            heard = wb_sheet.cell(row=1, column=i).value
+            if heard:
+                list_heard.append(heard)
+        list_header_html = ['父ASIN', 'SKU', 'ASIN', '店铺', 'FNSKU', 'FBA可售', 'FBA待调仓', 'FBA调仓中', 'FBA在途', '30日销量', '7日销量' ,'14日销量', '创建时间']
+        for i in list_header_html:
+            if i in list_heard:
+                continue
+            else:
+                return False
         for i in range(2, max_row+1):
-            asin = wb_sheet.cell(row=i, column=6).value
-            sku = wb_sheet.cell(row=i, column=10).value
+            asin = wb_sheet.cell(row=i, column=(list_heard.index('父ASIN') + 1)).value
+            sku = wb_sheet.cell(row=i, column=(list_heard.index('SKU') + 1)).value
             if asin and sku:
-                asin_son = wb_sheet.cell(row=i, column=5).value
-                shop = wb_sheet.cell(row=i, column=1).value
-                fnsku = wb_sheet.cell(row=i, column=8).value
-                fba_order1 = int(wb_sheet.cell(row=i, column=19).value)
-                fba_order2 = int(wb_sheet.cell(row=i, column=20).value)
-                fba_order3 = int(wb_sheet.cell(row=i, column=21).value)
-                fba_order4 = int(wb_sheet.cell(row=i, column=23).value)
+                asin_son = wb_sheet.cell(row=i, column=(list_heard.index('ASIN') + 1)).value
+                shop = wb_sheet.cell(row=i, column=(list_heard.index('店铺') + 1)).value
+                fnsku = wb_sheet.cell(row=i, column=(list_heard.index('FNSKU') + 1)).value
+                fba_order1 = int(wb_sheet.cell(row=i, column=(list_heard.index('FBA可售') + 1)).value)
+                fba_order2 = int(wb_sheet.cell(row=i, column=(list_heard.index('FBA待调仓') + 1)).value)
+                fba_order3 = int(wb_sheet.cell(row=i, column=(list_heard.index('FBA调仓中') + 1)).value)
+                fba_order4 = int(wb_sheet.cell(row=i, column=(list_heard.index('FBA在途') + 1)).value)
                 fba_order = fba_order3 + fba_order2 + fba_order1
-                sale_num = int(wb_sheet.cell(row=i, column=31).value)
-                sale_num_7 = int(wb_sheet.cell(row=i, column=29).value)
-                sale_num_14 = int(wb_sheet.cell(row=i, column=30).value)
-                create_time = str(wb_sheet.cell(row=i, column=43).value)
+                sale_num = int(wb_sheet.cell(row=i, column=(list_heard.index('30日销量') + 1)).value)
+                sale_num_7 = int(wb_sheet.cell(row=i, column=(list_heard.index('7日销量') + 1)).value)
+                sale_num_14 = int(wb_sheet.cell(row=i, column=(list_heard.index('14日销量') + 1)).value)
+                create_time = str(wb_sheet.cell(row=i, column=(list_heard.index('创建时间') + 1)).value)
                 if asin in dict_asin:
                     if sku in dict_asin[asin]:
                         if shop in dict_asin[asin][sku]:
@@ -385,13 +442,19 @@ class Quantity(object):
         wb = openpyxl.load_workbook(filename)
         wb_sheet = wb.active
         max_row = wb_sheet.max_row
+        column1 = wb_sheet.max_column
+        list_heard = []
+        for i in range(1, column1 + 1):
+            heard = wb_sheet.cell(row=1, column=i).value
+            if heard:
+                list_heard.append(heard)
         for i in range(2, max_row+1):
-            sku = wb_sheet.cell(row=i, column=2).value
+            sku = wb_sheet.cell(row=i, column=(list_heard.index('SKU') + 1)).value
             if sku:
-                fnsku = wb_sheet.cell(row=i, column=5).value
-                num = int(wb_sheet.cell(row=i, column=35).value)
-                predict_num = int(wb_sheet.cell(row=i, column=36).value)
-                shop = wb_sheet.cell(row=i, column=4).value
+                fnsku = wb_sheet.cell(row=i, column=(list_heard.index('FNSKU') + 1)).value
+                num = int(wb_sheet.cell(row=i, column=(list_heard.index('实际总量') + 1)).value)
+                predict_num = int(wb_sheet.cell(row=i, column=(list_heard.index('预计总量') + 1)).value)
+                shop = wb_sheet.cell(row=i, column=(list_heard.index('店铺') + 1)).value
                 if fnsku:
                     if sku in dict_order:
                         if shop in dict_order[sku]:
@@ -461,7 +524,7 @@ class Quantity(object):
                 else:
                     dict_parent_new[i][dict_parent[i][j]] = [j]
         # print(len(dict_parent_new))
-        print(dict_parent_new['KPW5黑色壳子款父体']['KPW5-支架机框款-黑色巴黎之星'])
+        # print(dict_sku['[CB]322-COMBO'])
         for i in dict_parent_new:
             for p in dict_parent_new[i]:
                 for j in dict_parent_new[i][p]:
@@ -556,6 +619,8 @@ class Quantity(object):
             for i in dict_parent[parent][shop]:
                 list_msg.append([])
                 list_msg[k] = [parent, i]
+                if i == "KPW5-基础机框款-蓝色东方":
+                    print(dict_parent[parent][shop][i])
                 for j in list_header:
                     list_msg[k].append(dict_parent[parent][shop][i][j])
                 k += 1
@@ -1280,12 +1345,15 @@ if __name__ == '__main__':
     quantity = Quantity()
     # quantity.get_json()
     quantity.download_asin()
+    # str_header = "FBA库存.FBA在途.本地库存.预计库存.30天销量"
+    # list_header = str_header.split('.')
+    # quantity.get_male_msg('KPW5黑色壳子款父体', 'CoBak_US', list_header)
     # quantity.update_json()
-    # quantity.write_asin('520571596564553728')
+    # quantity.write_asin('525688927394889728')
     # quantity.write_order()
     # quantity.find_parent_sku([['0'], ['Fire10父体']], [['0'], ['B0BRRTKF11']], 'Fire8')
     # quantity.read_json()
-    # quantity.write_asin('510418804344160256')
+    # quantity.write_asin('527448560848609280')
     # quantity.write_order()
     # quantity.find_excl('B0C3J7MCNW')
     # quantity.windows_msg('K22-壳子款-玻纤板-十字纹-黑色', 'B0C3J7MCNW')
