@@ -829,7 +829,7 @@ def pair():
             quantity = create_msku.Quantity()
             msg, message = quantity.pair_msku(sku, asin, store, float(version), msku, fnsku, male_parent, male_sku)
             if msg:
-                quantity.add_image_msg(asin, sku, fnsku)
+                quantity.add_image_msg(asin, sku, fnsku, msku)
                 return json.dumps({'msg': "success"})
             else:
                 return json.dumps({'msg': 'error', 'data': message})

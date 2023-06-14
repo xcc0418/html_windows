@@ -178,27 +178,16 @@ class Upload_Image():
                 list_msg.append([dict_sku[i], i, dict_image[i], 1])
         return list_msg
 
-    def upload_image(self, list_sku):
-        list_error = []
-        list_success = []
-        for i in range(0, len(list_sku)):
-            sku = list_sku[i]
-            list_msku = self.get_msku(sku)
-            for j in list_msku:
-                msg = self.upload(j)
-                if msg:
-                    list_success.append(sku)
-                else:
-                    list_error.append(sku)
-        self.update_sql(list_success)
-        if list_error:
-            str_msg = ''
-            for i in list_error:
-                str_msg = f"{str_msg}{i}同步失败, "
-            msg = f"{str_msg}其余关联成功。"
-            return False, msg
+    def upload_image(self, sku, msku, asin):
+        store_id, product_id = self.get_msku(sku, msku, asin)
+        if store_id and product_id:
+            msg = self.upload([msku, store_id, product_id])
+            if msg:
+                return True
+            else:
+                return False
         else:
-            return True, True
+            return False
 
     def upload(self, list_msg):
         try:
@@ -390,7 +379,7 @@ class Upload_Image():
         else:
             return False
 
-    def get_msku(self, sku):
+    def get_msku(self, sku, msku, asin):
         auth_token = self.s.cookies.get('auth-token')
         auth_token = auth_token.replace('%25', '%')
         auth_token = auth_token.replace('%23', '#')
@@ -420,33 +409,44 @@ class Upload_Image():
                         'Content-Length': '241',
                         'Origin': 'https://erp.lingxing.com',
                         'Connection': 'keep-alive'}
-        data = {"offset": 0, "length": 400, "search_field": "local_sku", "search_value": [f"{sku}"], "exact_search": 0,
+        data = {"offset": 0, "length": 400, "search_field": "msku", "search_value": [f"{msku}"], "exact_search": 0,
                 "sids": "", "status": "", "is_pair": "", "fulfillment_channel_type": "", "global_tag_ids": "",
                 "req_time_sequence": "/listing-api/api/product/showOnline$$"}
         post_data = json.dumps(data)
         post_msg = self.s.post(url=post_url, headers=post_headers, data=post_data)
         post_msg = json.loads(post_msg.text)
+        store_id = ''
+        product_id = ''
         if post_msg['code'] == 1 and post_msg['msg'] == '成功':
-            list_msku = []
             for i in post_msg['data']['list']:
                 if i['small_image_url']:
                     continue
                 else:
-                    list_msku.append([i['msku'], i['store_id'], i['product_id']])
-            return list_msku
-        else:
-            return False
+                    if asin == i['asin'] and sku == i['sku'] and msku == i['msku']:
+                        store_id = i['store_id']
+                        product_id = i['product_id']
+        return store_id, product_id
 
-    def update_sql(self, list_sku):
-        self.sql()
-        flag = 0
-        for i in list_sku:
-            flag += 1
-            sql = "update `data_read`.`product_image` where `SKU` = '%s'" % i
-            self.cursor.execute(sql)
-            if flag % 100 == 0:
-                self.connection.commit()
+    def update_sql(self, msku):
+        sql = "update `amazon_form`.`asin_image` set `状态` = `有图片链接` where `msku` = '%s'" % msku
+        self.cursor.execute(sql)
         self.connection.commit()
+
+    def upload_image_day(self):
+        self.sql()
+        sql = "select * from `amazon_form`.`asin_image` where `状态` = '无图片链接'"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        list_success = []
+        if result:
+            for i in result:
+                msg = self.upload_image(i['SKU'], i['MSKU'], i['ASIN'])
+                if msg:
+                    list_success.append(i['MSKU'])
+        self.sql()
+        for i in list_success:
+            self.update_sql(i)
         self.sql_close()
 
 
@@ -753,7 +753,7 @@ class Quantity(object):
 
 if __name__ == '__main__':
     upload = Upload_Image()
-    upload.get_class_sku('本地品名', 'Fire10(2021)')
+    # upload.get_class_sku('本地品名', 'Fire10(2021)')
     # upload.upload(['KPW5CS_Brown-11-2301051635-T', '272', 'en_US'])
     # upload.get_sql_sku()
     # quantity = Quantity()

@@ -755,7 +755,7 @@ class Quantity(object):
         else:
             return index, index_data
 
-    def add_image_msg(self, asin, sku, fnsku):
+    def add_image_msg(self, asin, sku, fnsku, msku):
         self.sql()
         sql1 = "select * from `amazon_form`.`list_asin` where `ASIN` = '%s'" % asin
         self.cursor.execute(sql1)
@@ -763,10 +763,19 @@ class Quantity(object):
         if result:
             self.sql_close()
             upload = upload_image.Upload_Image()
-            upload.upload_image([sku])
+            msg = upload.upload_image(sku, msku, asin)
+            if msg:
+                return
+            else:
+                self.sql()
+                sql2 = "insert into `amazon_form`.`asin_image`(`ASIN`, `MSKU`, `FNSKU`, `SKU`, `状态`)values" \
+                       "('%s', '%s', '%s', '%s', %s')" % (asin, msku, fnsku, sku, '未同步')
+                self.cursor.execute(sql2)
+                self.connection.commit()
+                self.sql_close()
         else:
-            sql2 = "insert into `amazon_form`.`asin_image`(`ASIN`, `FNSKU`, `SKU`, `状态`)values" \
-                   "('%s', '%s', ''%s', %s')" % (asin, fnsku, sku, '未同步')
+            sql2 = "insert into `amazon_form`.`asin_image`(`ASIN`, `MSKU`, `FNSKU`, `SKU`, `状态`)values" \
+                   "('%s', '%s', '%s', '%s', %s')" % (asin, msku, fnsku, sku, '未同步')
             self.cursor.execute(sql2)
             self.connection.commit()
             self.sql_close()
@@ -813,7 +822,7 @@ class Quantity(object):
                             self.cursor.execute(sql1)
                             self.connection.commit()
                             self.sql_close()
-                            self.add_image_msg(asin, sku, fnsku)
+                            self.add_image_msg(asin, sku, fnsku, msku)
                             wb_sheet.cell(row=i, column=9).value = '配对成功'
                         else:
                             self.sql_close()
