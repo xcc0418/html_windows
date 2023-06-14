@@ -753,6 +753,7 @@ class Quantity(object):
 
 if __name__ == '__main__':
     upload = Upload_Image()
+    upload.upload_image_day()
     # upload.get_class_sku('本地品名', 'Fire10(2021)')
     # upload.upload(['KPW5CS_Brown-11-2301051635-T', '272', 'en_US'])
     # upload.get_sql_sku()

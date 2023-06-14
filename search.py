@@ -544,7 +544,7 @@ class Quantity (object):
         ws_sheet = ws.active
         row1 = ws_sheet.max_row
         for i in range(row1, 0, -1):
-            cell_value1 = ws_sheet.cell(row=i, column=1).value
+            cell_value1 = ws_sheet.cell(row=i, column=2).value
             if cell_value1:
                 row1 = i
                 break
