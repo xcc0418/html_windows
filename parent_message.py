@@ -619,8 +619,6 @@ class Quantity(object):
             for i in dict_parent[parent][shop]:
                 list_msg.append([])
                 list_msg[k] = [parent, i]
-                if i == "KPW5-基础机框款-蓝色东方":
-                    print(dict_parent[parent][shop][i])
                 for j in list_header:
                     list_msg[k].append(dict_parent[parent][shop][i][j])
                 k += 1

@@ -949,7 +949,7 @@ def local_function():
                 if sku:
                     msg, message = quantity.relevance_sku(parent.strip(), sku.strip())
                     if msg:
-                        quantity.add_image_msg([sku.strip(), parent.strip()])
+                        quantity.add_image_msg([[sku.strip(), parent.strip()]])
                 else:
                     msg, message = False, "请先输入SKU"
             elif index == "解除关联":
@@ -957,7 +957,7 @@ def local_function():
                 if sku:
                     msg, message = quantity.relieve_sku(parent.strip(), sku.strip())
                     if msg:
-                        quantity.add_image_msg([sku.strip(), parent.strip()])
+                        quantity.add_image_msg([[sku.strip(), parent.strip()]])
                 else:
                     msg, message = False, "请先输入SKU"
             elif index == "创建品名":
@@ -969,7 +969,7 @@ def local_function():
                     if msg:
                         msg, message = quantity.relevance_sku(parent.strip(), sku.strip())
                         if msg:
-                            quantity.add_image_msg([sku.strip(), parent.strip()])
+                            quantity.add_image_msg([[sku.strip(), parent.strip()]])
                     else:
                         msg = False
                 else:

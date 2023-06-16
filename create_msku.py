@@ -769,14 +769,16 @@ class Quantity(object):
             else:
                 self.sql()
                 sql2 = "insert into `amazon_form`.`asin_image`(`ASIN`, `MSKU`, `FNSKU`, `SKU`, `状态`)values" \
-                       "('%s', '%s', '%s', '%s', %s')" % (asin, msku, fnsku, sku, '未同步')
+                       "('%s', '%s', '%s', '%s', '%s')" % (asin, msku, fnsku, sku, '未同步')
                 self.cursor.execute(sql2)
                 self.connection.commit()
                 self.sql_close()
         else:
             sql2 = "insert into `amazon_form`.`asin_image`(`ASIN`, `MSKU`, `FNSKU`, `SKU`, `状态`)values" \
-                   "('%s', '%s', '%s', '%s', %s')" % (asin, msku, fnsku, sku, '未同步')
+                   "('%s', '%s', '%s', '%s', '%s')" % (asin, msku, fnsku, sku, '未同步')
+            sql3 = "insert into `amazon_form`.`list_asin`(`ASIN`)values('%s')" % asin
             self.cursor.execute(sql2)
+            self.cursor.execute(sql3)
             self.connection.commit()
             self.sql_close()
 
@@ -1064,15 +1066,15 @@ class Find_order():
                     supplier = i['供应商'].strip()
                     self.dict_msku[msku] = [sku, country, supplier]
                 # print(self.dict_msku)
-                index, list_asin = self.downloads(auth_token)
+                # index, list_asin = self.downloads(auth_token)
                 # print(self.dict_msku)
-                # list_asin = self.read_excl('522367034090377216')
-                # print(self.dict_msku)
-                list_msku = []
-                list_sku = []
+                list_asin = self.read_excl('527848158118957056')
+                print(self.dict_msku)
                 if list_asin:
                     for i in self.dict_msku:
                         if len(self.dict_msku[i]) > 3:
+                            sql2 = []
+                            sql3 = []
                             if list_asin.count(self.dict_msku[i][5]) > 1:
                                 sql = "update `amazon_form`.`pre_msku` set `FNSKU` = '%s' , `状态` = '存在相同ASIN', `ASIN` = '%s' " \
                                       "where `MSKU` = '%s'" % (self.dict_msku[i][4], self.dict_msku[i][5], i)
@@ -1085,17 +1087,16 @@ class Find_order():
                                 if msg or message.find('已配对') >= 0:
                                     sql = "update `amazon_form`.`pre_msku` set `FNSKU` = '%s' , `状态` = '未使用', `ASIN` = '%s' " \
                                           "where `MSKU` = '%s'" % (self.dict_msku[i][4], self.dict_msku[i][5], i)
-                                    list_msku.append(i)
-                                    list_asin.append(i[0])
-                                    sql2 = "insert into `amazon_form`.`asin_image`(`ASIN`, `FNSKU`, `SKU`, `状态`)values" \
-                                           "('%s', '%s', ''%s', %s')" % (self.dict_msku[i][4], self.dict_msku[i][5], self.dict_msku[i][0], '未同步')
-                                    sql3 = "insert into `amazon_form.`list_asin`(`ASIN`)VALUES('%s')" % self.dict_msku[i][5]
-                                    self.cursor.execute(sql2)
-                                    self.cursor.execute(sql3)
+                                    sql2 = "insert into `amazon_form`.`asin_image`(`ASIN`, `FNSKU`, `SKU`, `MSKU`, `状态`)values" \
+                                           "('%s', '%s', '%s', '%s', '%s')" % (self.dict_msku[i][5], self.dict_msku[i][4], self.dict_msku[i][0], i, '未同步')
+                                    sql3 = "insert into `amazon_form`.`list_asin`(`ASIN`)values('%s')" % self.dict_msku[i][4]
                                 else:
                                     sql = f"update `amazon_form`.`pre_msku` set `FNSKU` = '%s' , `状态` = '{str(message)}', `ASIN` = '%s' " \
                                           "where `MSKU` = '%s'" % (self.dict_msku[i][4], self.dict_msku[i][5], i)
                             self.sql()
+                            if sql2:
+                                self.cursor.execute(sql3)
+                                self.cursor.execute(sql2)
                             self.cursor.execute(sql)
                             self.connection.commit()
                             self.sql_close()
@@ -1253,12 +1254,12 @@ class Find_order():
                     self.dict_msku[msku].append(fnsku)
                     self.dict_msku[msku].append(asin)
             if asin:
-                if asin in list_asin or len(asin) != 10 or asin.find('B0') < 0:
+                if len(asin) != 10 or asin.find('B0') < 0:
                     continue
                 else:
                     list_asin.append(asin)
         if len(list_asin) > 5000 and 'B0BLCS9J5G' in list_asin:
-            self.save_asin(list_asin)
+            # self.save_asin(list_asin)
             return list_asin
         else:
             return False
@@ -1266,6 +1267,9 @@ class Find_order():
     def save_asin(self, list_asin):
         self.sql()
         flag = 0
+        sql1 = "TRUNCATE TABLE `amazon_form`.`list_asin`"
+        self.cursor.execute(sql1)
+        self.connection.commit()
         for i in list_asin:
             sql = "insert into `amazon_form`.`list_asin`(`ASIN`)values('%s')" % i
             self.cursor.execute(sql)
@@ -1458,8 +1462,8 @@ class Find_order():
 
     def grt_flag(self):
         self.sql()
-        sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'pre_msku'"
-        self.cursor.execute(sql)
+        sql2 = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'pre_msku'"
+        self.cursor.execute(sql2)
         result = self.cursor.fetchall()
         return result[0]['flag_num']
 
@@ -1468,5 +1472,6 @@ if __name__ == '__main__':
     quantity = Find_order()
     quantity.get_msku()
     quantity.update_listing()
+    # quantity.read_excl('527776017415557120')
     # quantity_ = Quantity()
     # quantity_.get_order_sn('AD230606003', '20230606', '1461')

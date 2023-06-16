@@ -434,16 +434,23 @@ class Upload_Image():
 
     def upload_image_day(self):
         self.sql()
-        sql = "select * from `amazon_form`.`asin_image` where `状态` = '无图片链接'"
-        self.cursor.execute(sql)
-        result = self.cursor.fetchall()
+        sql1 = "select * from `amazon_form`.`asin_image` where `状态` = '无图片链接'"
+        sql2 = "select * from `data_read`.`sku_filter`"
+        self.cursor.execute(sql1)
+        result1 = self.cursor.fetchall()
+        self.cursor.execute(sql2)
+        result2 = self.cursor.fetchall()
         self.sql_close()
+        list_sku_filter = []
         list_success = []
-        if result:
-            for i in result:
-                msg = self.upload_image(i['SKU'], i['MSKU'], i['ASIN'])
-                if msg:
-                    list_success.append(i['MSKU'])
+        for i in result2:
+            list_sku_filter.append(i['SKU'])
+        if result1:
+            for i in result1:
+                if i['SKU'] in list_sku_filter:
+                    msg = self.upload_image(i['SKU'], i['MSKU'], i['ASIN'])
+                    if msg:
+                        list_success.append(i['MSKU'])
         self.sql()
         for i in list_success:
             self.update_sql(i)
