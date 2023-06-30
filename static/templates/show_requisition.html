@@ -79,7 +79,7 @@
     border:1px solid black;
 }
 .download_item{
-width:100px;
+width:200px;
 height:40px;
 }
 .background_control{
@@ -265,6 +265,8 @@ margin:-41px 0px 41px 150px;
   button.style.backgroundColor = 'rgb(252, 252, 252)';
   document.getElementById("import").disabled = false;
   document.getElementById("background_control").innerHTML = "";
+  document.getElementById("download_control").innerHTML = '';
+  download_excl(msg['data']['filename'], msg['data']['file'], msg['data']['name']);
   alert('上传成功');
   }
   if (msg['msg'] == 'error'){
@@ -401,7 +403,7 @@ margin:-41px 0px 41px 150px;
   document.getElementById("po_name").value = '';
   document.getElementById("download_control").innerHTML = '';
   document.getElementById("background_control").innerHTML = "";
-  download_excl(msg['data']['filename'], msg['data']['file']);
+  download_excl(msg['data']['filename'], msg['data']['file'], msg['data']['name']);
   document.getElementById("button_item").disabled = false;
   alert('领料单生成成功');
   }
@@ -475,9 +477,9 @@ margin:-41px 0px 41px 150px;
   }
   }
 
-  function download_excl(filename, file){
+  function download_excl(filename, file, name){
   var pa_name = filename + ".xlsx";
-  var str = "<a href="+ file +" download="+ pa_name +">下载</a>";
+  var str = "<a href="+ file +" download="+ pa_name +">"+ name +"</a>";
   document.getElementById("download_control").innerHTML = str;
   }
 

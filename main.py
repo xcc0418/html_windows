@@ -19,6 +19,7 @@ import parent_message
 import upload_image
 from flask import session
 from concurrent.futures import ThreadPoolExecutor
+import permanent_store
 
 executor = ThreadPoolExecutor(10)
 # from flask.ext.login import LoginManger, login_required
@@ -605,7 +606,7 @@ def upload_table():
         # msg = False
         # message = [False, False]
         if msg:
-            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
+            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1], "name": message[2]}})
         else:
             return json.dumps({'msg': "error", 'data': message})
     else:
@@ -653,9 +654,9 @@ def uploader_sql():
         quantity = stores_requisition.Quantity()
         filename.save(os.path.join('UPLOAD_FOLDER', path))
         msg, message = quantity.upload_sql(path)
-        print(message)
+        # print(message)
         if msg:
-            return json.dumps({'msg': "success"})
+            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1], "name": message[2]}})
         else:
             return json.dumps({'msg': 'error', 'data': str(message)})
     else:
@@ -1134,12 +1135,19 @@ def derive_table():
             list_parent = dict_data['list_msg']['list']
             list_header = dict_data['list_header']
             quantity_parent = parent_message.Quantity()
+            list_header.insert(0, '本地品名')
+            list_header.insert(0, '父体')
             list_table = quantity_parent.get_list_parent(list_parent, len(list_header))
-        else:
+        elif table_name == "amazon_table":
             list_amazon = dict_data['list_msg']['list']
             list_header = dict_data['list_header']
             quantity_parent = parent_message.Quantity()
+            list_header.insert(0, '本地品名')
+            list_header.insert(0, '父体')
             list_table = quantity_parent.get_list_amazon(list_amazon, len(list_header))
+        else:
+            list_table = dict_data['list_msg']['list']
+            list_header = []
         if list_table:
             quantity = male_parent.Quantity()
             path, filename, download_name = quantity.write_xlsx(list_table, list_header)
@@ -1147,8 +1155,14 @@ def derive_table():
         else:
             if table_name == "table1":
                 return json.dumps({'msg': "error", 'data': "请先获取本地父体详情"})
-            else:
+            if table_name == "table2":
                 return json.dumps({'msg': "error", 'data': "请先获取本地品名详情"})
+            if table_name == "parent_table":
+                return json.dumps({'msg': "error", 'data': "请先获取本地父体详情"})
+            if table_name == "amazon_table":
+                return json.dumps({'msg': "error", 'data': "请先获取亚马逊父体详情"})
+            else:
+                return json.dumps({'msg': "error", 'data': "请先获取父体详情"})
     else:
         return json.dumps({'msg': "error"})
 
@@ -1306,6 +1320,8 @@ def find_list_asin():
             if data['list']:
                 list_parent = quantity.get_list_parent(data['list'], len(list_header))
                 parent_asin = data['parent_asin']
+                if parent_asin.find('*') >= 0:
+                    parent_asin = parent_asin[1:]
             else:
                 list_parent = []
                 parent_asin = ''
@@ -1342,6 +1358,8 @@ def find_asin_parent():
                 if data['list']:
                     list_parent = quantity.get_list_parent(data['list'], len(list_header))
                     parent_asin = data['parent_asin']
+                    if parent_asin.find('*') >= 0:
+                        parent_asin = parent_asin[1:]
                 else:
                     list_parent = []
                     parent_asin = ''
@@ -1397,6 +1415,8 @@ def change_column():
                 list_1 = []
                 list2 = []
                 if parent_asin:
+                    if parent_asin.find('*') >= 0:
+                        parent_asin = parent_asin[1:]
                     list_1 = quantity.get_male_msg(parent_asin, country, list_header)
                 if amazon_asin:
                     list2 = quantity.get_amazon_msg(amazon_asin, country, list_header)
@@ -1420,8 +1440,11 @@ def contrast_parent():
         list_parent = quantity.get_list_parent(data['list'], len(list_header))
         list_amazon = quantity.get_list_amazon(data['list'], len(list_header))
         if list_amazon and list_parent:
+            parent_asin = data['parent_asin']
+            if parent_asin.find('*') >= 0:
+                parent_asin = parent_asin[1:]
             list_1, list2 = quantity.contrast_parent(list_parent, list_amazon)
-            list_msg = quantity.string_splicing(list_1, list2, list_header, data['parent_asin'], data['amazon_asin'])
+            list_msg = quantity.string_splicing(list_1, list2, list_header, parent_asin, data['amazon_asin'], 1)
             return json.dumps({'msg': "success", 'data_html': list_msg})
         else:
             return json.dumps({'msg': "error", 'message': "请先获取要对比的父体"})
@@ -1463,9 +1486,12 @@ def ascending_sort():
         list_parent = quantity.get_list_parent(data['list'], len(list_header))
         list_amazon = quantity.get_list_amazon(data['list'], len(list_header))
         if list_amazon or list_parent:
+            parent_asin = data['parent_asin']
+            if parent_asin.find('*') >= 0:
+                parent_asin = parent_asin[1:]
             index_num = int(list_header.index(index) + 2)
             list_1, list2 = quantity.ascending_sort(list_parent, list_amazon, index_num, sort_asin)
-            list_msg = quantity.string_splicing(list_1, list2, list_header, data['parent_asin'], data['amazon_asin'])
+            list_msg = quantity.string_splicing(list_1, list2, list_header, parent_asin, data['amazon_asin'], 1)
             return json.dumps({'msg': "success", 'data_html': list_msg})
         else:
             return json.dumps({'msg': "error", 'message': "请先获取数据"})
@@ -1485,9 +1511,12 @@ def descending_sort():
         list_parent = quantity.get_list_parent(data['list'], len(list_header))
         list_amazon = quantity.get_list_amazon(data['list'], len(list_header))
         if list_amazon or list_parent:
+            parent_asin = data['parent_asin']
+            if parent_asin.find('*') >= 0:
+                parent_asin = parent_asin[1:]
             index_num = int(list_header.index(index) + 2)
             list_1, list2 = quantity.descending_sort(list_parent, list_amazon, index_num, sort_asin)
-            list_msg = quantity.string_splicing(list_1, list2, list_header, data['parent_asin'], data['amazon_asin'])
+            list_msg = quantity.string_splicing(list_1, list2, list_header, parent_asin, data['amazon_asin'], 1)
             return json.dumps({'msg': "success", 'data_html': list_msg})
         else:
             return json.dumps({'msg': "error", 'message': "请先获取数据"})
@@ -1597,6 +1626,8 @@ def find_parent_sku():
         if list_amazon or list_parent:
             parent_asin = data['parent_asin']
             amazon_asin = data['amazon_asin']
+            if parent_asin.find('*') >= 0:
+                parent_asin = parent_asin[1:]
             list_1, list2 = quantity.find_parent_sku(list_parent, list_amazon, local_sku, shop, parent_asin, amazon_asin, list_header)
             list_msg = quantity.string_splicing(list_1, list2, list_header, parent_asin, amazon_asin)
             return json.dumps({'msg': "success", 'data_html': list_msg})
@@ -1666,6 +1697,140 @@ def update_image_msg():
             return json.dumps({'msg': "success"})
         else:
             return json.dumps({'msg': "error", 'message': '正在更新图片信息，请稍后再试'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/permanent_store/get_common_supplier', methods=["GET"])
+def get_common_supplier():
+    if request.method == "GET":
+        quantity = permanent_store.Quantity()
+        msg = quantity.get_permanent_store()
+        if msg:
+            return json.dumps({'msg': "success", 'data': msg})
+        else:
+            return json.dumps({'msg': "error", 'message': '当前无常备物料信息'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/permanent_store/find_index', methods=["POST"])
+def find_index():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        index = dict_data['index']
+        index_data = dict_data['index_data']
+        if index_data:
+            quantity = permanent_store.Quantity()
+            msg = quantity.get_permanent_store(index, index_data)
+            if msg:
+                return json.dumps({'msg': "success", 'data': msg})
+            else:
+                return json.dumps({'msg': "error", 'message': f'没有找到{index_data}相关物料信息'})
+        else:
+            return json.dumps({'msg': "error", 'message': '请先输入要查询的信息'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/permanent_store/add_common_supplier', methods=["POST"])
+def add_common_supplier():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        sku = dict_data['sku']
+        safe_num = dict_data['safe_num']
+        touch_num = dict_data['touch_num']
+        purchase_num = dict_data['purchase_num']
+        if sku and safe_num and touch_num and purchase_num:
+            quantity = permanent_store.Quantity()
+            msg, message = quantity.add_common_supplier(sku, int(safe_num), int(touch_num), int(purchase_num))
+            if msg:
+                return json.dumps({'msg': "success", 'data': msg})
+            else:
+                return json.dumps({'msg': "error", 'message': message})
+        else:
+            return json.dumps({'msg': "error", 'message': '请先检查输入的新增信息'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/permanent_store/upload_add', methods=["POST"])
+def upload_add():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        # print(filename)
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/工厂常备物料/工厂常备物料新增{data_time}.xlsx'
+        quantity = permanent_store.Quantity()
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        file, filename, download_name, message = quantity.upload_add_common_supplier(path)
+        return json.dumps({'msg': "success", 'data': {'file': file, 'filename': filename, 'download_name': download_name, 'message': message}})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/permanent_store/delete_common_supplier', methods=["POST"])
+def delete_common_supplier():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        delete_data = dict_data['delete_data']
+        if delete_data:
+            quantity = permanent_store.Quantity()
+            msg, message = quantity.delete_common_supplier(delete_data)
+            if msg:
+                return json.dumps({'msg': "success"})
+            else:
+                return json.dumps({'msg': "error", 'message': message})
+        else:
+            return json.dumps({'msg': "error", 'message': '请先检查输入的新增信息'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/permanent_store/upload_delete', methods=["POST"])
+def upload_delete():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        # print(filename)
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/工厂常备物料/工厂常备物料删除{data_time}.xlsx'
+        quantity = permanent_store.Quantity()
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        file, filename, download_name, message = quantity.upload_delete_common_supplier(path)
+        return json.dumps({'msg': "success", 'data': {'file': file, 'filename': filename, 'download_name': download_name, 'message': message}})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/permanent_store/update_common_supplier', methods=["POST"])
+def update_common_supplier():
+    if request.method == "POST":
+        dict_data = json.loads(request.form['data'])
+        list_data = dict_data['list_data']
+        if list_data:
+            quantity = permanent_store.Quantity()
+            msg, message = quantity.update_common_supplier(list_data)
+            if msg:
+                return json.dumps({'msg': "success"})
+            else:
+                return json.dumps({'msg': "error", 'message': message})
+        else:
+            return json.dumps({'msg': "error", 'message': '请先检查输入的新增信息'})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/permanent_store/upload_update', methods=["POST"])
+def upload_update():
+    if request.method == "POST":
+        filename = request.files['myfile']
+        # print(filename)
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'D:/工厂常备物料/工厂常备物料修改{data_time}.xlsx'
+        quantity = permanent_store.Quantity()
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        file, filename, download_name, message = quantity.upload_update_common_supplier(path)
+        return json.dumps({'msg': "success", 'data': {'file': file, 'filename': filename, 'download_name': download_name, 'message': message}})
     else:
         return json.dumps({'msg': 'error'})
 

@@ -703,7 +703,7 @@ class Quantity(object):
                 list_amazon.append(list_col)
         return list_amazon
 
-    def string_splicing(self, list_parent, list_amazon, list_header, parent_asin, amazon_asin):
+    def string_splicing(self, list_parent, list_amazon, list_header, parent_asin, amazon_asin, back_ground=None):
         if list_parent and list_amazon:
             if len(list_amazon) < len(list_parent):
                 length = len(list_amazon)
@@ -721,23 +721,29 @@ class Quantity(object):
                 str_header4 += str_header_col
             str_header = f'<tr class="list_control_header">{str_header1}{str_header3}{str_header2}{str_header4}</tr>'
             str_control = ''
+            index = list_header.index('FBA库存') + 2
             for i in range(0, length):
-                str_control_col1 = string_html.str_content_html(i+1, "list_control4")
+                background = ''
+                if back_ground:
+                    if list_parent[i][index].isdigit() and list_amazon[i][index].isdigit():
+                        if int(list_parent[i][index]) > int(list_amazon[i][index]) and int(list_amazon[i][index]) <= 2:
+                            background = 'list_control6'
+                str_control_col1 = string_html.str_content_html(i+1, "list_control4", background)
                 for j in range(0, len(list_parent[i])):
                     if j == 0:
-                        str_control_col2 = string_html.str_content_html(list_parent[i][j], "list_control2")
+                        str_control_col2 = string_html.str_content_html(list_parent[i][j], "list_control2", background)
                     elif j == 1:
-                        str_control_col2 = string_html.str_content_name(list_parent[i][j], parent_asin)
+                        str_control_col2 = string_html.str_content_name(list_parent[i][j], parent_asin, background)
                     else:
-                        str_control_col2 = string_html.str_content_html(list_parent[i][j], "list_control1")
+                        str_control_col2 = string_html.str_content_html(list_parent[i][j], "list_control1", background)
                     str_control_col1 += str_control_col2
                 for j in range(0, len(list_amazon[i])):
                     if j == 0:
-                        str_control_col2 = string_html.str_content_html(list_amazon[i][j], "list_control2")
+                        str_control_col2 = string_html.str_content_html(list_amazon[i][j], "list_control2", background)
                     elif j == 1:
-                        str_control_col2 = string_html.str_content_name(list_amazon[i][j], amazon_asin)
+                        str_control_col2 = string_html.str_content_name(list_amazon[i][j], amazon_asin, background)
                     else:
-                        str_control_col2 = string_html.str_content_html(list_amazon[i][j], "list_control1")
+                        str_control_col2 = string_html.str_content_html(list_amazon[i][j], "list_control1", background)
                     str_control_col1 += str_control_col2
                 str_control_tr = f'<tr class="list_control_tr">{str_control_col1}</tr>'
                 str_control += str_control_tr
@@ -939,7 +945,7 @@ class Quantity(object):
         # print(list_sku)
         # print(list_male)
         list_null = []
-        for i in range(1, len(list1[0])):
+        for i in range(0, len(list1[0])):
             list_null.append('...')
         list_male.append(list_null)
         list_asin.append(list_null)
@@ -958,7 +964,7 @@ class Quantity(object):
                 list_i = ['无本地父体']
                 for j in range(1, len(dict2[i])):
                     list_i.append(dict2[i][j])
-                list_male.append(list_i)
+                list_asin.append(list_i)
         return list_male, list_asin
 
     def windows_msg(self, sku, asin, country):
@@ -1048,7 +1054,7 @@ class Quantity(object):
                     list_i = []
                     for j in range(0, len(i)):
                         list_i.append(i[j])
-                    list1_pop.append(list_i)
+                    list2_pop.append(list_i)
         list1_new = []
         list2_new = []
         if sort_asin.find('B0') >= 0:

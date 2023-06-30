@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>常备物料管理</title>
+</head>
+<style>
+  .item_list{
+    background-color:white;
+}
+.method_item{
+    width:100px;
+    height:40px;
+    border:1px solid black;
+    margin:0px 0px 0px 0px;
+}
+.method {
+    width:100px;
+    height:40px;
+    outline:none;
+    border:none;
+    background-color:white;
+}
+.box_search1{
+    width:200px;
+    height:40px;
+    border:1px solid black;
+}
+.input_po{
+    float: left;
+    width: 190px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.input_item{
+    float: left;
+    width: 110px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.file_input{
+    float: left;
+    width: 200px;
+    height: 38px;
+    color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+    outline:none;
+	border:none;/*取消文本框内外边框*/
+}
+.upload{
+	float:left;
+	width:100px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.button{
+	float:left;
+	width:100px;
+	height:40px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+}
+.button_item{
+    width:100px;
+    height:40px;
+    border:1px solid black;
+}
+.download_item{
+width:200px;
+height:40px;
+}
+.background_control{
+     height: 40px;
+     background-color:rgb(220, 220, 220);
+     margin:10px 0px 0px 0px;
+}
+tr,td {
+        box-sizing: border-box;/* 设置表格样式 */
+        border: 1px solid #DDDDDD;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-align: center;
+        background: #F4F4F5;
+        height: 40px;
+    }
+.list_control1{
+    height: 40px;
+    width:200px;
+    text-align: center;
+}
+.list_control2{
+    height: 40px;
+    width:500px;
+    text-align: center;
+}
+.list_control3{
+    height: 40px;
+    width:200px;
+    text-align: center;
+}
+.list_control4{
+    height: 40px;
+    width:200px;
+    text-align: center;
+}
+.list_control5{
+    height: 40px;
+    width:200px;
+    text-align: center;
+}
+.windows {
+	display: none;
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	z-index:3;
+	background-color: rgba(0,0,0,0.5);
+}
+.content {
+    background-color:rgb(220, 220, 220);
+	width: 400px;
+	height: 400px;
+	z-index: 2;
+	margin: 12% auto;
+	overflow: auto;
+}
+h2 {
+	margin: 10px 0;
+	color: black;
+	padding-left: 15px;
+}
+.close {
+	padding: 5px;
+}
+
+.close-button {
+	float: right;
+	font-size: 30px;
+	color: black;
+	padding-top: 12px;
+	cursor: pointer;
+	padding-right: 15px;
+}
+#button_control1{
+margin:0px 0px 0px 50px;
+}
+#method_control1{
+margin:-41px 0px 0px 230px;
+}
+#box_control1{
+margin:-41px 0px 0px 350px;
+}
+#button_control2{
+margin:-41px 0px 0px 570px;
+}
+#button_control3{
+margin:-41px 0px 0px 750px;
+}
+#input_control1{
+margin:-41px 0px 0px 870px;
+}
+#box_control2{
+margin:-41px 0px 0px 1020px;
+}
+#button_control4{
+margin:-41px 0px 0px 1240px;
+}
+#input_control2{
+margin:-41px 0px 0px 1370px;
+}
+#button_control5{
+margin:-41px 0px 0px 1550px;
+}
+#button_control7{
+margin:0px 0px 0px 450px;
+}
+#input_control3{
+margin:-41px 0px 0px 570px;
+}
+#download_control{
+margin:-41px 0px 0px 870px;
+}
+#download_control1{
+margin:-41px 0px 0px 1050px;
+}
+#download_control2{
+margin:-41px 0px 0px 1250px;
+}
+#download_control3{
+margin:-41px 0px 0px 1450px;
+}
+#data_database{
+margin:0px 0px 0px 50px;
+}
+#box_control3{
+position: absolute;
+margin:0px 0px 0px 100px;
+}
+#box_control4{
+position: absolute;
+margin:50px 0px 0px 100px;
+}
+#box_control5{
+position: absolute;
+margin:100px 0px 0px 100px;
+}
+#box_control6{
+position: absolute;
+margin:150px 0px 0px 100px;
+}
+#button_control6{
+position: absolute;
+margin:200px 0px 0px 100px;
+}
+</style>
+<body>
+<div>
+    <div class="item_list">
+        <div class="button_item" id="button_control1">
+            <button class="button" onclick="get_common_supplier()">常备物料详情</button>
+        </div>
+        <div class="method_item" id="method_control1">
+            <select class="method" id="list_class">
+                <option value="SKU">SKU</option>
+                <option value="品名">品名</option>
+            </select>
+        </div>
+        <div class="box_search1" id="box_control1">
+            <input type="text" placeholder="  SKU/品名" class="input_po" autocomplete="off" name="index_data" id="index_data">
+        </div>
+        <div class="button_item" id="button_control2">
+            <button class="button" onclick="find_index()">查询</button>
+        </div>
+        <div class="button_item" id="button_control3">
+            <button class="button" onclick="windows_msg()">新增</button>
+        </div>
+        <div class="button_item" id="input_control1">
+            <input type="file" name="file" id="files1" style="display:none" onchange="upload_add();">
+            <input type="button" value="批量新增" id="import1" class="upload">
+        </div>
+        <div class="box_search1" id="box_control2">
+            <input type="text" placeholder="  SKU/品名" class="input_po" autocomplete="off" name="index_data" id="delete_data">
+        </div>
+        <div class="button_item" id="button_control4">
+            <button class="button" onclick="delete_common_supplier()">删除</button>
+        </div>
+        <div class="button_item" id="input_control2">
+            <input type="file" name="file" id="files2" style="display:none" onchange="upload_delete();">
+            <input type="button" value="批量删除" id="import2" class="upload">
+        </div>
+        <div class="button_item" id="button_control5">
+            <button class="button" onclick="clear_html()">清空</button>
+        </div>
+        <div class="button_item" id="button_control7">
+            <button class="button" onclick="update_common_supplier()">提交修改</button>
+        </div>
+        <div class="button_item" id="input_control3">
+            <input type="file" name="file" id="files3" style="display:none" onchange="upload_update();">
+            <input type="button" value="批量修改" id="import3" class="upload">
+        </div>
+        <div class="download_item" id="download_control">
+        </div>
+        <div class="download_item" id="download_control1">
+            <a href="../工厂常备物料管理/批量修改模板.xlsx">批量修改模板</a>
+        </div>
+        <div class="download_item" id="download_control2">
+            <a href="../工厂常备物料管理/批量新增模板.xlsx">批量新增模板</a>
+        </div>
+        <div class="download_item" id="download_control3">
+            <a href="../工厂常备物料管理/批量删除模板.xlsx">批量删除模板</a>
+        </div>
+    </div>
+    <div class="table_list">
+        <div class="background_control" id="background_control"></div>
+        <div class="table_item" id="data_database">
+            <table class="table_control" id="table_control">
+                <thead class="header_item" id="control_item1">
+
+                </thead>
+            </table>
+        </div>
+    </div>
+     <div id="windows1" class="windows">
+        <div id="div1" class="content">
+            <div id="close" class="close">
+                <span id="close-button1" onclick="close_windows()" class="close-button">×</span>
+                <h2 class="msg">新增常备物料采购</h2>
+            </div>
+            <div class="box_search" id="box_control3">
+                <input type="text" placeholder="  SKU" class="input_po" autocomplete="off" id="add_sku">
+            </div>
+            <div class="box_search" id="box_control4">
+                <input type="text" placeholder="  触发库存" class="input_po" autocomplete="off" id="add_safe_num">
+            </div>
+            <div class="box_search" id="box_control5">
+                <input type="text" placeholder="  安全库存" class="input_po" autocomplete="off" id="add_touch_num">
+            </div>
+            <div class="box_search" id="box_control6">
+                <input type="text" placeholder="  采购基数" class="input_po" autocomplete="off" id="add_purchase_num">
+            </div>
+            <div class="button_item" id="button_control6">
+                <button class="button" onclick="add_common_supplier()">新增</button>
+            </div>
+        </div>
+	</div>
+</div>
+</body>
+<script src="../JavaScript/jquery-3.0.0.min.js"></script>
+<script src="../JavaScript/axios.min.js"></script>
+<script>
+
+    $("#import1").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
+        $("#files1").click();
+    });
+
+    $("#import2").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
+        $("#files2").click();
+    });
+
+    $("#import3").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
+        $("#files3").click();
+    });
+
+    function get_common_supplier(){
+    document.getElementById("background_control").innerHTML = '';
+    document.getElementById("background_control").innerHTML = '正在获取常备物料详情';
+    $.ajax({
+    url: "/permanent_store/get_common_supplier",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "GET",
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    create_store(msg['data']);
+    document.getElementById("background_control").innerHTML = '';
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    document.getElementById("background_control").innerHTML = '';
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+          if (textStatus === 'timeout') {
+              alert('请求超时，请重试！');
+              document.getElementById("background_control").innerHTML = '';
+          }
+          }
+    })
+    }
+
+    function create_store(list_data){
+    document.getElementById("control_item1").innerHTML = '';
+    var heard_tr = document.createElement("tr");
+    heard_tr.className = "list_control_tr";
+    var heard_name1_str = create_control(['list_control1', 'SKU', 0]);
+    var heard_name2_str = create_control(['list_control2', '品名', 0]);
+    var heard_name3_str = create_control(['list_control3', '触发库存', 0]);
+    var heard_name4_str = create_control(['list_control4', '安全库存', 0]);
+    var heard_name5_str = create_control(['list_control5', '采购基数', 0]);
+    heard_tr.innerHTML = heard_name1_str + heard_name2_str + heard_name3_str + heard_name4_str + heard_name5_str;
+    document.getElementById("control_item1").appendChild(heard_tr);
+    for (var i = 0; i < list_data.length; i++){
+    var tr = document.createElement("tr");
+    tr.className = "list_control_tr";
+    var sku = list_data[i][0];
+    var sku_str = create_control(['list_control1', sku, 0]);
+    var name = list_data[i][1];
+    var name_str = create_control(['list_control2', name, 0]);
+    var safe_num = list_data[i][2];
+    var safe_num_str = create_control(['list_control3', safe_num, 1]);
+    var touch_num = list_data[i][3];
+    var touch_num_str = create_control(['list_control4', touch_num, 1]);
+    var purchase_num = list_data[i][4];
+    var purchase_num_str = create_control(['list_control5', purchase_num, 1]);
+    var str = sku_str + name_str + safe_num_str + touch_num_str + purchase_num_str;
+    tr.innerHTML = str;
+    document.getElementById("control_item1").appendChild(tr);
+    }
+    }
+
+    function create_control(msg_data){
+    var msg = msg_data;
+    var str = '';
+    if (msg_data[2] == 1){
+    str = "<td class="+ msg[0] +"><div class="+ msg[0]+"><span contenteditable=\"true\">"+ msg[1] +"</span></div></td>";
+    }
+    else{
+    str = "<td class="+ msg[0] +"><div class="+ msg[0]+"><span>"+ msg[1] +"</span></div></td>";
+    }
+    return str
+    }
+
+    function find_index(){
+    document.getElementById("background_control").innerHTML = '';
+    document.getElementById("background_control").innerHTML = '正在获取常备物料详情';
+    var index = document.getElementById("list_class").value;
+    var index_data = document.getElementById("index_data").value;
+    var data = {"data": JSON.stringify({"index": index, "index_data": index_data})}
+    $.ajax({
+    url: "/permanent_store/find_index",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    document.getElementById("control_item1").innerHTML = '';
+    create_store(msg['data']);
+    document.getElementById("background_control").innerHTML = '';
+    document.getElementById("index_data").value = '';
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    document.getElementById("background_control").innerHTML = '';
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+            document.getElementById("background_control").innerHTML = '';
+        }
+        }
+    })
+    }
+
+    function windows_msg(){
+    div = document.getElementById('windows1');
+    div.style.display = "block";
+    }
+
+    function close_windows() {
+    var div1 = document.getElementById('windows1');
+	div1.style.display = "none";
+    }
+
+    window.onclick = function close(e) {
+	if (e.target == div1) {
+	var div1 = document.getElementById('windows1');
+	div1.style.display = "none";
+	}
+    }
+
+    function add_common_supplier(){
+    var sku = document.getElementById("add_sku").value;
+    var safe_num = document.getElementById("add_safe_num").value;
+    var touch_num = document.getElementById("add_touch_num").value;
+    var purchase_num = document.getElementById("add_purchase_num").value;
+    if (confirm("是否新增常备物料"+ sku)){
+    close_windows()
+    document.getElementById("background_control").innerHTML = '';
+    document.getElementById("background_control").innerHTML = '正在新增常备物料';
+    var data = {"data": JSON.stringify({"sku": sku, "safe_num": safe_num, "touch_num": touch_num, "purchase_num": purchase_num})}
+    $.ajax({
+    url: "/permanent_store/add_common_supplier",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    get_common_supplier();
+    document.getElementById("background_control").innerHTML = '';
+    alert('新增成功');
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    document.getElementById("background_control").innerHTML = '';
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+            document.getElementById("background_control").innerHTML = '';
+        }
+        }
+    })
+    }
+    }
+
+    function upload_add(){
+    var filename = document.getElementById("files1").files[0]['name'];
+    if (confirm("是否上传"+ filename +"批量新增")){
+    document.getElementById("background_control").innerHTML = '';
+    document.getElementById("background_control").innerHTML = '正在批量新增常备物料';
+    document.getElementById("import1").disabled = "ture";
+    var button = document.getElementById('import1');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
+    var formData = new FormData();
+    formData.append("myfile", document.getElementById("files1").files[0]);
+    $.ajax({
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: 'POST',
+    url: '/permanent_store/upload_add',
+    dataType: 'json',
+    data: formData,
+    cache: false,
+    processData: false,
+    contentType: false,
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    get_common_supplier();
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import1").disabled = false;
+    document.getElementById("download_control").innerHTML = '';
+    download_excl(msg['data']['file'], msg['data']['filename'], msg['data']['download_name'])
+    alert(msg['data']['message']);
+    }
+    if (msg['msg'] == 'error'){
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import1").disabled = false;
+    document.getElementById("download_control").innerHTML = '';
+    alert('新增失败');
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import1").disabled = false;
+    document.getElementById("download_control").innerHTML = '';
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+    }
+
+    function delete_common_supplier(){
+    var delete_data = document.getElementById("delete_data").value;
+    if (confirm("是否删除常备物料"+ delete_data)){
+    document.getElementById("background_control").innerHTML = '';
+    document.getElementById("background_control").innerHTML = '正在删除常备物料';
+    var data = {"data": JSON.stringify({"delete_data": delete_data})}
+    $.ajax({
+    url: "/permanent_store/delete_common_supplier",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    alert('删除成功');
+    get_common_supplier();
+    document.getElementById("delete_data").value = '';
+    document.getElementById("background_control").innerHTML = '';
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    document.getElementById("background_control").innerHTML = '';
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+            document.getElementById("background_control").innerHTML = '';
+        }
+        }
+    })
+    }
+    }
+
+    function upload_delete(){
+    var filename = document.getElementById("files2").files[0]['name'];
+    if (confirm("是否上传"+ filename +"批量删除")){
+    document.getElementById("background_control").innerHTML = '';
+    document.getElementById("background_control").innerHTML = '正在批量删除常备物料';
+    document.getElementById("import2").disabled = "ture";
+    var button = document.getElementById('import2');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
+    var formData = new FormData();
+    formData.append("myfile", document.getElementById("files2").files[0]);
+    $.ajax({
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: 'POST',
+    url: '/permanent_store/upload_delete',
+    dataType: 'json',
+    data: formData,
+    cache: false,
+    processData: false,
+    contentType: false,
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    get_common_supplier();
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import2").disabled = false;
+    document.getElementById("download_control").innerHTML = '';
+    download_excl(msg['data']['file'], msg['data']['filename'], msg['data']['download_name'])
+    alert(msg['data']['message']);
+    }
+    if (msg['msg'] == 'error'){
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import2").disabled = false;
+    document.getElementById("background_control").innerHTML = '';
+    alert('删除失败');
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import2").disabled = false;
+    document.getElementById("background_control").innerHTML = '';
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+    }
+
+    function update_common_supplier(){
+    list_data = get_table();
+    if (confirm("是否修改常备物料信息")){
+    document.getElementById("background_control").innerHTML = '';
+    document.getElementById("background_control").innerHTML = '正在修改常备物料信息';
+    var data = {"data": JSON.stringify({"list_data": list_data})}
+    $.ajax({
+    url: "/permanent_store/update_common_supplier",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    alert('修改成功');
+    get_common_supplier();
+    document.getElementById("background_control").innerHTML = '';
+    }
+    if (msg['msg'] == 'error'){
+    alert(msg['message']);
+    document.getElementById("background_control").innerHTML = '';
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+        if (textStatus === 'timeout') {
+            alert('请求超时，请重试！');
+            document.getElementById("background_control").innerHTML = '';
+        }
+        }
+    })
+    }
+    }
+
+    function upload_update(){
+    var filename = document.getElementById("files3").files[0]['name'];
+    if (confirm("是否上传"+ filename +"批量修改")){
+    document.getElementById("background_control").innerHTML = '';
+    document.getElementById("background_control").innerHTML = '正在批量修改常备物料';
+    document.getElementById("import3").disabled = "ture";
+    var button = document.getElementById('import3');
+    button.style.backgroundColor = 'rgb(220, 220, 220)';
+    var formData = new FormData();
+    formData.append("myfile", document.getElementById("files3").files[0]);
+    $.ajax({
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: 'POST',
+    url: '/permanent_store/upload_update',
+    dataType: 'json',
+    data: formData,
+    cache: false,
+    processData: false,
+    contentType: false,
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    get_common_supplier();
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import3").disabled = false;
+    document.getElementById("download_control").innerHTML = '';
+    download_excl(msg['data']['file'], msg['data']['filename'], msg['data']['download_name'])
+    alert(msg['data']['message']);
+    }
+    if (msg['msg'] == 'error'){
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import3").disabled = false;
+    document.getElementById("background_control").innerHTML = '';
+    alert('修改失败');
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    button.style.backgroundColor = 'rgb(252, 252, 252)';
+    document.getElementById("import3").disabled = false;
+    document.getElementById("background_control").innerHTML = '';
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+    }
+
+    function get_table(){
+    var tabObj = document.getElementById('table_control');
+    var data = [];
+    for(var i=0,rows=tabObj.rows.length; i<rows; i++){
+    for(var j=0,cells=tabObj.rows[i].cells.length; j<cells; j++){
+    if(!data[i]){
+    data[i] = new Array();
+    }
+    data[i][j] = tabObj.rows[i].cells[j].getElementsByTagName('span')[0].innerHTML;
+    }
+    }
+    return data;
+    }
+
+    function download_excl(filename, file, name){
+    var pa_name = file + ".xlsx";
+    var str = "<a href="+ filename +" download="+ pa_name +">"+ name +"</a>";
+    document.getElementById("download_control").innerHTML = str;
+    }
+
+    function clear_html(){
+    if (confirm("是否清空当前页面信息")){
+    clear();
+    }
+    }
+
+    function clear(){
+    document.getElementById("background_control").innerHTML = '';
+    document.getElementById("import2").disabled = false;
+    document.getElementById("import1").disabled = false;
+    document.getElementById("index_data").value = '';
+    document.getElementById("control_item1").innerHTML = '';
+    document.getElementById("delete_data").value = '';
+    document.getElementById("download_control").innerHTML = '';
+    }
+
+</script>
+</html>

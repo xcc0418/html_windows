@@ -19,11 +19,17 @@ def str_header_html2():
     return str_name_col
 
 
-def str_content_html(content, control_class):
-    str_name_col = f'<td class="{control_class}"><div class="{control_class}"><span>{content}</span></div></td>'
+def str_content_html(content, control_class, background=None):
+    if background:
+        str_name_col = f'<td class="{control_class}"><div class="{background}"><span>{content}</span></div></td>'
+    else:
+        str_name_col = f'<td class="{control_class}"><div class="{control_class}"><span>{content}</span></div></td>'
     return str_name_col
 
 
-def str_content_name(content, asin):
-    str_name_col = f'<td class="list_control3"><div class="list_control3"><span ondblclick="windows_msg(event)" class="{asin}" oncontextmenu="menu_bar(event)" onclick="close_menu()">{content}</span></div></td>'
+def str_content_name(content, asin, background=None):
+    if background:
+        str_name_col = f'<td class="list_control3"><div class="{background}"><span ondblclick="windows_msg(event)" class="{asin}" oncontextmenu="menu_bar(event)" onclick="close_menu()">{content}</span></div></td>'
+    else:
+        str_name_col = f'<td class="list_control3"><div class="list_control3"><span ondblclick="windows_msg(event)" class="{asin}" oncontextmenu="menu_bar(event)" onclick="close_menu()">{content}</span></div></td>'
     return str_name_col

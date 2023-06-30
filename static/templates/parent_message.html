@@ -97,7 +97,14 @@ font-size: 18px;
     height:780px;
 }
 .table_item1{
-    width:200px;
+    width:250px;
+    height:100%;
+    border:1px solid black;
+    background-color:white;
+    overflow: auto;
+}
+.table_item3{
+    width:150px;
     height:100%;
     border:1px solid black;
     background-color:white;
@@ -159,7 +166,13 @@ thead tr td{
     text-align: center;
     position: sticky;
     height: 40px;
-    width: 190px;
+    width: 140px;
+}
+.list_control6{
+    text-align: center;
+    position: sticky;
+    background-color:#FFFF00;
+
 }
 .list_control_collect{
     overflow: hidden;
@@ -294,6 +307,9 @@ margin:0px 0px 0px 50px;
 #button_control9{
 margin:-41px 0px 0px 220px;
 }
+#button_control14{
+margin:-41px 0px 0px 410px;
+}
 #button_control10{
 margin:-41px 0px 0px 600px;
 }
@@ -340,7 +356,7 @@ margin:-41px 0px 0px 1300px;
 margin:0px 0px 0px 50px;
 }
 #table_item2{
-margin:-781px 0px 0px 270px;
+margin:-781px 0px 0px 320px;
 }
 #table_item3{
 margin:-781px 0px 0px 490px;
@@ -361,6 +377,9 @@ margin:100px 0px 0px 550px;
             </div>
             <div class="button_item1" id="button_control9">
                 <button class="button1" onclick="derive_table(event)" data-name="parent_table">导出本地父体表格</button>
+            </div>
+            <div class="button_item1" id="button_control14">
+                <button class="button1" onclick="derive_table(event)" data-name="all_table">导出表格数据</button>
             </div>
             <div class="button_item1" id="button_control10">
                 <button class="button1" onclick="derive_table(event)" data-name="amazon_table">导出亚马逊父体表格</button>
@@ -438,7 +457,7 @@ margin:100px 0px 0px 550px;
                 </thead>
             </table>
         </div>
-        <div class="table_item1" id="table_item2">
+        <div class="table_item3" id="table_item2">
             <table class="table_control" id="table_control2">
                 <thead class="header_item" id="control_item2">
                 </thead>
@@ -674,6 +693,7 @@ margin:100px 0px 0px 550px;
 
     function find_list_asin(){
     var asin = document.getElementById("asin_input").value;
+    if (asin){
     var background = document.getElementById("background_control");
 	background.innerHTML = "正在查询"+ asin;
     document.getElementById("input2").disabled = "ture";
@@ -717,6 +737,10 @@ margin:100px 0px 0px 550px;
     }
     }
     })
+    }
+    else{
+    alert('请先输入亚马逊父体');
+    }
     }
 
     function find_list_male(){
@@ -939,7 +963,7 @@ margin:100px 0px 0px 550px;
     ev.preventDefault();
     var data = ev.target.innerHTML;
     console.log(data)
-    find_asin_parent(data)
+    find_asin_parent(data);
     }
 
     function amazon_parent(event){
@@ -1509,7 +1533,7 @@ margin:100px 0px 0px 550px;
     alert('导出成功');
     }
     if (msg['msg'] == 'error'){
-    alert(msg['message']);
+    alert(msg['data']);
     }
     },
     error: function(XMLHttpRequest, textStatus, errorThrown) {

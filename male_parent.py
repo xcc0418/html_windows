@@ -282,7 +282,11 @@ class Quantity(object):
                         sku = wb_sheet.cell(row=i, column=2).value
                         if sku:
                             msg, message = self.relevance_male(male_parent, sku)
-                            if not msg:
+                            if msg:
+                                continue
+                            else:
+                                if message.find('已关联') >= 0:
+                                    continue
                                 list_error.append([male_parent, sku])
                         else:
                             male_sku = wb_sheet.cell(row=i, column=3).value
@@ -295,6 +299,8 @@ class Quantity(object):
                                     if msg:
                                         continue
                                     else:
+                                        if message.find('已关联') >= 0:
+                                            continue
                                         flag = 0
                                 if flag:
                                     message = "关联成功"

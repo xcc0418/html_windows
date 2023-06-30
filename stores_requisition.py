@@ -10,6 +10,7 @@ import datetime
 import pymysql
 from Crypto.Cipher import AES
 import openpyxl
+from dateutil.relativedelta import relativedelta
 # from shutil import copy
 # from openpyxl.styles import PatternFill
 # from openpyxl.styles import Alignment
@@ -262,7 +263,7 @@ class Quantity(object):
                 self.connection.commit()
                 self.sql_close()
                 self.writer_pdf(po_id, list_order)
-                return True, [f'../领料单/{po_id}.xlsx', f'{po_id}']
+                return True, [f'../领料单/{po_id}.xlsx', f'{po_id}', f'{po_id}']
             else:
                 return False, '没有找到对应信息，请查看输入sku是否正确'
         except Exception as e:
@@ -453,6 +454,7 @@ class Quantity(object):
 
     def upload_sql(self, filename):
         try:
+            list_error = []
             dict_sku = {}
             wb = openpyxl.load_workbook(filename, data_only=True)
             wb_sheet = wb.active
@@ -487,7 +489,9 @@ class Quantity(object):
                                 dict_sku[po_id].append([sku, num, name])
                             else:
                                 dict_sku[po_id].append([sku, num, name])
-            print(len(dict_sku))
+                        else:
+                            if sku.find('#N/A') >= 0:
+                                list_error.append(i)
             dict_gcwl = {}
             for i in dict_sku:
                 list_sku = []
@@ -506,12 +510,25 @@ class Quantity(object):
                 # print(list_gcwl)
             print(len(dict_gcwl))
             msg, message = self.insert_sql(dict_gcwl, dict_sku)
+            ws = openpyxl.Workbook()
+            ws_sheet = ws.active
+            ws_sheet.append(['下单日期', 'SKU', 'PO号', '产品型号', '订单数量', '对应表格位置'])
+            for i in list_error:
+                time_order = wb_sheet.cell(row=i, column=(list_heard.index('下单日期') + 1)).value
+                sku = wb_sheet.cell(row=i, column=(list_heard.index('ErpSKU\n(公式）') + 1)).value
+                po_name = wb_sheet.cell(row=i, column=(list_heard.index('PO号') + 1)).value
+                name = wb_sheet.cell(row=i, column=(list_heard.index('产品型号') + 1)).value
+                num = wb_sheet.cell(row=i, column=(list_heard.index('订单数量') + 1)).value
+                ws_sheet.append([time_order, sku, po_name, name, num, i])
+            time_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            file = f'./static/生产日程表/{time_now}-生产日程表SKU异常详情.xlsx'
+            ws.save(file)
             if msg:
-                return True, True
+                return True, [f'../生产日程表/{time_now}-生产日程表SKU异常详情.xlsx', f'{time_now}-生产日程表SKU异常详情', '生产日程表SKU异常详情']
             else:
                 return False, message
         except Exception as e:
-            print(e)
+            print('上传生产日程表错误：', e)
             return False, e
 
     def insert_sql(self, dict_gcwl, dict_sku):
@@ -564,4 +581,4 @@ class Quantity(object):
 if __name__ == '__main__':
     quantity = Quantity()
     # quantity.get_order_msg(['GC.410'], {'GC.410': 800})
-    quantity.upload_sql('D:/生产日程表/生产日程表202305251434.xlsx')
+    quantity.upload_sql('D:/生产日程表/生产日程表202306211543.xlsx')

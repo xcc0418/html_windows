@@ -377,51 +377,79 @@ class Quantity (object):
             else:
                 return False
 
+    def get_warehouse_order(self):
+        self.sql()
+        sql = "select * from `storage`.`warehouse` where `状态` = '已打包'"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        sql1 = "select * from `storage`.`relevance_hakone`"
+        self.cursor.execute(sql1)
+        result1 = self.cursor.fetchall()
+        self.sql_close()
+        dict_pa = {}
+        dict_relevance = {}
+        if result1:
+            for i in result1:
+                if i['关联箱标'] in dict_pa:
+                    dict_pa[i['关联箱标']].append (i['箱号'])
+                else:
+                    dict_pa[i['关联箱标']] = [i['箱号']]
+                dict_relevance[i['箱号']] = i['关联箱标']
+        dict_warehouse = {}
+        for i in result:
+            if i['FNSKU1'] in dict_warehouse:
+                dict_warehouse[i['FNSKU1']].append([i['箱号'], i['存放位置'], i['数量1']])
+            else:
+                dict_warehouse[i['FNSKU1']] = [[i['箱号'], i['存放位置'], i['数量1']]]
+        return dict_warehouse, dict_pa, dict_relevance
+
     def get_pa(self, list_fnsku):
         list_re = {}
+        dict_warehouse, dict_pa, dict_relevance = self.get_warehouse_order()
         for k in list_fnsku:
-            list_pa = []
-            self.sql()
-            sql = "select * from `storage`.`warehouse` where `FNSKU1` = '%s' and `状态` = '已打包'" % k
-            self.cursor.execute(sql)
-            result = self.cursor.fetchall()
-            if result:
-                for i in result:
-                    list_pa.append(i['箱号'])
-                for i in list_pa:
-                    sql = "select * from `storage`.`relevance_hakone` where `箱号` = '%s'" % i
-                    self.cursor.execute(sql)
-                    result = self.cursor.fetchall()
-                    if result:
-                        if result[0]['关联箱标'] in list_re:
-                            list_re[result[0]['关联箱标']][i] = 1
+            if k in dict_warehouse:
+                for i in dict_warehouse[k]:
+                    if i[0] in dict_relevance:
+                        if dict_relevance[i[0]] in list_re:
+                            list_re[dict_relevance[i[0]]][i[0]] = [1, i[1], i[2], k]
                         else:
-                            list_re[result[0]['关联箱标']] = {}
-                            sql1 = "select * from `storage`.`relevance_hakone` where `关联箱标` = '%s'" % result[0]['关联箱标']
-                            self.cursor.execute(sql1)
-                            result1 = self.cursor.fetchall()
-                            for j in result1:
-                                list_re[result[0]['关联箱标']][j['箱号']] = 0
-                            list_re[result[0]['关联箱标']][i] = 1
+                            list_re[dict_relevance[i[0]]] = {}
+                            for j in dict_pa[dict_relevance[i[0]]]:
+                                list_re[dict_relevance[i[0]]][j] = [0, i[1], i[2], k]
+                            list_re[dict_relevance[i[0]]][i[0]] = [1, i[1], i[2], k]
                     else:
-                        list_re[i] = 1
+                        list_re[i[0]] = [1, i[1], i[2], k]
             else:
                 if '这个FNSKU没有装箱信息' in list_re:
                     list_re['这个FNSKU没有装箱信息'].append(k)
                 else:
                     list_re['这个FNSKU没有装箱信息'] = [k]
-            self.sql_close()
         return list_re
+
+    def get_listing_msg(self):
+        self.sql()
+        sql = "select * from `data_read`.`listing`"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        dict_fnsku = {}
+        for i in result:
+            if i['FNSKU'] in dict_fnsku:
+                continue
+            else:
+                dict_fnsku[i['FNSKU']] = [i['SKU'], i['品名']]
+        return dict_fnsku
 
     def write_re(self, list_re):
         wb = openpyxl.Workbook()
         wb_sheet = wb.active
         wb_sheet.append(['关联箱号', 'FNSKU', 'SKU', '品名', '箱号', '存放位置', '数量', '总数量'])
         row1 = 1
+        dict_fnsku = self.get_listing_msg()
         for i in list_re:
             if i.find('PA') >= 0:
-                msg = self.get_pa_msg1(i, '', 0)
-                del msg[7]
+                fnsku = list_re[i][3]
+                msg = ['', fnsku, dict_fnsku[fnsku][0], dict_fnsku[fnsku][1], i, list_re[i][1], list_re[i][2]]
                 wb_sheet.append(msg)
                 for q in range(2, 8):
                     wb_sheet.cell(row=row1+1, column=q).font = Font(u'微软雅黑', size=11, bold=True, italic=False, strike=False, color='DC143C')
@@ -429,15 +457,14 @@ class Quantity (object):
             elif i.find('RE') >= 0:
                 list_pa = []
                 for k in list_re[i]:
-                    msg = self.get_pa_msg1(k, i, list_re[i][k])
-                    if msg[7]:
-                        del msg[7]
+                    fnsku = list_re[i][k][3]
+                    msg = [i, fnsku, dict_fnsku[fnsku][0], dict_fnsku[fnsku][1], k, list_re[i][k][1], list_re[i][k][2]]
+                    if list_re[i][k][0]:
                         wb_sheet.append(msg)
                         for q in range(2, 8):
                             wb_sheet.cell(row=row1+1, column=q).font = Font(u'微软雅黑', size=11, bold=True, italic=False, strike=False, color='DC143C')
                         row1 += 1
                     else:
-                        del msg[7]
                         list_pa.append(msg)
                 if list_pa:
                     for k in list_pa:
@@ -445,9 +472,9 @@ class Quantity (object):
                         row1 += 1
             else:
                 for j in list_re[i]:
-                    wb_sheet.append([i, j, '', '', '', '', 0])
-                    wb_sheet.cell(row=row1 + 1, column=1).font = Font(u'微软雅黑', size=11, bold=True, italic=False, strike=False, color='DC143C')
-                    wb_sheet.cell(row=row1 + 1, column=2).font = Font(u'微软雅黑', size=11, bold=True, italic=False, strike=False, color='DC143C')
+                    wb_sheet.append([i, j,  dict_fnsku[j][0], dict_fnsku[j][1], '', '', 0])
+                    for q in range(1, 5):
+                        wb_sheet.cell(row=row1 + 1, column=q).font = Font(u'微软雅黑', size=11, bold=True, italic=False, strike=False, color='DC143C')
                     row1 += 1
         # print(row1)
         starrow1 = 2
@@ -549,7 +576,7 @@ class Quantity (object):
                 row1 = i
                 break
         list_fnsku = []
-        for i in range(1, row1 + 1):
+        for i in range(2, row1 + 1):
             fnsku = ws_sheet.cell(row=i, column=2).value
             if fnsku:
                 fnsku = fnsku.strip('')

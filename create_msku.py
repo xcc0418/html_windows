@@ -229,11 +229,11 @@ class Quantity(object):
                 msku = wb_sheet.cell(row=i, column=2).value.strip()
                 country = wb_sheet.cell(row=i, column=3).value.strip()
                 supplier = wb_sheet.cell(row=i, column=4).value.strip()
-                num = int(wb_sheet.cell(row=i, column=5).value)
+                num = wb_sheet.cell(row=i, column=5).value
                 list_msku_index = []
                 if sku and len(msku) < 23 and country and supplier and num:
                     time_now = datetime.datetime.now().strftime("%Y%m%d%H%M")
-                    for j in range(1, num + 1):
+                    for j in range(1, int(num) + 1):
                         msku_new = f'{msku}-{j}-{time_now[2:]}-T'
                         list_msku_index.append(msku_new)
                         list_msku.append(msku_new)
@@ -1066,10 +1066,10 @@ class Find_order():
                     supplier = i['供应商'].strip()
                     self.dict_msku[msku] = [sku, country, supplier]
                 # print(self.dict_msku)
-                # index, list_asin = self.downloads(auth_token)
+                index, list_asin = self.downloads(auth_token)
                 # print(self.dict_msku)
-                list_asin = self.read_excl('527848158118957056')
-                print(self.dict_msku)
+                # list_asin = self.read_excl('530082877440049152')
+                # print(self.dict_msku)
                 if list_asin:
                     for i in self.dict_msku:
                         if len(self.dict_msku[i]) > 3:
