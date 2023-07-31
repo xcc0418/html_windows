@@ -264,7 +264,7 @@ def read_upload_excl(path):
     box_num = wb_sheet.cell(row=1, column=2).value
     list_pa = []
     k = 2
-    if wb_sheet.cell(row=2, column=1).value.find('PA') >= 0:
+    if wb_sheet.cell(row=2, column=1).value.find('PA') and wb_sheet.cell(row=2, column=1).value.find('PA') >= 0:
         k = 3
         for i in range(1, column):
             pa_name = wb_sheet.cell(row=2, column=i).value
@@ -811,6 +811,17 @@ class Quantity(object):
             if result1['data']['sku'] == sku:
                 product_name = result1['data']['product_name']
         return product_name
+
+    def get_fnsku(self, index):
+        self.sql()
+        sql = f"select `FNSKU1`, `数量1` from `storage`.`warehouse` where `箱号` = '{index}' and `状态` = '已打包'"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.sql_close()
+        if result:
+            return result[0]['FNSKU1'], result[0]['数量1']
+        else:
+            return False, False
 
     def delect_sql(self, list_pa):
         self.sql()

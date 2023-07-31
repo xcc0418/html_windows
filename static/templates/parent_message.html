@@ -5,8 +5,6 @@
     <title>父体对比</title>
 </head>
 <style>
-.widget{display:inline-block;background:#ff9900;}
-.box{width:50px;height:50px;background:#00b7ee;margin:5px;float:left;}
 .rk_menubox{width:100px;border:1px solid #ddd;position:absolute;z-index:999;background:#fff;}
 .rk_menuitem{line-height:20px;cursor:pointer;padding:0px 5px;}
 .rk_menuitem:hover{background:#f4f4f4;}
@@ -133,7 +131,7 @@ thead tr td{
         }
 .list_control_header{
       position: sticky;
-      top: 0; /* 固定第一行，前7列 */
+      top: 0;
       z-index:1;
     }
 .list_control1{
@@ -519,8 +517,10 @@ margin:100px 0px 0px 550px;
 <script src="../JavaScript/jquery-3.0.0.min.js"></script>
 <script src="../JavaScript/axios.min.js"></script>
 <script>
+    //网页加载获取用户保存的列配置详情
     check_box2();
 
+    //日历组件
     var start = document.getElementById("data_time");
     var date = new Date();
     var month_t = date.getMonth().toString();
@@ -534,6 +534,7 @@ margin:100px 0px 0px 550px;
     var dateString = date.getFullYear() + "-" + (month_t) + "-" + day_t;
     start.value = dateString;
 
+    //本地品名搜索绑定回车键
     function myFunction() {
     if(event.keyCode==13) {
     document.getElementById("input1").click();
@@ -658,6 +659,7 @@ margin:100px 0px 0px 550px;
     return list_header
     }
 
+    //更新列配置
     function change_column(){
     var data = get_table();
     var list_header = get_list_header();
@@ -842,6 +844,7 @@ margin:100px 0px 0px 550px;
     return str
     }
 
+    //创建父体单元格
     function drag_control(msg_data){
     var msg = msg_data;
     var str = '';
@@ -992,6 +995,7 @@ margin:100px 0px 0px 550px;
     })
     }
 
+    //父体数据获取直接在后端生成html字符串再传到前端直接生成表格
     function find_asin_parent(asin){
     var background = document.getElementById("background_control");
 	background.innerHTML = "正在获取"+ asin +"的相关信息";
@@ -1193,6 +1197,7 @@ margin:100px 0px 0px 550px;
     var div = document.getElementById('windows1');
 	div.style.display = "none";
 	var div2 = document.getElementById('windows2');
+
 	div2.style.display = "none";
     }
     window.onclick = function close(e) {
@@ -1577,6 +1582,8 @@ margin:100px 0px 0px 550px;
     })
     }
 
+
+    //列配置中组件拖拽效果设置 https://blog.csdn.net/qq_42068550/article/details/115459826
     var node = document.querySelector("#container")
 	var draging = null
 	node.ondragstart = function(event) {

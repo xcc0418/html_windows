@@ -1,24 +1,72 @@
-<!DOCTYPE html>
+<!--
+html组成：前端组件代码、组件风格代码、组件功能实现js代码。
+前端组件代码：由html元素组成。html元素介绍参考地址：https://developer.mozilla.org/zh-CN/docs/Web/HTML/Reference
+    html元素可以自定义设置属性设置风格、功能。
+        一般通用的属性设置有：class、id、name，也可以自定义属性名称如：data-sku、data-name。
+            class：自定义元素类，命名可重复。
+            id：自定义元素的标识，一个文件下id唯一。
+            name：自定义元素命名名称。
+    title：网页标题。
+    div：一般是作一个用来分级分类的容器。
+    input：功能实现取决于属性type的值。
+        type值：
+            text：用来作文本输入框。
+            submit：提交按钮。
+            checkbox：复选框。
+            file：上传文件。
+        placeholder：设置文本框输入提示信息
+        autocomplete="off"：设置文本框不记录之前输入过的信息。
+        onkeydown：用户在文本框按下一个按钮时执行javascript相关函数，一般用来绑定回车键
+    button：按钮。
+        onclick：单击触发javascript相关函数。
+    span：也是一个容器，不过用在表述内容。
+    select：下拉框。
+        option：下拉框内容。
+    table：表格。
+        thead：表格头。
+            th、tr：表格行。
+            td：表格单元格。
+组件风格代码：CSS。教程：https://www.runoob.com/css/css-syntax.html、https://blog.csdn.net/Shmily_ox/article/details/104707246
+    CSS通过选择器去设置各个html元素的属性。
+    常用：
+        标签选择器：标签名{属性名:属性值}，设置所有 标签名 的元素属性。
+        类选择器：.classname{属性名:属性值}，设置所有元素class值为classname的元素属性。一般用于设置元素风格
+        id选择器：#idname{属性名:属性值}，设置元素id值为idname的元素属性。一般用于设置元素位置
+            margin： 设置元素所有四个（上下左右）方向的外边距。
+                当只指定一个值时，该值会统一应用到全部四个边的外边距上。
+                指定两个值时，第一个值会应用于上边和下边的外边距，第二个值应用于左边和右边。
+                指定三个值时，第一个值应用于上边，第二个值应用于右边和左边，第三个则应用于下边的外边距。
+                指定四个值时，依次（顺时针方向）作为上边，右边，下边，和左边的外边距。
+                元素没有设定位置时会在前端以一个元素为一行展示。
+组件功能实现js代码：JavaScript。
+    document：html文件根节点。参考文档：https://www.runoob.com/jsref/dom-obj-document.html
+
+按钮、文本框、下拉框、文件上传、文件下载、网页生成表格、自定义弹窗、表格拖拽、表格点击方式、列配置复选框、表格排序。
+api接口、数据库连接、父体对比。
+-->
+<!DOCTYPE html><!--声明未html5文档-->
 <html lang="en">
+<!--style: 组件风格设置CSS代码-->
 <style>
 .button_item{
 width:100px;
 height:40px;
-border:1px solid black;
+border:1px solid black;/*将按钮边框设置为1个像素大小*/
 margin:auto;
+background-Color:rgb(252, 252, 252);
 }
 .msg_item{
     width:200px;
     height:40px;
     border:1px solid black;
-    margin:auto;
+    margin:auto;/*相对元素上一级居中*/
 }
 .button{
 	float:left;
 	width:100px;
 	height:40px;
 	color:black;
-	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	background-color:white;/*将按钮背景白*/
 	border:none;
 	outline:none;/*取消边框和外边框将按钮边框去掉*/
 }
@@ -40,12 +88,9 @@ height:40px;
     width: 110px;
     height: 38px;
     color:black;
-	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	background-color:white;/*将按钮背景设置为白色，字体设置为黑*/
     outline:none;
 	border:none;/*取消文本框内外边框*/
-}
-#button_item{
-background-Color:rgb(252, 252, 252);
 }
 .background_control{
      height: 40px;
@@ -175,12 +220,14 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
     width:68px;
 }
 </style>
+<!--head: 头部元素-->
 <head>
     <meta charset="UTF-8">
     <title>FBA出货</title>
     <link rel="icon" href="../static/images/favicon.ico" type="image/x-icon"/>
 	<link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon"/>
 </head>
+<!--body: 可见页面内容-->
 <body>
   <div class="FBA_shipment">
      <div class="shipment_control">
@@ -239,6 +286,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 <script src="https://cdn.bootcss.com/xlsx/0.11.9/xlsx.core.min.js"></script>
 <script>
     var isclick = 0;
+
     $("#import").click(function(){//点击导入按钮，使files触发点击事件，然后完成读取文件的操作。
         $("#files").click();
     });
@@ -260,7 +308,7 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
     $.ajax({
             headers:{Accept: "application/json; charset=utf-8"},
 			type: 'POST',
-			url: '/get_fba',
+			url: '/FBA_shipment/get_fba',
 			dataType: 'json',
 			data: data,
 			success: function(msg){
@@ -359,43 +407,6 @@ th:first-child, th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(
 	document.getElementById("control_item1").appendChild(tr);
 	return str_header
 	}
-
-    function get_number(){
-    var data_fnsku = document.getElementById("data_fnsku");
-    var list_fnsku = data_fnsku.getAttribute("data-fnsku");
-    var box_num = document.getElementById("box_num").value;
-    var data_num = [];
-    var list_order_num = [];
-    for (var i = 0; i < list_fnsku.length; i++){
-    var list_num = [];
-    var order_num = document.getElementById("control_header6").innerHTML;
-    list_order_num.push(order_num);
-    for (var k = 0; k < parseInt(box_num); k++){
-    var control_id = list_fnsku[i] + k;
-    var num = document.getElementById(control_id).innerHTML;
-    list_num.push(num);
-    }
-    data_num.push(list_num);
-    }
-    var data = {data: JSON.stringify({'data_num': data_num, 'list_fnsku': list_fnsku,  'list_order_num': list_order_num})};
-    $.ajax({
-            headers:{Accept: "application/json; charset=utf-8"},
-			type: 'POST',
-			url: '/get_number',
-			dataType: 'json',
-			data: data,
-			success: function(msg){
-			if (msg['msg'] == 'success'){
-			alert('装箱清单生成成功');
-			}
-			},
-			error: function(XMLHttpRequest, textStatus, errorThrown) {
-            if (textStatus === 'timeout') {
-                alert('请求超时，请重试！');
-            }
-            }
-			})
-    }
 
     function myFunction() {
       if(event.keyCode==13) {

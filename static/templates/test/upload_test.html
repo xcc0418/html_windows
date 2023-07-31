@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>文件上传下次测试</title>
+</head>
+<style>
+.item_control{
+    width:200px;
+    height:40px;
+    border:1px solid black;
+}
+.item_upload{
+    width:100px;
+    height:40px;
+    border:1px solid black;
+}
+.input{
+    float: left;
+    width: 190px;
+    height: 38px;
+    color:black;
+	background-color:white;
+    outline:none;
+	border:none;
+}
+.upload{
+	float:left;
+	width:100px;
+	height:40px;
+	color:black;
+	background-color:white;
+	border:none;
+	outline:none;
+}
+.download_item{
+width:300px;
+height:40px;
+font-size: 25px;//字体大小
+}
+.msg_item{
+width:300px;
+height:40px;
+color: red;
+}
+
+#control1{
+margin:10px 0px 0px 550px;
+}
+#msg_item1{
+margin:10px 0px 0px 550px;
+}
+#upload1{
+margin:50px 0px 0px 550px;
+}
+#msg_item2{
+margin:10px 0px 0px 550px;
+}
+#upload2{
+margin:50px 0px 0px 550px;
+}
+#download_control{
+margin:50px 0px 0px 550px;
+}
+#msg_item{
+margin:50px 0px 0px 550px;
+}
+</style>
+<body>
+<div class="item_control" id="control1">
+    <input type="text" placeholder="  文件重命名" class="input" autocomplete="off" name="text_input" id="text_input">
+</div>
+<div class="msg_item" id="msg_item1"><span>这里测试同时上传文件和数据，注意，如果要上传数据则要先将数据写入再上传文件</span></div>
+<div class="item_upload" id="upload1">
+    <input type="file" name="file" id="files1" onchange="upload(event);">
+</div>
+<div class="msg_item" id="msg_item2"><span>组件file的风格不好用于布局，这里用一个button组件将file覆盖，并在点击button后跳转file功能并自动上传</span></div>
+<div class="item_upload" id="upload2">
+    <input type="file" name="file" id="files2" style="display:none" onchange="upload(event);">
+    <input type="button" value="上传文件2" id="import2" class="upload">
+</div>
+<div class="download_item" id="download_control">
+
+</div>
+</body>
+<!--导入本地js文件，jquery与axios-->
+<script src="../../JavaScript/jquery-3.0.0.min.js"></script>
+<!--axios：用于ajax请求-->
+<script src="../../JavaScript/axios.min.js"></script>
+<script>
+
+    //jq语法，id为import2的button按钮被点击后设置id为files2的组件触发上传操作。
+    $("#import2").click(function(){//点击按钮，使files触发点击事件，然后完成读取文件的操作。
+        $("#files2").click();
+    });
+
+    //onchange：在元素被改变时触发，这里在选择完文件后被触发。
+    //参考网站：https://www.cnblogs.com/Renyi-Fan/p/9581951.html
+    function upload(event){
+    var filename = event.target.files[0]['name'];
+    var change_name = document.getElementById("text_input").value;
+    if (confirm("是否上传"+ filename)){                       //弹框选择，可自定义弹框内容
+    var formData = new FormData();                          //表单对象，用过append添加数据
+    formData.append("myfile", event.target.files[0]);
+    formData.append("change_name", change_name)             //同时上传数据与文件
+    $.ajax({
+    headers:{Accept: "application/json; charset=utf-8"},    //请求头
+    type: 'POST',                                           //请求类型
+    url: '/test/upload_test',                               //请求路由
+    dataType: 'json',                                       //请求返回数据类型
+    data: formData,                                         //请求数据类型
+    cache: false,                                           //上传文件无需缓存
+    processData: false,                                     //用于对data参数进行序列化处理，必须false才会避开jQuery对 formdata 的默认处理
+    contentType: false,                                     //必须false才会自动加上正确的Content-Type
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+    download_excl(msg['data']['filename'], msg['data']['file'], msg['data']['download_name'])
+    }
+    if (msg['msg'] == 'error'){
+    alert('上传失败');
+    }
+    document.getElementById("text_input").value = '';
+    },
+
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+    }
+
+
+    //filename：文件下载名称，file：文件下载路径，download_name：下载按钮名称
+    function download_excl(filename, file, download_name){
+    document.getElementById("download_control").innerHTML = '';
+    var str = "<a href="+ file +" download="+ filename +">"+ download_name +"</a>";
+    document.getElementById("download_control").innerHTML = str;
+    }
+</script>
+</html>

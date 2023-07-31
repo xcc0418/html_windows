@@ -2,7 +2,6 @@ import openpyxl
 import requests
 import pymysql
 import json
-# import datetime
 import hashlib
 import urllib
 import base64
@@ -11,7 +10,6 @@ import zipfile
 import time
 import os
 from datetime import datetime
-import pandas as pd
 import string_html
 
 
@@ -181,6 +179,7 @@ class Quantity(object):
         self.connection.commit()
         self.sql_close()
 
+    # 本地父体与亚马逊父体数据来源：erp上listing表格与库存明细表格
     def download_asin(self):
         self.sql()
         sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'downloads'"
@@ -255,6 +254,7 @@ class Quantity(object):
         self.connection.commit()
         self.sql_close()
 
+    # 下载listing表格，由于erp生成表格的时间较慢，这里需等待四到五分钟再下载
     def download1(self, auth_token):
         try:
             url = "https://gw.lingxingerp.com/listing-api/api/product/exportOnline"
@@ -358,30 +358,36 @@ class Quantity(object):
             print(e)
             return False
 
+    # 获取listing表格数据
     def write_asin(self, report):
         file = zipfile.ZipFile('D:/listing/listing.zip')
         file.extractall('D:/listing/')
         file.close()
         time_data = datetime.now().strftime("%Y%m%d")
         filename = f"D:/listing/listing{time_data}-{report}.xlsx"
+        # 保存父ASIN对应的FBA库存数据，字典结构：{父ASIN：{SKU：{店铺：[[FNSKU1, ...]]}}}
         dict_asin = {}
+        # 保存SKU对应的FBA数据，字典结构：{SKU：{店铺：[[FNSKU1, ...]]}}
         dict_sku = {}
+        # 保存父ASIN对应的ASIN数据
         dict_asin_son = {}
         wb = openpyxl.load_workbook(filename)
         wb_sheet = wb.active
         max_row = wb_sheet.max_row
         column1 = wb_sheet.max_column
         list_heard = []
+        # 获取listing表格头，判断表格是否有更改，防止数错误
         for i in range(1, column1 + 1):
             heard = wb_sheet.cell(row=1, column=i).value
             if heard:
                 list_heard.append(heard)
-        list_header_html = ['父ASIN', 'SKU', 'ASIN', '店铺', 'FNSKU', 'FBA可售', 'FBA待调仓', 'FBA调仓中', 'FBA在途', '30日销量', '7日销量' ,'14日销量', '创建时间']
+        list_header_html = ['父ASIN', 'SKU', 'ASIN', '店铺', 'FNSKU', 'FBA可售', 'FBA待调仓', 'FBA调仓中', 'FBA在途', '30日销量', '7日销量', '14日销量', '创建时间']
         for i in list_header_html:
             if i in list_heard:
                 continue
             else:
                 return False
+        # 通过表格头获取需求数据
         for i in range(2, max_row+1):
             asin = wb_sheet.cell(row=i, column=(list_heard.index('父ASIN') + 1)).value
             sku = wb_sheet.cell(row=i, column=(list_heard.index('SKU') + 1)).value
@@ -418,6 +424,7 @@ class Quantity(object):
                         dict_asin_son[asin].append(asin_son)
                 else:
                     dict_asin_son[asin] = [asin_son]
+        # 将字典保存生成JSON文件
         str_json = json.dumps(dict_asin)
         sku_json = json.dumps(dict_sku)
         asin_son_json = json.dumps(dict_asin_son)
@@ -435,9 +442,12 @@ class Quantity(object):
         # print(len(dict_asin))
         self.asin_json(dict_asin, dict_order)
 
+    # 获取库存明细表格数据
     def write_order(self):
         filename = f"D:/listing/库存明细_仓库库存.xlsx"
+        # 保存每个SKU的库存数据
         dict_order = {}
+        # 保存每个SKU对应FNSKU的库存数据
         dict_fnsku = {}
         wb = openpyxl.load_workbook(filename)
         wb_sheet = wb.active
@@ -486,7 +496,9 @@ class Quantity(object):
         f2.write(fnsku_json)
         return dict_order
 
+    # 将从erp上获取的数据与本地父体关联数据结合，生成本地父体数据
     def parent_json(self, dict_sku, dict_order):
+        # 将本地父体、本地品名、SKU生成字典
         self.sql()
         sql = "select * from `amazon_form`.`male_parent`"
         self.cursor.execute(sql)
@@ -524,7 +536,8 @@ class Quantity(object):
                 else:
                     dict_parent_new[i][dict_parent[i][j]] = [j]
         # print(len(dict_parent_new))
-        # print(dict_sku['[CB]322-COMBO'])
+        # i：本地父体，p：本地品名，j：sku，dict_sku：SKU对应的FBA数据，字典结构：{SKU：{店铺：[[FNSKU1, ...]]}}
+        # k：店铺，dict_male：生成的本地父体详情，字典结构：{本地父体：{店铺：{本地品名：{}}}}，dict_order：SKU对应的库存明细数据。
         for i in dict_parent_new:
             for p in dict_parent_new[i]:
                 for j in dict_parent_new[i][p]:
@@ -564,6 +577,7 @@ class Quantity(object):
     def asin_json(self, dict_asin, dict_order):
         dict_amazon = {}
         dict_sku = {}
+        # 获取SKU对应的本地品名详情
         self.sql()
         sql = "select * from `amazon_form`.`male_sku`"
         self.cursor.execute(sql)
@@ -571,6 +585,9 @@ class Quantity(object):
         self.sql_close()
         for i in result:
             dict_sku[i['SKU']] = i['本地品名']
+        # i：父ASIN，dict_asin：父ASIN对应FBA库存信息，字典结构：{父ASIN：{SKU：{店铺：[[FNSKU1, ...]]}}}。
+        # dict_amazon：保存亚马逊父体详情，字典结构：{亚马逊父体：{店铺：{本地品名：{}}}}，dict_order：SKU对应的库存明细数据。
+        # j：SKU，local_sku：本地品名，k：店铺，dict_order：SKU对应的库存明细数据。
         for i in dict_asin:
             dict_amazon[i] = {}
             for j in dict_asin[i]:
@@ -610,6 +627,7 @@ class Quantity(object):
         f1 = open('./static/json/dict_amazon.json', 'w')
         f1.write(dict_amazon_json)
 
+    # 根据本地父体，店铺已经列表头，获取本地父体详情
     def get_male_msg(self, parent, shop, list_header):
         f = open('./static/json/dict_male.json', 'r')
         dict_parent = json.load(f)
@@ -644,7 +662,7 @@ class Quantity(object):
 
     def update_json(self):
         try:
-            print("更新本地父体数据")
+            # print("更新本地父体数据")
             f1 = open('./static/json/sku_info.json', 'r')
             dict_sku = json.load(f1)
             # f2 = open('./static/json/asin_info.json', 'r')
@@ -658,6 +676,7 @@ class Quantity(object):
             print(e)
             return False, str(e)
 
+    # 保存父ASIN详情并删除超过30的文件
     def read_json(self, asin_son_json):
         time_now = datetime.now().strftime('%Y%m%d%H%M%S')
         f = open(f"./static/父ASIN详情/asin_son_info-{time_now}.json", 'w')
@@ -683,6 +702,7 @@ class Quantity(object):
             if file_day >= 30:
                 os.remove(path)
 
+    # 根据列表头将本地父体数据从表格数据中分离出来
     def get_list_parent(self, list_data, length):
         list_parent = []
         for i in range(1, len(list_data)):
@@ -703,8 +723,11 @@ class Quantity(object):
                 list_amazon.append(list_col)
         return list_amazon
 
+    # 网页表格字符串拼接，list_parent：本地父体数据，list_amazon：亚马逊父体数据，list_header：表格头列表，
+    # parent_asin：本地父体，amazon_asin：亚马逊父体，back_ground：判断生成网页表格时是否进行FBA库存比较。
     def string_splicing(self, list_parent, list_amazon, list_header, parent_asin, amazon_asin, back_ground=None):
         if list_parent and list_amazon:
+            # 获取本地父体与亚马逊父体的长度，取较小值，如果是对比、排序则长度一致
             if len(list_amazon) < len(list_parent):
                 length = len(list_amazon)
             else:
@@ -719,14 +742,18 @@ class Quantity(object):
             for i in list_header:
                 str_header_col = string_html.str_header_html3(i, amazon_asin)
                 str_header4 += str_header_col
+            # 表格头字符串
             str_header = f'<tr class="list_control_header">{str_header1}{str_header3}{str_header2}{str_header4}</tr>'
             str_control = ''
+            # 获取FBA库存数据所在位置
             index = list_header.index('FBA库存') + 2
             for i in range(0, length):
                 background = ''
                 if back_ground:
+                    # 判断表格内容是否有FBA库存数据
                     if list_parent[i][index].isdigit() and list_amazon[i][index].isdigit():
-                        if int(list_parent[i][index]) > int(list_amazon[i][index]) and int(list_amazon[i][index]) <= 2:
+                        # 判断是否条件，本地父体FBA库存大于亚马逊父体FBA库存且亚马逊父体FBA库存小于3
+                        if int(list_parent[i][index]) > int(list_amazon[i][index]) and int(list_amazon[i][index]) <= 2 and list_parent[i][1] == list_amazon[i][1]:
                             background = 'list_control6'
                 str_control_col1 = string_html.str_content_html(i+1, "list_control4", background)
                 for j in range(0, len(list_parent[i])):
@@ -748,6 +775,7 @@ class Quantity(object):
                 str_control_tr = f'<tr class="list_control_tr">{str_control_col1}</tr>'
                 str_control += str_control_tr
             str_control2 = ''
+            # 超出内容再拼接，数据长度小的以。。。带替。
             if len(list_amazon) != len(list_parent):
                 if length == len(list_parent):
                     for i in range(length, len(list_amazon)):
@@ -794,6 +822,7 @@ class Quantity(object):
             str_html = str_header + str_control + str_control2
             return str_html
         else:
+            # 生成亚马逊父体数据表格
             if list_amazon:
                 str_header1 = string_html.str_header_html1()
                 str_header2 = string_html.str_header_html2()
@@ -829,6 +858,7 @@ class Quantity(object):
                     str_control += str_control_tr
                 str_html = str_header + str_control
                 return str_html
+            # 生成本地父体数据表格
             else:
                 str_header1 = string_html.str_header_html1()
                 str_header2 = string_html.str_header_html2()
@@ -865,6 +895,7 @@ class Quantity(object):
                 str_html = str_header + str_control
                 return str_html
 
+    # 获取用户保存在数据库的列表头信息，如果没有则新增默认信息并返回
     def get_list_header(self, username):
         self.sql()
         sql = "select * from `amazon_form`.`user_headers` where `账号` = '%s'" % username
@@ -884,6 +915,7 @@ class Quantity(object):
             self.sql_close()
             return list_header
 
+    # 修改用户保存在数据库的列表头信息
     def change_list_header(self, username, list_header):
         str_header = '.'.join(list_header)
         sql = "update `amazon_form`.`user_headers` set `list_header` = '%s' where `账号` = '%s'" % (str_header, username)
@@ -897,6 +929,7 @@ class Quantity(object):
             print(e)
             return False, str(e)
 
+    # 获取本地父体绑定的亚马逊父体
     def amazon_parent(self, male_parent):
         self.sql()
         sql = "select * from `amazon_form`.`male_amazon` where `本地父体` = '%s'" % male_parent
@@ -911,12 +944,14 @@ class Quantity(object):
         else:
             return False
 
+    # 父体数据对比
     def contrast_parent(self, list1, list2):
         # print(list2)
         dict1 = {}
         dict2 = {}
         list_male = []
         list_asin = []
+        # 过滤列表头以及无用行，以本地品名为索引保存到字典
         for i in list1:
             if i[1]:
                 if i[1] == '本地品名':
@@ -932,6 +967,7 @@ class Quantity(object):
                     continue
                 dict2[i[1]] = i
         list_sku = []
+        # 判断本地索引，并将相同的索引对应的值分别写入到新的列表里
         for i in dict1:
             if i in dict2:
                 list_i_1 = [dict2[i][0]]
@@ -944,11 +980,13 @@ class Quantity(object):
                 list_asin.append(list_i_2)
         # print(list_sku)
         # print(list_male)
+        # 表格以 。。。 为区分
         list_null = []
         for i in range(0, len(list1[0])):
             list_null.append('...')
         list_male.append(list_null)
         list_asin.append(list_null)
+        # 将字典里剩下数据写入列表。['相同本地品名', '相同本地品名', ..., '。。。', '不同本地品名']
         for i in dict1:
             if i in list_sku:
                 continue
@@ -967,6 +1005,7 @@ class Quantity(object):
                 list_asin.append(list_i)
         return list_male, list_asin
 
+    # 获取本地品名相关数据
     def windows_msg(self, sku, asin, country):
         if asin.find('B0') >= 0:
             list_sku = self.get_male_sku(sku)
@@ -1349,17 +1388,4 @@ if __name__ == '__main__':
     quantity = Quantity()
     # quantity.get_json()
     quantity.download_asin()
-    # str_header = "FBA库存.FBA在途.本地库存.预计库存.30天销量"
-    # list_header = str_header.split('.')
-    # quantity.get_male_msg('KPW5黑色壳子款父体', 'CoBak_US', list_header)
-    # quantity.update_json()
-    # quantity.write_asin('525688927394889728')
-    # quantity.write_order()
-    # quantity.find_parent_sku([['0'], ['Fire10父体']], [['0'], ['B0BRRTKF11']], 'Fire8')
-    # quantity.read_json()
-    # quantity.write_asin('527448560848609280')
-    # quantity.write_order()
-    # quantity.find_excl('B0C3J7MCNW')
-    # quantity.windows_msg('K22-壳子款-玻纤板-十字纹-黑色', 'B0C3J7MCNW')
-    # quantity.sql_parent_test()
 

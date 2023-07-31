@@ -1,14 +1,16 @@
+# 参考网站：https://flask.net.cn/
+# Flask程序主体。
+# 在新增的网页功能需要进行前后端数据交互是，要在这定义一个路由（类似 @app.route('/packing_page/pa_msg', methods=["POST"])），
+# 再在前端用这个路由当发起请求的url，使后端程序能根据前端请求信息中的路由执行这个路由下的函数。
+# 每个请求都要有返回内容，也就是说每个路由下的函数都要给前端返回数据。如果前端使用 ajax 进行前后端交互，则需返回一个json数据。
+
+
 import datetime
 from flask import Flask, render_template, request
-import pymysql
 import os
 import requests
 import json
 import time
-from reportlab.pdfgen import canvas
-import barcode
-from PIL import Image, ImageDraw, ImageFont
-from barcode.writer import ImageWriter
 import global_var
 import search
 import shipment
@@ -20,18 +22,17 @@ import upload_image
 from flask import session
 from concurrent.futures import ThreadPoolExecutor
 import permanent_store
+import pack_box
+import project_test
 
+# 线程池
 executor = ThreadPoolExecutor(10)
-# from flask.ext.login import LoginManger, login_required
 
+# 设置网页起始文件夹
 app = Flask(__name__, template_folder='./static/templates')
-# app.secret_key = 'Cobak'
-# login_manager = LoginManger()
-# login_manager.session_protection = 'strong'
-# login_manager.login_view = 'auth.login'
-# login_manager.init_app(app)
+# 设置用户登录信息保存时间
 app.permanent_session_lifetime = datetime.timedelta(seconds=60*60*24)
-app.config['UPLOAD_FOLDER'] = 'F:/html_windows/static/FNSKU装箱信息'
+app.config['UPLOAD_FOLDER'] = 'D:/html_windows/static/FNSKU装箱信息'
 app.config['SECRET_KEY'] = 'Cobak'
 
 
@@ -41,80 +42,7 @@ def after_request(resp):
     return resp
 
 
-def func(sql, m='r'):
-    py = pymysql.connect(host='3354n8l084.goho.co', user='test_user', password='a123456', port=24824, db='storage')
-    cursor = py.cursor()
-    data = None
-    # print(sql)
-    try:
-        cursor.execute(sql)
-        if m == 'r':
-            data = cursor.fetchall()
-        elif m == 'w':
-            py.commit()
-            data = cursor.rowcount
-    except:
-        data = False
-        py.rollback()
-    py.close()
-    return data
-
-
-def save_pdf(fnsku, pa_name, num, name, supplier):
-    enc = barcode.get_barcode_class('code128')
-    # 生成条形码
-    encoder = enc(pa_name, writer=ImageWriter())
-    encoder.save("./static/图片/photo/{name}".format(name=pa_name), {'format': 'PNG', 'font_size': 40, 'dpi': 600})
-    os.makedirs(f"./static/图片/{pa_name}")
-    jpg_path = './static/图片/photo/{name}.png'.format(name=pa_name)
-    pdf_path = './static/图片/{pa}/{name}.pdf'.format(pa=pa_name, name=pa_name)
-    # 向条形码图片中写入内容
-    # img = Image.new('RGB', (378, 567), (255, 255, 255)),'module_width': 0.1, 'module_height': 7
-    img = Image.new('RGB', (756, 1134), (255, 255, 255))
-    pyq = Image.open(jpg_path)
-    img.paste(pyq, (0, 584))
-    draw = ImageDraw.Draw(img)
-    i = 1
-    j = 0
-    font = ImageFont.truetype ("simhei.ttf", 40, encoding="unic")  # 设置字体
-    # 将品名和个数依次写入图片中
-    text_data = name
-    if len(text_data) > 17 and len(text_data) < 36:
-        draw.text((20, 550 - i * 36 - 46), u'{text}'.format(text=text_data[0:18]), 'black', font)
-        draw.text((20, 550 - i * 36), u'{text}'.format(text=text_data[18:]), 'black', font)
-        draw.text((20, 550 - i * 36 + 46), u'{text}'.format(text=fnsku), 'black', font)
-        draw.text((300, 550 - i * 36 + 46), u'{text}'.format(text=num), 'black', font)
-        draw.text((400, 550 - i * 36 + 46), u'{text}'.format(text=supplier), 'black', font)
-        i += 4
-        j += 1
-    elif len(text_data) >= 36:
-        draw.text((20, 550 - i * 36 - 92), u'{text}'.format(text=text_data[0:18]), 'black', font)
-        draw.text((20, 550 - i * 36 - 46), u'{text}'.format(text=text_data[18:36]), 'black', font)
-        draw.text((20, 550 - i * 36), u'{text}'.format(text=text_data[36:]), 'black', font)
-        draw.text((20, 550 - i * 36 + 46), u'{text}'.format(text=fnsku), 'black', font)
-        draw.text((300, 550 - i * 36 + 46), u'{text}'.format(text=num), 'black', font)
-        draw.text((400, 550 - i * 36 + 46), u'{text}'.format(text=supplier), 'black', font)
-        i += 4
-        j += 2
-    else:
-        draw.text((20, 550 - i * 36), u'{text}'.format(text=text_data), 'black', font)
-        draw.text((20, 550 - i * 36 + 46), u'{text}'.format(text=fnsku), 'black', font)
-        draw.text((300, 550 - i * 36 + 46), u'{text}'.format(text=num), 'black', font)
-        draw.text((400, 550 - i * 36 + 46), u'{text}'.format(text=supplier), 'black', font)
-        i += 3
-        j += 1
-    img.save(jpg_path, 'JPEG', quality=100)
-    jpg_to_pdf(jpg_path, pdf_path)
-    path = f'../图片/{pa_name}/{pa_name}.pdf'
-    return path
-
-
-def jpg_to_pdf(jpg, pdf_path):
-    (w, h) = Image.open(jpg).size
-    user = canvas.Canvas(pdf_path, pagesize=(w, h))
-    user.drawImage(jpg, 0, 0, w, h)
-    user.showPage()
-    user.save()
+app.after_request(after_request)
 
 
 # 请求拦截器，对未登录的链接进行拦截，防止非法访问
@@ -130,15 +58,20 @@ def before_user():
         return render_template('login.html')
 
 
+# @app.route()：装饰器，设置需要哪个路由来触发它下面的函数。
+#  methods：设置允许接收的请求类型
+
+# 网页默认页面设置为登页页面
 @app.route('/', methods=["POST", "GET"])
 def index():
     if request.method == 'GET':
         return render_template('login.html')
 
 
+# 登录路由，网站使用ASINKING的账号密码，所以这里模拟登录ASINKING验证登录信息
 @app.route('/login', methods=["POST"])
 def upload_asinking():
-    dict_data = dict(request.form)
+    dict_data = json.loads(request.form['data'])
     print(dict_data)
     username = dict_data['username']
     password = dict_data['password']
@@ -178,43 +111,43 @@ def upload_asinking():
     if r3 == '操作成功' or r3 == '登录成功':
         session['username'] = username
         session.permanent = True
-        return '<script>alert("登录成功");location.href="/home_page";</script>'
+        return json.dumps({'msg': 'success'})
     else:
-        return '<script>alert("登录失败");location.href="/";</script>'
+        return json.dumps({'msg': 'error'})
 
 
+# 跳转主页面
 @app.route('/home_page')
 def page():
     return render_template('home_Page.html')
 
 
-@app.route('/pa_msg',methods=["POST"])
+@app.route('/packing_page/pa_msg', methods=["POST"])
 def pa_msg():
     if request.method == 'POST':
         dict_data = json.loads(request.form['data'])
-        print(dict_data)
         pa_name = dict_data['pa_name']
         if pa_name:
-            data = func("select * from `storage`.`warehouse` where `箱号` = '%s'" % pa_name)
-            if data:
-                name = func("SELECT `品名` FROM `data_read`.`listing` where `FNSKU`='%s'" % data[0][1])
-                list_pa = {'msg': 'success', 'data': {'箱号': data[0][0], 'fnsku': data[0][1], '品名': name[0][0], '装箱数量': data[0][2], '装箱状态': data[0][11]}}
+            # 实例化pack_box.py中的Pack_Box类
+            pack = pack_box.Pack_Box()
+            msg, message = pack.find_pa(pa_name)
+            if msg:
+                return json.dumps({'msg': 'success', 'data': message})
             else:
-                list_pa = {'msg': 'error', 'data': f"{pa_name}, 请检查输入是否正确"}
+                return json.dumps({'msg': 'error', 'message': message})
         else:
-            list_pa = {'msg': 'error', 'data': '请先输入箱号'}
-        return json.dumps(list_pa)
+            return json.dumps({'msg': 'error', 'data': '请先输入箱号'})
     else:
         return json.dumps({'msg': 'error'})
 
 
-@app.route('/packing/del_pa',methods=["POST"])
+@app.route('/packing_page/del_pa',methods=["POST"])
 def del_pa():
     if request.method == 'POST':
         dict_data = json.loads(request.form['data'])
         pa_name = dict_data['pa_name']
         if pa_name:
-            quantity_msg = search.Quantity()
+            quantity_msg = pack_box.Pack_Box()
             msg, message = quantity_msg.delect_box(pa_name)
             if msg:
                 return json.dumps({'msg': 'success', 'data': message})
@@ -226,34 +159,32 @@ def del_pa():
         return json.dumps({'msg': 'error'})
 
 
-@app.route('/get_pa', methods=["GET"])
+@app.route('/packing_page/get_pa', methods=["GET"])
 def get_pa():
     if request.method == 'GET':
-        global_var.fnsku = None
-        global_var.num = 0
+        # 箱号格式：PA + 当前时间(精确到秒)
         time_now = time.strftime("%y%m%d%H%M%S", time.localtime())
         pa_name = f"PA{time_now}"
-        # global_var.pa_name = pa_name
-        dict_pa_name = {'success': pa_name}
+        dict_pa_name = {'msg': 'success', 'pa_name': pa_name}
         return json.dumps(dict_pa_name)
     else:
-        return json.dumps ({'msg': 'error'})
+        return json.dumps({'msg': 'error'})
 
 
-@app.route('/get_fnsku', methods=["POST"])
+@app.route('/packing_page/get_fnsku', methods=["POST"])
 def get_fnsku():
     if request.method == 'POST':
         dict_data = json.loads(request.form['data'])
-        print(dict_data)
-        if dict_data:
-            fnsku_value = dict_data['fnsku_value'].strip()
+        fnsku_value = dict_data['fnsku_value'].strip()
+        if fnsku_value:
             pa_name = dict_data['pa_name']
             if pa_name and len(pa_name) == 14:
-                name = func("SELECT `品名` FROM `data_read`.`listing` where `FNSKU`='%s'" % fnsku_value)
-                if name:
-                    fnsku_msg = {'msg': 'success', 'data': {'fnsku': fnsku_value, '品名': name[0][0], '装箱数量': 1}}
+                quantity_msg = pack_box.Pack_Box()
+                msg, message = quantity_msg.get_name(fnsku_value)
+                if msg:
+                    fnsku_msg = {'msg': 'success', 'data': {'fnsku': fnsku_value, '品名': message, '装箱数量': 1}}
                 else:
-                    fnsku_msg = {'msg': 'error', 'data': '这个fnsku没找到，请检查'}
+                    fnsku_msg = {'msg': 'error', 'message': message}
                 return json.dumps(fnsku_msg)
             else:
                 fnsku_msg = {'msg': 'error', 'data': '请先获取箱号'}
@@ -265,42 +196,36 @@ def get_fnsku():
         return json.dumps ({'msg': 'error'})
 
 
-@app.route('/pack_pa', methods=["POST"])
+@app.route('/packing_page/pack_pa', methods=["POST"])
 def pack_pa():
     if request.method == 'POST':
         dict_data = json.loads(request.form['data'])
-        print(dict_data)
-        if dict_data:
-            pa_name = dict_data['pa_name']
-            fnsku = dict_data['fnsku']
-            num = int(dict_data['num'])
-            name = str(dict_data['name'])
-            sql1 = "SELECT `供应商` FROM `data_read`.`listing` where `FNSKU`='%s'" % fnsku
-            supplier = func(sql1)[0][0]
-            sql = "INSERT INTO `storage`.`warehouse`(`箱号`,`FNSKU1`,`数量1`,`状态`) VALUES ('%s','%s',%d,'%s')" % (
-            pa_name, fnsku, num, '已打包')
-            result = func(sql, m='w')
-            if result:
-                pdf_path = save_pdf(fnsku, pa_name, num, name, supplier)
-                msg = {'msg': 'success', 'data': {'filename': pdf_path}}
+        pa_name = dict_data['pa_name']
+        fnsku = dict_data['fnsku']
+        num = int(dict_data['num'])
+        name = str(dict_data['name'])
+        if pa_name and fnsku and name and num:
+            quantity_msg = pack_box.Pack_Box()
+            msg, message = quantity_msg.pack_pa(pa_name, fnsku, name,num)
+            if msg:
+                msg = {'msg': 'success', 'data': {'filename': message}}
             else:
-                msg = {'msg': 'error', 'data': '装箱失败'}
+                msg = {'msg': 'error', 'message': '装箱失败'}
         else:
-            msg = {'msg': 'error', 'data': '请先开始装箱操作'}
+            msg = {'msg': 'error', 'message': '请先开始装箱操作'}
         return json.dumps(msg)
     else:
-        return json.dumps ({'msg': 'error'})
+        return json.dumps({'msg': 'error'})
 
 
-@app.route('/search_msg', methods=["POST"])
+@app.route('/search/search_msg', methods=["POST"])
 def search_msg():
     if request.method == 'POST':
         dict_data = json.loads(request.form['data'])
-        if dict_data:
-            index = dict_data['index']
-            index_data = dict_data['index_data']
+        index = dict_data['index']
+        index_data = dict_data['index_data']
+        if index and index_data:
             # index_data = ['X0033WDOUV', 'X003H2NKFB']
-            print(index_data)
             search_msg = search.Quantity()
             result = search_msg.get_msg(index, index_data)
             if result:
@@ -324,52 +249,50 @@ def search_msg():
         return json.dumps ({'msg': 'error'})
 
 
-@app.route('/change_location', methods=["POST"])
+@app.route('/search/change_location', methods=["POST"])
 def change_location():
     if request.method == 'POST':
         dict_data = json.loads(request.form['data'])
-        print(dict_data)
-        if dict_data:
-            pa_name = dict_data['pa_name']
-            location = dict_data['location']
-            result = func("UPDATE `storage`.`warehouse` SET `存放位置` = '%s' WHERE `箱号` = '%s'" % (location, pa_name), 'w')
-            if result:
+        pa_name = dict_data['pa_name']
+        location = dict_data['location']
+        if pa_name and location:
+            search_msg = search.Quantity()
+            msg, message = search_msg.update_location(pa_name, location)
+            if msg:
                 msg = {'msg': "success"}
             else:
-                msg = {'msg': "error"}
+                msg = {'msg': "error", 'message': message}
             return json.dumps(msg)
         else:
-            return json.dumps({'msg': 'error'})
+            return json.dumps({'msg': 'error', 'message': '请先输入箱号和位置'})
     else:
         return json.dumps({'msg': 'error'})
 
 
-@app.route('/uploader', methods=["POST"])
+@app.route('/search/uploader', methods=["POST"])
 def uploader():
     if request.method == 'POST':
         filename = request.files['myfile']
-        print(filename)
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/FNSKU装箱信息/装箱信息{data_time}.xlsx'
+        path = f'D:/网页文件/FNSKU装箱信息/装箱信息{data_time}.xlsx'
         filename.save(os.path.join('UPLOAD_FOLDER', path))
         search_msg = search.Quantity()
         msg = search_msg.get_warehouse(filename)
-        if msg:
+        if msg[0]:
             return json.dumps({'msg': 'success', 'data': {'file': msg[0], 'filename': msg[1]}})
         else:
-            return json.dumps({'msg': 'error'})
+            return json.dumps({'msg': 'error', 'message': msg[1]})
     else:
-        return json.dumps ({'msg': 'error'})
+        return json.dumps({'msg': 'error'})
 
 
-@app.route('/get_order', methods=["POST"])
+@app.route('/shipment/get_order', methods=["POST"])
 def get_order():
     if request.method == 'POST':
         dict_data = json.loads(request.form['data'])
-        print(dict_data)
-        if dict_data:
-            index = dict_data['index']
-            order = dict_data['order'].strip()
+        index = dict_data['index']
+        order = dict_data['order'].strip()
+        if index and order:
             msg = shipment.get_order_msg(index, order)
             if msg:
                 return json.dumps({'msg': 'success', 'data': msg})
@@ -378,10 +301,10 @@ def get_order():
         else:
             return json.dumps({'msg': 'error', 'data': '请先输入要出库的物料'})
     else:
-        return json.dumps ({'msg': 'error'})
+        return json.dumps({'msg': 'error'})
 
 
-@app.route('/shipment_upload', methods=["POST"])
+@app.route('/shipment/shipment_upload', methods=["POST"])
 def shipment_upload():
     if request.method == 'POST':
         dict_data = json.loads(request.form['data'])
@@ -401,10 +324,10 @@ def shipment_upload():
         else:
             return json.dumps({'msg': 'error'})
     else:
-        return json.dumps ({'msg': 'error'})
+        return json.dumps({'msg': 'error'})
 
 
-@app.route('/shipment_put', methods=["POST"])
+@app.route('/order_put/shipment_put', methods=["POST"])
 def shipment_put():
     if request.method == 'POST':
         dict_data = json.loads(request.form['data'])
@@ -424,18 +347,16 @@ def shipment_put():
         else:
             return json.dumps({'msg': 'error'})
     else:
-        return json.dumps ({'msg': 'error'})
+        return json.dumps({'msg': 'error'})
 
 
-@app.route('/get_fba', methods=["POST"])
+@app.route('/FBA_shipment/get_fba', methods=["POST"])
 def get_fba():
     if request.method == 'POST':
         dict_data = json.loads(request.form['data'])
-        print(dict_data)
         if dict_data:
             msg = shipment.download_fab(dict_data['fba'], dict_data['box_num'])
             if msg[0]:
-                print(msg[1])
                 list_data, list_fnsku = shipment.read_excl()
                 return json.dumps({'msg': "success", 'data': list_data, 'data_fnsku': list_fnsku})
             else:
@@ -443,7 +364,7 @@ def get_fba():
         else:
             return json.dumps({'msg': 'error', 'data': '请先输入FBA货件单号'})
     else:
-        return json.dumps ({'msg': 'error'})
+        return json.dumps({'msg': 'error'})
 
 
 @app.route('/FBA_shipment/get_fnsku', methods=["POST"])
@@ -452,22 +373,22 @@ def get_shipment_fnsku():
         dict_data = json.loads(request.form['data'])
         index = dict_data['index'].strip()
         list_pa = dict_data['list_pa']
-        print(index)
         if len(index) == 10:
             return json.dumps({'msg': "success", 'data': {'fnsku': index, 'num': 1}})
         if len(index) == 14:
             if index in list_pa:
                 return json.dumps({'msg': 'error', 'data': f"这个{index}箱号已重复，请重试！"})
             else:
-                result = func(f"select `FNSKU1`, `数量1` from `storage`.`warehouse` where `箱号` = '{index}' and `状态` = '已打包'")
-                if result:
-                    return json.dumps({'msg': "success", 'data': {'fnsku': result[0][0], 'num': result[0][1]}})
+                quantity = shipment.Quantity()
+                msg1, msg2 = quantity.get_fnsku(index)
+                if msg1:
+                    return json.dumps({'msg': "success", 'data': {'fnsku': msg1, 'num': msg2}})
                 else:
                     return json.dumps({'msg': 'error', 'data': f"这个{index}箱号没找到，请重试！"})
         else:
             return json.dumps({'msg': 'error', 'data': f"{index}格式不正确，请检查输入是否正确！"})
     else:
-        return json.dumps ({'msg': 'error'})
+        return json.dumps({'msg': 'error'})
 
 
 @app.route('/FBA_shipment/save_table', methods=["POST"])
@@ -484,7 +405,7 @@ def save_table():
         else:
             return json.dumps({'msg': 'error', 'data': message})
     else:
-        return json.dumps ({'msg': 'error'})
+        return json.dumps({'msg': 'error'})
 
 
 @app.route('/FBA_shipment/shipment_order', methods=["POST"])
@@ -500,16 +421,15 @@ def shipment_order():
         else:
             return json.dumps({'msg': 'error', 'data': message})
     else:
-        return json.dumps ({'msg': 'error'})
+        return json.dumps({'msg': 'error'})
 
 
 @app.route('/FBA_shipment/upload_file', methods=["POST"])
 def upload_file():
     if request.method == 'POST':
         filename = request.files['myfile']
-        print(filename)
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/装箱信息单/装箱信息{data_time}.xlsx'
+        path = f'D:/网页文件/装箱信息单/装箱信息{data_time}.xlsx'
         filename.save(os.path.join('UPLOAD_FOLDER', path))
         list_data, fba_id, box_num, list_pa = shipment.read_upload_excl(path)
         return json.dumps({'msg': "success", 'data': {'list_data': list_data, 'list_pa': list_pa, 'fba_id': fba_id,
@@ -650,7 +570,7 @@ def uploader_sql():
         filename = request.files['myfile']
         print(filename)
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/生产日程表/生产日程表{data_time}.xlsx'
+        path = f'D:/网页文件/生产日程表/生产日程表{data_time}.xlsx'
         quantity = stores_requisition.Quantity()
         filename.save(os.path.join('UPLOAD_FOLDER', path))
         msg, message = quantity.upload_sql(path)
@@ -671,12 +591,12 @@ def get_msku():
         sku = dict_data['sku'].strip()
         country = dict_data['country'].strip()
         supplier = dict_data['supplier'].strip()
-        num = int(dict_data['num'].strip())
+        num = dict_data['num'].strip()
         msku = dict_data['msku'].strip()
         if sku and country and supplier and num and msku:
             if len(msku) <= 23:
                 quantity = create_msku.Quantity()
-                msg, message = quantity.create_msku(sku, country, supplier, num, msku)
+                msg, message = quantity.create_msku(sku, country, supplier, int(num), msku)
                 if msg:
                     return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
                 else:
@@ -698,7 +618,7 @@ def uploader_msku():
         filename = request.files['myfile']
         # print(filename)
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/MSKU生成/MSKU生成{data_time}.xlsx'
+        path = f'D:/网页文件/MSKU生成/MSKU生成{data_time}.xlsx'
         quantity = create_msku.Quantity()
         filename.save(os.path.join('UPLOAD_FOLDER', path))
         msg, message = quantity.upload_excl(path)
@@ -763,7 +683,7 @@ def upload_fnsku():
         filename = request.files['myfile']
         # print(filename)
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/FNSKU获取/FNSKU获取{data_time}.xlsx'
+        path = f'D:/网页文件/FNSKU获取/FNSKU获取{data_time}.xlsx'
         quantity = create_msku.Quantity()
         filename.save(os.path.join('UPLOAD_FOLDER', path))
         msg, message = quantity.read_excl(path)
@@ -785,7 +705,7 @@ def upload_warehouse():
         print(filename, warehouse)
         if warehouse:
             data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-            path = f'D:/换标调整/换标调整{data_time}.xlsx'
+            path = f'D:/网页文件/换标调整/换标调整{data_time}.xlsx'
             quantity = create_msku.Quantity()
             filename.save(os.path.join('UPLOAD_FOLDER', path))
             msg, message = quantity.change_fnsku(path, warehouse)
@@ -844,13 +764,15 @@ def pair():
 def upload_pair():
     if request.method == "POST":
         filename = request.files['myfile']
-        # print(filename)
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/批量配对/批量配对{data_time}.xlsx'
+        path = f'D:/网页文件/批量配对/批量配对{data_time}.xlsx'
         quantity = create_msku.Quantity()
         filename.save(os.path.join('UPLOAD_FOLDER', path))
         msg, message = quantity.batch_pair(path)
-        return json.dumps({'msg': "success", 'data': {"file": msg, "filename": message}})
+        if msg:
+            return json.dumps({'msg': "success", 'data': {"file": message[0], "filename": message[1]}})
+        else:
+            return json.dumps({'msg': "error", 'data': {"file": message[0], "filename": message[1]}})
     else:
         return json.dumps({'msg': 'error'})
 
@@ -866,7 +788,7 @@ def get_pair_msg():
             filename = request.files['myfile']
             # print(filename)
             data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-            path = f'D:/批量配对/批量配对{data_time}.xlsx'
+            path = f'D:/网页文件/批量配对/批量配对{data_time}.xlsx'
             quantity = create_msku.Quantity()
             filename.save(os.path.join('UPLOAD_FOLDER', path))
             msg, message = quantity.get_pair_msg(path)
@@ -957,8 +879,6 @@ def local_function():
                 sku = dict_data['sku']
                 if sku:
                     msg, message = quantity.relieve_sku(parent.strip(), sku.strip())
-                    if msg:
-                        quantity.add_image_msg([[sku.strip(), parent.strip()]])
                 else:
                     msg, message = False, "请先输入SKU"
             elif index == "创建品名":
@@ -998,29 +918,29 @@ def upload_male():
         index = request.form['index']
         msg, message = '', ''
         if index == "关联":
-            path = f'D:/本地父体/本地父体关联{data_time}.xlsx'
+            path = f'D:/网页文件/本地父体/本地父体关联{data_time}.xlsx'
             filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
             msg, message = quantity.upload_parent(path)
         elif index == "解除关联":
-            path = f'D:/本地父体/本地父体解除关联{data_time}.xlsx'
+            path = f'D:/网页文件/本地父体/本地父体解除关联{data_time}.xlsx'
             filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
             msg, message = quantity.upload_relieve_male(path)
         elif index == "创建父体":
-            path = f'D:/本地父体/本地父体新增{data_time}.xlsx'
+            path = f'D:/网页文件/本地父体/本地父体新增{data_time}.xlsx'
             filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
             msg, message = quantity.upload_male(path)
         elif index == "创建父体并关联":
-            path = f'D:/本地父体/本地父体新增并关联{data_time}.xlsx'
+            path = f'D:/网页文件/本地父体/本地父体新增并关联{data_time}.xlsx'
             filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
             msg, message = quantity.upload_male(path)
             if msg:
                 msg, message = quantity.upload_parent(path)
         elif index == "删除":
-            path = f'D:/本地父体/本地父体删除{data_time}.xlsx'
+            path = f'D:/网页文件/本地父体/本地父体删除{data_time}.xlsx'
             filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
             msg = quantity.upload_delete_male(path)
@@ -1045,29 +965,29 @@ def upload_sku():
         index = request.form['index']
         msg, message = '', ''
         if index == "关联":
-            path = f'D:/本地品名/本地品名关联{data_time}.xlsx'
+            path = f'D:/网页文件/本地品名/本地品名关联{data_time}.xlsx'
             filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
             msg, message = quantity.upload_name(path)
         elif index == "解除关联":
-            path = f'D:/本地品名/本地品名解除关联{data_time}.xlsx'
+            path = f'D:/网页文件/本地品名/本地品名解除关联{data_time}.xlsx'
             filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
             msg, message = quantity.upload_relieve_sku(path)
         elif index == "创建品名":
-            path = f'D:/本地品名/本地品名新增{data_time}.xlsx'
+            path = f'D:/网页文件/本地品名/本地品名新增{data_time}.xlsx'
             filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
             msg, message = quantity.upload_sku(path)
         elif index == "创建品名并关联":
-            path = f'D:/本地品名/本地品名新增并关联{data_time}.xlsx'
+            path = f'D:/网页文件/本地品名/本地品名新增并关联{data_time}.xlsx'
             filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
             msg, message = quantity.upload_sku(path)
             if msg:
                 msg, message = quantity.upload_name(path)
         elif index == "删除":
-            path = f'D:/本地品名/本地品名删除{data_time}.xlsx'
+            path = f'D:/网页文件/本地品名/本地品名删除{data_time}.xlsx'
             filename.save(os.path.join('UPLOAD_FOLDER', path))
             quantity = male_parent.Quantity()
             msg = quantity.upload_delete_sku(path)
@@ -1308,7 +1228,7 @@ def update_male_message():
 def find_list_asin():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
-        asin = dict_data['asin']
+        asin = dict_data['asin'].strip()
         if asin.find('*') >= 0:
             asin = asin[1:]
         country = dict_data['country']
@@ -1344,7 +1264,7 @@ def find_list_asin():
 def find_asin_parent():
     if request.method == "POST":
         dict_data = json.loads(request.form['data'])
-        asin = dict_data['asin']
+        asin = dict_data['asin'].strip()
         if asin.find('*') >= 0:
             asin = asin[1:]
         country = dict_data['country']
@@ -1760,7 +1680,7 @@ def upload_add():
         filename = request.files['myfile']
         # print(filename)
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/工厂常备物料/工厂常备物料新增{data_time}.xlsx'
+        path = f'D:/网页文件/工厂常备物料/工厂常备物料新增{data_time}.xlsx'
         quantity = permanent_store.Quantity()
         filename.save(os.path.join('UPLOAD_FOLDER', path))
         file, filename, download_name, message = quantity.upload_add_common_supplier(path)
@@ -1793,7 +1713,7 @@ def upload_delete():
         filename = request.files['myfile']
         # print(filename)
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/工厂常备物料/工厂常备物料删除{data_time}.xlsx'
+        path = f'D:/网页文件/工厂常备物料/工厂常备物料删除{data_time}.xlsx'
         quantity = permanent_store.Quantity()
         filename.save(os.path.join('UPLOAD_FOLDER', path))
         file, filename, download_name, message = quantity.upload_delete_common_supplier(path)
@@ -1826,7 +1746,7 @@ def upload_update():
         filename = request.files['myfile']
         # print(filename)
         data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
-        path = f'D:/工厂常备物料/工厂常备物料修改{data_time}.xlsx'
+        path = f'D:/网页文件/工厂常备物料/工厂常备物料修改{data_time}.xlsx'
         quantity = permanent_store.Quantity()
         filename.save(os.path.join('UPLOAD_FOLDER', path))
         file, filename, download_name, message = quantity.upload_update_common_supplier(path)
@@ -1835,7 +1755,44 @@ def upload_update():
         return json.dumps({'msg': 'error'})
 
 
+# 测试路由
+# 文件上传测试，这里测试xlsx文件
+@app.route('/test/upload_test', methods=["POST"])
+def upload_test():
+    if request.method == "POST":
+        filename = request.files['myfile']#接收请求文件数据
+        # print(filename)
+        data_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        path = f'F:/html_windows/static/测试文件/文件上传测试{data_time}.xlsx'
+        filename.save(os.path.join('UPLOAD_FOLDER', path))
+        change_name = request.form['change_name']  # 请求数据是formData表单，不用进行json格式转换
+        if change_name:
+            quantity = project_test.Quantity()
+            file, filename, download_name = quantity.change_file_name(path, change_name, data_time)
+        else:
+            # 文件下载路径使用html文件的相对路径且文件需存放下网页静态文件夹下，浏览器没有权限访问其他文件夹
+            file = f'../../../static/测试文件/文件上传测试{data_time}.xlsx'
+            filename = f'文件上传测试{data_time}.xlsx'
+            download_name = f'文件上传测试{data_time}'
+        return json.dumps({'msg': "success", 'data': {'file': file, 'filename': filename, 'download_name': download_name}})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
+@app.route('/test/python_create', methods=["GET"])
+def python_create():
+    if request.method == "GET":
+        quantity = project_test.Quantity()
+        data = quantity.python_create_table()
+        return json.dumps({'msg': "success", 'data': data})
+    else:
+        return json.dumps({'msg': 'error'})
+
+
 if __name__ == '__main__':
-    app.after_request(after_request)
-    app.run(port=80, debug=False, threaded=False, processes=100)
-    # app.run(port=80, debug=False)
+    # app.after_request(after_request)
+    # app.run(port=8083, debug=False, threaded=False, processes=100)
+    # app.run(port=8081, debug=False, threaded=False, processes=100)
+    # app.run(port=8082, debug=False, threaded=False, processes=100)
+    # app.run(port=8084, debug=False, threaded=False, processes=100)
+    app.run(port=80, debug=False)

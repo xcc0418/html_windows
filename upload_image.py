@@ -179,7 +179,8 @@ class Upload_Image():
         return list_msg
 
     def upload_image(self, sku, msku, asin):
-        store_id, product_id = self.get_msku(sku, msku, asin)
+        store_id = self.get_msku(sku, msku, asin)
+        product_id = self.get_product_id(sku)
         if store_id and product_id:
             msg = self.upload([msku, store_id, product_id])
             if msg:
@@ -422,10 +423,9 @@ class Upload_Image():
                 if i['small_image_url']:
                     continue
                 else:
-                    if asin == i['asin'] and sku == i['sku'] and msku == i['msku']:
+                    if asin == i['asin'] and msku == i['msku']:
                         store_id = i['store_id']
-                        product_id = i['product_id']
-        return store_id, product_id
+        return store_id
 
     def update_sql(self, msku):
         sql = "update `amazon_form`.`asin_image` set `状态` = `有图片链接` where `msku` = '%s'" % msku

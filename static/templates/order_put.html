@@ -184,7 +184,7 @@
     $.ajax({
             headers:{Accept: "application/json; charset=utf-8"},
 			type: 'POST',
-			url: '/get_order',
+			url: '/shipment/get_order',
 			dataType: 'json',
 			data: data,
 			success: function(msg){
@@ -252,7 +252,7 @@
      $.ajax({
             headers:{Accept: "application/json; charset=utf-8"},
 			type: 'POST',
-			url: '/shipment_put',
+			url: '/order_put/shipment_put',
 			dataType: 'json',
 			data: data_json,
 			success: function(msg){

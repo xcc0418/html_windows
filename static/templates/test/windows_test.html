@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>弹窗测试</title>
+</head>
+<style>
+.button{
+width:100px;
+height:40px;
+border:1px solid black;
+background-Color:rgb(252, 252, 252);
+}
+.windows {
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index:2;
+}
+.content {
+	background-color:rgb(220, 220, 220);
+	width: 1130px;
+	height: 480px;
+	z-index: 1;
+	margin: 12% auto;
+	overflow: auto;
+}
+.close {
+	padding: 5px;
+}
+h2 {
+	margin: 10px 0;
+	color: black;
+	padding-left: 15px;
+}
+.close_button {
+	float: right;
+	font-size: 30px;
+	color: black;
+	padding-top: 12px;
+	cursor: pointer;
+	padding-right: 15px;
+}
+
+</style>
+<body>
+<button class="button" onclick="create_windows(event)">弹窗1</button>
+<button class="button" onclick="create_windows(event)">弹窗2</button>
+<button class="button" onclick="create_windows(event)">弹窗3</button>
+<button class="button" onclick="create_windows(event)">弹窗4</button>
+<div id="windows" class="windows">
+    <div id="div" class="content">
+        <div id="close" class="close">
+            <span id="close-button" onclick="close_windows()" class="close_button">×</span>
+            <h2>这里一个新的自定义弹窗</h2>
+        </div>
+    </div>
+</div>
+</body>
+<script src="../../JavaScript/jquery-3.0.0.min.js"></script>
+<script>
+    function create_windows(event){
+    var windows_type = event.target.innerText;
+    if (windows_type == "弹窗1"){
+    alert("这是一个提示弹窗")                         //无返回值
+    }
+    else if (windows_type == "弹窗2"){
+    confirm("这是一个确认弹窗")                       //返回ture或false
+    }
+    else if (windows_type == "弹窗3"){
+    var text = prompt("这是一个文本交互弹窗","");     //返回用户输入内容
+    console.log(text)
+    }
+    else if (windows_type == "弹窗4"){
+    document.getElementById('windows').style.display = "block";
+    }
+    }
+
+    function close_windows(){
+    document.getElementById('windows').style.display = "none";
+    }
+</script>
+</html>

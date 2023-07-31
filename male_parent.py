@@ -1,68 +1,12 @@
 import openpyxl
-import requests
 import pymysql
-import json
 import datetime
-import hashlib
-import urllib
-import base64
-from Crypto.Cipher import AES
-
-
-######## AES-128-ECS 加密
-class EncryptDate:
-    def __init__(self, key):
-        self.key = key.encode("utf-8")  # 初始化密钥
-        self.length = AES.block_size  # 初始化数据块大小
-        self.aes = AES.new(self.key, AES.MODE_ECB)  # 初始化AES,ECB模式的实例
-        # 截断函数，去除填充的字符
-        self.unpad = lambda date: date[0:-ord(date[-1])]
-
-    def pad(self, text):
-        """
-        #填充函数，使被加密数据的字节码长度是block_size的整数倍
-        """
-        count = len(text.encode('utf-8'))
-        add = self.length - (count % self.length)
-        entext = text + (chr(add) * add)
-        return entext
-
-    def encrypt(self, encrData):  # 加密函数
-        res = self.aes.encrypt(self.pad(encrData).encode("utf8"))
-        msg = str(base64.b64encode(res), encoding="utf8")
-        return msg
-
-    def decrypt(self, decrData):  # 解密函数
-        res = base64.decodebytes(decrData.encode("utf8"))
-        msg = self.aes.decrypt(res).decode("utf8")
-        return self.unpad(msg)
 
 
 class Quantity(object):
     def __init__(self):
-        self.app_id = "ak_nEfE94OSogf3x"
-        app_secret = "g2BcerjK4fWmhGZoetCJHeVqJmHEmfLt3gWFjDrBLB1yxiapgUKH6kOVs2N9JH7SFuBKuOF8K/CrNNSeFO1KKtsL05z24j" \
-                     "+AdWTW+V4op5QxDkmlTllvlprT8FfjctDdNDGrwHvBvE6s9h0pO0dNgopBAYiA7oosPzQhDF1A6XC1X/cZZmgBy3XRHyEv" \
-                     "xTT40xzwVGish53R8dZt3YIxNtKSgrBloo/CRQsV01yU40nyQR9L9oML32VT0C16jBrxcoWthlGDwfBn+CtVUvws4imyZi" \
-                     "+sG/CqZQeaVLkBCqLCgqw1VK4/a4jZws6HO3FMeBgvuf0aS5euNmfhkudQmg=="
-        querystring = {"appId": f"{self.app_id}", "appSecret": f"{app_secret}"}
-        url = "https://openapi.lingxing.com/api/auth-server/oauth/access-token"
-        payload = ""
-        headers = {
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-        response = requests.post(url, data=payload, headers=headers, params=querystring)
-        result = json.loads(response.text)
-        # print(response.text)
-        self.access_token = result['data']['access_token']
-        self.refresh_token = result['data']['refresh_token']
-        self.time = datetime.datetime.now().strftime("%Y-%m-%d")
-        self.time = datetime.datetime.strptime(self.time, "%Y-%m-%d")
-        # self.time = "2021-12-06"
-        self.start_time = self.time - datetime.timedelta(days=1)
-        self.time = self.time.strftime("%Y-%m-%d")
-        self.start_time = self.start_time.strftime("%Y-%m-%d")
-        # self.start_time = '2022-03-07'
+        self.connection = None
+        self.cursor = None
 
     def sql(self):
         self.connection = pymysql.connect(host='3354n8l084.goho.co',  # 数据库地址
@@ -79,65 +23,6 @@ class Quantity(object):
         self.cursor.close()
         self.connection.close()
 
-    def get_sign(self, body):
-        apikey = "ak_nEfE94OSogf3x"
-        # body = {"access_token": self.access_token,
-        #         "timestamp": int(time.time()),
-        #         "start_date": f"{self.start_time}",
-        #         "end_date": f"{self.time}",
-        #         "app_key": apikey}
-        # print(body)
-        # bb = sign().get_sign(apikey, body)
-        # print(bb)
-
-        # 目标md5串
-        str_parm = ''
-        # 将字典中的key排序
-        for p in sorted (body):
-            # 每次排完序的加到串中
-            # if body[p]:
-            # str类型需要转化为url编码格式
-            if isinstance (body[p], str):
-                str_parm = str_parm + str (p) + "=" + str (urllib.parse.quote (body[p])) + "&"
-                continue
-            # if isinstance(body[p], dict):
-            #     for i in body[p]:
-            #         body[p][i] = str(body[p][i])
-            # if isinstance(body[p], list) and isinstance(body[p][0], dict):
-            #     for i in range(0, len(body[p])):
-            #         for j in body[p][i]:
-            #             body[p][i][j] = str(urllib.parse.quote(str(body[p][i][j])))
-            # if p == "product_list":
-            #     str_parm = str_parm + str(p) + "=" + '[{"sku":"GCWL.897","good_num":1,"bad_num":0,"seller_id":0,"fnsku":""}]' + "&"
-            #     continue
-            #     body[p][0] = str(urllib.parse.quote(body[p][0]))
-            #     print(str(urllib.parse.quote(body[p][0])))
-            str_value = str (body[p])
-            str_value = str_value.replace (" ", "")
-            # str_value = str_value.replace("?", " ")
-            str_value = str_value.replace ("'", "\"")
-            str_parm = str_parm + str (p) + "=" + str_value + "&"
-        # 加上对应的key
-        str_parm = str_parm.rstrip ('&')
-        # print("字符串拼接1:", str_parm)
-        str_parm = str_parm.replace ("?", " ")
-        # print("字符串拼接2:", str_parm)
-        if isinstance (str_parm, str):
-            # 如果是unicode先转utf-8
-            parmStr = str_parm.encode ("utf-8")
-            # parmStr = str_parm
-            m = hashlib.md5 ()
-            m.update (parmStr)
-            md5_sign = m.hexdigest ()
-            # print(m.hexdigest())
-            md5_sign = md5_sign.upper ()
-            # print("MD5加密:", md5_sign)
-        eg = EncryptDate (apikey)  # 这里密钥的长度必须是16的倍数
-        res = eg.encrypt (md5_sign)
-        # print("AES加密:", res)
-        # print(eg.decrypt(res))
-        return res
-
     def open_downloads(self):
         self.sql()
         sql = "update `flag`.`amazon_form_flag` set `flag_num` = 1 where `flag_name` = 'parent'"
@@ -152,6 +37,7 @@ class Quantity(object):
         self.connection.commit()
         self.sql_close()
 
+    # 本地父体新增
     def add_male(self, male_parent):
         self.sql()
         sql = "select * from `amazon_form`.`list_parent` where `本地父体` = '%s'" % male_parent
@@ -171,6 +57,7 @@ class Quantity(object):
                 self.sql_close()
                 return False, str(e)
 
+    # 批量新增本地父体
     def upload_male(self, filename):
         self.sql()
         sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
@@ -214,6 +101,7 @@ class Quantity(object):
         else:
             return False, "当前正在进行添加操作，请稍后再试"
 
+    # 批量新增本地品名
     def upload_sku(self, filename):
         self.sql()
         sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
@@ -258,6 +146,7 @@ class Quantity(object):
         else:
             return False, "当前正在进行添加操作，请稍后再试"
 
+    # 批量关联本地父体
     def upload_parent(self, filename):
         self.sql()
         sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
@@ -326,6 +215,7 @@ class Quantity(object):
         else:
             return False, "当前正在进行关联操作，请稍后再试"
 
+    # 批量关联本地品名
     def upload_name(self, filename):
         self.sql()
         sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
@@ -373,9 +263,18 @@ class Quantity(object):
         else:
             return False, "当前正在进行关联操作，请稍后再试"
 
+    # 新增图片状态监控
     def add_image_msg(self, list_sku):
         self.sql()
+        sql = "select * from `data_read`.`product_image`"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        list_image = []
+        for i in result:
+            list_image.append([i['SKU']])
         for i in list_sku:
+            if i[0] in list_image:
+                continue
             sql1 = "select * from `data_read`.`product_id` where `SKU` = '%s'" % i[0]
             self.cursor.execute(sql1)
             result = self.cursor.fetchall()
@@ -390,6 +289,7 @@ class Quantity(object):
         self.connection.commit()
         self.sql_close()
 
+    # 删除图片状态监控
     def delete_image_msg(self, list_sku):
         self.sql()
         for i in list_sku:
@@ -398,6 +298,7 @@ class Quantity(object):
         self.connection.commit()
         self.sql_close()
 
+    # 本地品名新增
     def add_sku(self, local_sku):
         self.sql()
         sql = "select * from `amazon_form`.`list_local_sku` where `本地品名` = '%s'" % local_sku
@@ -417,12 +318,15 @@ class Quantity(object):
                 self.sql_close()
                 return False, str(e)
 
+    # 关联本地父体
     def relevance_male(self, male_parent, sku):
         self.sql()
+        # 查询是否有这个本地父体
         sql = "select * from `amazon_form`.`list_parent` where `本地父体` = '%s'" % male_parent
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
         if result:
+            # 查询这个本地父体与SKU是否已关联
             sql = "select * from `amazon_form`.`male_parent` where `本地父体` = '%s' and `SKU` = '%s'" % (male_parent, sku)
             self.cursor.execute(sql)
             result = self.cursor.fetchall()
@@ -430,14 +334,17 @@ class Quantity(object):
                 print(f"{male_parent}与{sku}已关联")
                 return False, f"{male_parent}与{sku}已关联"
             else:
+                # 配对本地父体是与SKU关联还是与本地品名关联
                 sql2 = "select * from `amazon_form`.`male_sku` where `SKU` = '%s'" % sku
                 self.cursor.execute(sql2)
                 result1 = self.cursor.fetchall()
                 if result1:
+                    # 获取这个SKU关联的本地品名关所联的所有SKU
                     sql3 = "select * from `amazon_form`.`male_sku` where `本地品名` = '%s'" % result1[0]['本地品名']
                     self.cursor.execute(sql3)
                     result2 = self.cursor.fetchall()
                     for i in result2:
+                        # 防止本地父体与SKU重复关联
                         sql5 = "select * from `amazon_form`.`male_parent` where `本地父体` = '%s' and `SKU` = '%s'" % (male_parent, i['SKU'])
                         self.cursor.execute(sql5)
                         result = self.cursor.fetchall()
@@ -447,14 +354,26 @@ class Quantity(object):
                             sql4 = "insert into `amazon_form`.`male_parent`(`本地父体`, `SKU`)values('%s', '%s')" % (male_parent, i['SKU'])
                             self.cursor.execute(sql4)
                 else:
+                    # 获取这个本地品名关所联的所有SKU
                     sql3 = "select * from `amazon_form`.`male_sku` where `本地品名` = '%s'" % sku
                     self.cursor.execute(sql3)
                     result2 = self.cursor.fetchall()
                     if result2:
+                        # 获取这个本地父体关所联的所有SKU
+                        sql5 = "select * from `amazon_form`.`male_parent` where `本地父体` = '%s'" % male_parent
+                        self.cursor.execute(sql5)
+                        result5 = self.cursor.fetchall()
+                        list_male_sku = []
+                        for i in result5:
+                            list_male_sku.append(i['SKU'])
                         for i in result2:
+                            # 防止本地父体与SKU重复关联
+                            if i['SKU'] in list_male_sku:
+                                continue
                             sql4 = "insert into `amazon_form`.`male_parent`(`本地父体`, `SKU`)values('%s', '%s')" % (male_parent, i['SKU'])
                             self.cursor.execute(sql4)
                     else:
+                        # 这个sku没有与本地品名关联时
                         sql1 = "insert into `amazon_form`.`male_parent`(`本地父体`, `SKU`)values('%s', '%s')" % (male_parent, sku)
                         self.cursor.execute(sql1)
                 try:
@@ -469,6 +388,7 @@ class Quantity(object):
             # print(f"没有{male_parent}这个本地父体，请检查")
             return False, f"没有{male_parent}这个本地父体，请检查"
 
+    # 解除本地父体关联
     def relieve_male(self, male_parent, sku):
         self.sql()
         sql = "select * from `amazon_form`.`male_parent` where `本地父体` = '%s' and `SKU` = '%s'" % (male_parent, sku)
@@ -477,11 +397,13 @@ class Quantity(object):
         sql = "select * from `amazon_form`.`male_sku` where `本地品名` = '%s'" % sku
         self.cursor.execute(sql)
         result3 = self.cursor.fetchall()
+        # 查询这个本地父体与SKU是否已关联或者这个是否是本地品名
         if result or result3:
             if result:
                 sql2 = "select * from `amazon_form`.`male_sku` where `SKU` = '%s'" % sku
             else:
                 sql2 = "select * from `amazon_form`.`male_sku` where `本地品名` = '%s'" % sku
+            # 获取要解除配对的所有SKU
             self.cursor.execute(sql2)
             result1 = self.cursor.fetchall()
             if result1:
@@ -506,6 +428,7 @@ class Quantity(object):
             self.sql_close()
             return False, "这个父体与sku没有相关信息"
 
+    # 关联本地品名
     def relevance_sku(self, local_sku, sku):
         self.sql()
         sql = "select * from `amazon_form`.`list_local_sku` where `本地品名` = '%s'" % local_sku
@@ -533,6 +456,7 @@ class Quantity(object):
             self.sql_close()
             return False, f"没有{local_sku}这个本地品名，请检查"
 
+    # 解除本地品名关联
     def relieve_sku(self, local_sku, sku):
         self.sql()
         sql = "select * from `amazon_form`.`male_sku` where `本地品名` = '%s' and `SKU` = '%s'" % (local_sku, sku)
@@ -553,6 +477,7 @@ class Quantity(object):
             self.sql_close()
             return False, "这个父体与sku没有相关信息"
 
+    # 关联本地父体与亚马逊父体
     def relevance_amazon(self, male_parent, amazon_parent):
         self.sql()
         sql1 = "select * from `amazon_form`.`list_parent` where `本地父体` = '%s'" % male_parent
@@ -580,6 +505,7 @@ class Quantity(object):
         else:
             return False, f'没有{male_parent}，请检查'
 
+    # 解除本地父体与亚马逊父体关联
     def relieve_amazon(self, male_parent, amazon_parent):
         self.sql()
         sql1 = "select * from `amazon_form`.`male_amazon` where `本地父体` = '%s' and `亚马逊父体` = '%s'" % (male_parent, amazon_parent)
@@ -599,6 +525,7 @@ class Quantity(object):
         else:
             return False, f"{male_parent}与{amazon_parent}没有关联信息，请检查"
 
+    # 批量解除本地父体关联
     def upload_relieve_male(self, filename):
         self.sql()
         sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
@@ -659,6 +586,7 @@ class Quantity(object):
         else:
             return False, "当前正在进行关联操作，请稍后再试"
 
+    # 批量解除本地品名关联
     def upload_relieve_sku(self, filename):
         self.sql()
         sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
@@ -706,6 +634,7 @@ class Quantity(object):
         else:
             return False, "当前正在进行关联操作，请稍后再试"
 
+    # 删除本地父体
     def delete_male(self, male_parent):
         self.sql()
         sql = "select * from `amazon_form`.`list_parent` where `本地父体` = '%s'" % male_parent
@@ -728,6 +657,7 @@ class Quantity(object):
             self.sql_close()
             return False, f"没有{male_parent}这个父体"
 
+    # 删除本地品名
     def delete_sku(self, male_parent):
         self.sql()
         sql = "select * from `amazon_form`.`list_local_sku` where `本地品名` = '%s'" % male_parent
@@ -750,6 +680,7 @@ class Quantity(object):
             self.sql_close()
             return False, f"没有{male_parent}这个父体"
 
+    # 批量删除本地父体
     def upload_delete_male(self, filename):
         self.sql()
         sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
@@ -793,6 +724,7 @@ class Quantity(object):
         else:
             return False, "当前正在进行关联操作，请稍后再试"
 
+    # 批量删除本地品名
     def upload_delete_sku(self, filename):
         self.sql()
         sql = "select * from `flag`.`amazon_form_flag` where `flag_name` = 'parent'"
@@ -836,6 +768,7 @@ class Quantity(object):
         else:
             return False, "当前正在进行关联操作，请稍后再试"
 
+    # 修改本地父体
     def change_parent(self, parent, change_parent):
         self.sql()
         sql1 = "select * from `amazon_form`.`list_parent` where `本地父体` = '%s'" % parent
@@ -859,6 +792,7 @@ class Quantity(object):
             self.sql_close()
             return False, f'没有找到{parent}, 请检查'
 
+    # 修改本地品名
     def change_sku(self, sku, change_sku):
         self.sql()
         sql1 = "select * from `amazon_form`.`list_local_sku` where `本地品名` = '%s'" % sku
@@ -882,6 +816,7 @@ class Quantity(object):
             self.sql_close()
             return False, f'没有找到{sku}, 请检查'
 
+    # 生成批量上传功能详情表
     def write_xlsx(self, list_data, list_header):
         wb = openpyxl.Workbook()
         wb_sheet = wb.active
@@ -917,12 +852,14 @@ class Quantity(object):
         wb.save(path)
         return file, filename, download_name
 
+    # 获取本地父体详情
     def get_male_parent(self, index, index_data):
         self.sql()
         if index == "本地父体":
             if index_data:
                 sql = f"select * from `amazon_form`.`male_parent` where `本地父体` like '%{index_data}%'"
             else:
+                # 获取所有本地父体，不含SKU数据
                 sql = "select * from `amazon_form`.`list_parent`"
                 self.cursor.execute(sql)
                 result = self.cursor.fetchall()
@@ -955,6 +892,7 @@ class Quantity(object):
             self.sql_close()
             return False, 0
 
+    # 获取SKU与本地品名的关系
     def get_dict_sku(self):
         dict_sku = {}
         sql = "select * from `amazon_form`.`male_sku`"
@@ -964,12 +902,14 @@ class Quantity(object):
             dict_sku[i['SKU']] = i['本地品名']
         return dict_sku
 
+    # 获取本地品名详情
     def get_male_sku(self, index, index_data):
         self.sql()
         if index == "本地品名":
             if index_data:
                 sql = f"select * from `amazon_form`.`male_sku` where `本地品名` like '%{index_data}%'"
             else:
+                # 获取所有本地品名。不含SKU
                 sql = "select * from `amazon_form`.`list_local_sku`"
                 self.cursor.execute(sql)
                 result = self.cursor.fetchall()
@@ -1037,4 +977,5 @@ class Quantity(object):
 if __name__ == '__main__':
     quantity = Quantity()
     # quantity.read_xlsx("F:/html_windows/static/本地父体/关联本地父体_20230428172405.xlsx")
-    quantity.test_sql()
+    # quantity.test_sql()
+    quantity.add_image_msg(['CB.1459', 'KPW5-透明保护壳-打印-CB080-浅绿底花海B'])

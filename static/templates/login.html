@@ -1,10 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<title>科倍电子</title>
 		<link rel="icon" href="../static/images/favicon.ico" type="image/x-icon"/>
-		<link rel="shortcut icon" href="../static/images/favicon.ico" type="image/x-icon"/>
 	<style>
 		body {
 			background-color: #8ea4f8;
@@ -15,7 +14,7 @@
 		}
 		.login_box {
 			width: 400px;
-			height: 400px;
+			height: 500px;
 			background-color: #fff;
 			margin: auto;
 			margin-top: 150px;
@@ -33,16 +32,12 @@
 		}
 		.input_box {
 			width: 300px;
-			height: 30px;
-			width: 300px;
 			height: 40px;
 			padding-left: 10px;
 			margin-top: 20px;
 			margin-left: 50px;
 		}
 		.button_box {
-			width: 300px;
-			height: 35px;
 			width: 300px;
 			height: 40px;
 			margin-top: 20px;
@@ -66,22 +61,192 @@
 		.logo_img {
 			margin-top: 20px;
 		}
+
+		#cvs{
+			float:left;
+			width: 100px;
+			height: 40px;
+            cursor: pointer;
+            margin-top: 20px;
+			margin-left: 50px;
+        }
+		#inCode{
+			float:left;
+			width: 150px;
+			height: 40px;
+            cursor: pointer;
+            margin-top: -50px;
+			margin-left: 200px;
+        }
+		.code_a{
+			float:left;
+            color: #0000ff;
+            font-size: 12px;
+            text-decoration: none;
+            cursor: pointer;
+            margin-top: 20px;
+			margin-left: 50px;
+        }
+		#msg_item{
+			float:left;
+			color: red;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 20px;
+			margin-left: 50px;
+        }
 	</style>
 </head>
-
-<body>
-	<form action="/login" method="post">
-		<div class="logo_box"><img class="logo_img" src="../static/images/cobak.jpg" width="80px" height="60px" align="center"/></div>
-		<div class="login_box">
-			<h1 class="title">欢迎登录</h1>
-			<input class="input_box" type="text" name= "username" placeholder="用户名">
-			<input class="input_box" type="password" name="password" placeholder="密码">
-			<input class="button_box" type="submit" value="登录">
-		</div>
-	</form>
+<body>.
+<div>
+	<div class="logo_box"><img class="logo_img" src="../../../static/images/cobak.jpg" width="80px" height="60px" align="center"/></div>
+	<div class="login_box">
+		<h1 class="title">欢迎登录</h1>
+		<input class="input_box" type="text" name= "username" placeholder="用户名" id="username">
+		<input class="input_box" type="password" name="password" placeholder="密码" id="password">
+		<canvas id="cvs" onclick="changeCode()"></canvas>
+		<input type="text" id="inCode" name="inCode" placeholder="验证码"/><br/>
+		<a class="code_a" onclick="changeCode()">换一张</a><span id="msg_item"></span>
+		<button class="button_box" onclick="login()">登录</button>
+	</div>
 	<iframe frameborder="0" scrolling="no" style="width: 100%;height:370px;"></iframe>
 	<center style="padding: 0;margin:0;list-style: none">
 		<br><a href="http://beian.miit.gov.cn/">粤ICP备2022133589号-1</a>
 	</center>
+</div>
 </body>
+<!--这里使用网络提供的js文件，本地js文件导入会因浏览器的不同导致路径出错-->
+<script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/axios/0.18.0/axios.min.js"></script>
+<script type="text/jscript">
+
+	// https://blog.csdn.net/weixin_44566432/article/details/106006731
+	var valicode;
+	function changeCode() {
+		var cvs = document.getElementById("cvs");
+		valicode = drawcode(cvs);
+	}
+
+	function valiCode() {
+		var code = document.getElementById("inCode").value;
+		if (code.toString() === valicode.toString()){
+			alert("验证通过");
+			return true;
+		}else {
+			document.getElementById("err").innerHTML = "输入的验证码错误";
+			alert("验证不通过");
+			changeCode();
+			// return false;
+		}
+	}
+
+	function login(){
+	var code = document.getElementById("inCode").value;
+	if (code){
+	if (code.toString() === valicode.toString()){
+    var username = document.getElementById("username").value;
+    var password = document.getElementById("password").value;
+    var data = {"data": JSON.stringify({"username": username, "password": password})};
+    $.ajax({
+    url: "/login",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "post",
+    data: data,
+    dataType: 'json',
+    success: function(msg){
+    if (msg['msg'] == 'success'){
+	alert("登录成功");
+	location.href="/home_page";
+    }
+    if (msg['msg'] == 'error'){
+    alert("登录失败");
+    location.href="/";
+    }
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+    else {
+		document.getElementById("msg_item").innerHTML = "验证码错误!";
+		document.getElementById("inCode").value = '';
+		changeCode();
+	}
+	}
+	else{
+	document.getElementById("msg_item").innerHTML = "请先输入验证码";
+	}
+    }
+
+	window.onload = changeCode;
+
+	//定义变量
+	var w = 80;
+	var h = 24;
+	var fontsize = h - 6;
+	var str = "+-*";
+
+	//随机生成最大值不超过max的整数
+	function randInt(max) {
+		return Math.floor(Math.random()*100000%max);
+	}
+
+	//生成随机长度的字符串验证码
+	function randCode(len) {
+		var one = randInt(10);
+		var two = randInt(10);
+		var op = str.charAt(randInt(str.length));
+		return ""+one+op+two+"=";
+	}
+
+	//生成随机颜色
+	function randColor() {
+		var r = randInt(256);
+		var g = randInt(256);
+		var b = randInt(256);
+		return "rgb("+r+","+g+","+b+")";
+	}
+
+	//绘制图片
+	function drawcode(canvas) {
+		var valicode = randCode();
+		w = 5 + fontsize * valicode.length;
+
+		if (canvas != null && canvas.getContext && canvas.getContext("2d")){
+			//设置显示区域
+			canvas.style.width = w;
+			//设置画板
+			canvas.setAttribute("width", w);
+			canvas.setAttribute("height", h);
+			//设置画笔
+			var pen = canvas.getContext("2d");
+			//绘制背景
+			pen.fillStyle = "rgb(255, 255, 255)";
+			pen.fillRect(0,0,w, h);
+			//设置水平线位置
+			pen.textBaseline = "top";
+			//绘制内容
+			for (var i=0; i<valicode.length; i++){
+				pen.fillStyle = randColor();
+				pen.font = "bold " + (fontsize+randInt(3)) + "px 微软雅黑";
+				pen.fillText(valicode.charAt(i), 5+fontsize*i, randInt(5));
+			}
+			//绘制噪音线
+			for(var i=0; i<2; i++){
+				pen.moveTo(randInt(w)/2, randInt(h));//设置起点
+				pen.lineTo(randInt(w), randInt(h));//设置终点
+				pen.strokeStyle = randColor();
+				pen.lineWidth = 2;//线条粗细
+				pen.stroke();
+			}
+			//substr() 方法可在字符串中抽取从 start 下标开始的指定数目的字符。
+			valicode = valicode.substr(0, valicode.length-1);
+			//eval()方法，把字符串当表达式处理
+			return eval(valicode);
+		}
+	}
+</script>
 </html>

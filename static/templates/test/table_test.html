@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>表格测试</title>
+</head>
+<style>
+.button{
+width:100px;
+height:40px;
+border:1px solid black;
+background-Color:rgb(252, 252, 252);
+}
+
+.item_control{
+width:100px;
+height:40px;
+text-align: center;
+border:1px solid black;
+position:absolute;                      /* 设置组件位置布局不影响其它组件 */
+z-index:999;                            /* 设置组件显示优先级 */
+background:#fff;
+}
+
+.table-sort {
+    display: inline-block;              /* 设置组件内的组件换行布局 */
+    width: 20px;
+    height: 20px;
+    margin-left: 5px;
+    margin-right: 10px;
+    cursor: pointer !important;         /* 设置鼠标悬停在组件上时，改变鼠标样式并增加权重覆盖其它样式 */
+    vertical-align: middle;             /* 设置组件相对父div垂直对齐 */
+    position: relative;                 /* 设置组件在父组件留白位置布局，不影响其它位置 */
+}
+
+.table-sort i {
+    border: 6px dashed transparent;     /* 设置组件形状为三角形 */
+    position: absolute;
+    left: 5px
+}
+.table-sort .sort-asc {
+    top: 2px;
+    border-top: none;
+    border-bottom-style: solid;
+    border-bottom-color: #b2b2b2
+}
+
+.table-sort .sort-asc.cur, .table-sort .sort-asc:hover {
+    border-bottom-color: #fff
+}
+.table-sort .sort-desc {
+    bottom: 3px;
+    border-bottom: none;
+    border-top-style: solid;
+    border-top-color: #b2b2b2
+}
+
+.table-sort .sort-desc.cur, .table-sort .sort-desc:hover {
+    border-top-color: #fff
+}
+
+tr,th {
+    height: 50px;
+    box-sizing: border-box;             /* 设置单元格长宽包含边框和内边距，实际内容显示长宽小于设定值 */
+    border: 1px solid #DDDDDD;          /* 设置单元格边框并隐藏 */
+    overflow: hidden;                   /* 设置单元格溢出内容裁剪 */
+    white-space: nowrap;                /* 设置单元格内连续的空白符被合并。但文本内的换行无效 */
+    text-overflow: ellipsis;            /* 设置单元格显示被裁剪的文本为省略号，如果溢出，不显示 */
+    text-align: center;                 /* 设置单元格文字居中 */
+    background: #F4F4F5;                /* 设置单元格背景颜色 */
+}
+thead tr th{
+            position: sticky;
+            top: 0;
+        }
+.th_header{
+      position: sticky;
+      left: 0; /* 固定第一行 */
+      z-index:1;
+    }
+
+.table_item{
+width:200px;
+height:200px;
+border:1px solid black;
+overflow: auto;                         /* 设置表格内容超出时添加滚动条 */
+}
+
+.th_control{
+width:100px;
+height:50px;
+}
+
+.th_control1{
+width:100px;
+height:50px;
+position: sticky;
+left: 0; /* 固定第1列 */
+z-index:1;
+}
+
+thead th:first-child{
+    z-index:2;/* 置第一行第一列的单元格显示优先级高于第一列的其它行 */
+}
+
+.drag_control{
+width:200px;
+height:200px;
+border:1px solid black;
+}
+
+#button_item1{
+margin:0px 0px 0px 50px;
+}
+#button_item2{
+margin:0px 0px 0px 150px;
+}
+#button_item3{
+margin:0px 0px 0px 150px;
+}
+#button_item4{
+margin:0px 0px 0px 150px;
+}
+#table_item{
+margin:10px 0px 0px 50px;
+}
+
+</style>
+<body>
+<button class="button" onclick="append_td()" id="button_item1">增加行</button>
+<button class="button" onclick="create_table()" id="button_item2">网页生成表格</button>
+<button class="button" onclick="python_create()" id="button_item3">后端生成表格</button>
+<button class="button" onclick="get_table()" id="button_item4">获取表格数据</button>
+<div class="table_item" id="table_item">
+    <table class="table_control" id="table_control">
+         <!--表格头-->
+         <thead class="header_item" id="control_item1">
+             <tr class="tr_control">
+                 <th class="th_header" id="header_control1">
+                     <div class="th_control">
+                         <span>列1</span>
+                     </div>
+                 </th>
+                 <th class="th_header" id="header_control2">
+                     <div class="th_control">
+                         <span>列2</span>
+                     </div>
+                 </th>
+                 <th class="th_header" id="header_control3">
+                     <div class="th_control">
+                         <span>左键</span><span class="table-sort">
+                            <i class="sort-asc" onclick="ascending_sort(event)" ></i>
+                            <i class="sort-desc" onclick="descending_sort(event)" ></i>
+                         </span>
+                     </div>
+                 </th>
+             </tr>
+         </thead>
+         <!--表格内容-->
+         <tbody id="table_tbody">
+             <tr class="tr_control" id="tr_control1">
+                  <th class="th_control1" >
+                      <div class="th_control">
+                         <span>表格内容溢出裁剪测试</span>
+                      </div>
+                  </th>
+                  <th class="th_control" contenteditable="true">
+                      <div class="th_control">
+                         <span>可更改</span>
+                      </div>
+                  </th>
+                  <th class="th_control" contenteditable="true">
+                      <div class="th_control">
+                         <span>可更改</span>
+                      </div>
+                  </th>
+              </tr>
+             <tr class="tr_control" id="tr_control2">
+                      <th class="th_control1" >
+                          <div class="th_control" onclick="click_test(event)">
+                             <span>左键单击</span>
+                          </div>
+                      </th>
+                      <th class="th_control" >
+                          <div class="th_control" ondblclick="click_test(event)">
+                             <span>双击</span>
+                          </div>
+                      </th>
+                      <th class="th_control">
+                          <div class="th_control" oncontextmenu="click_test(event)" onclick="close_box()">
+                             <span>右键单击</span>
+                          </div>
+                      </th>
+                  </tr>
+             <tr class="tr_control" id="tr_control3">
+                  <th class="th_control1" >
+                      <div class="th_control" ondragend="drop(event)" draggable="true">
+                         <span>单元格拖拽</span>
+                      </div>
+                  </th>
+                  <th class="th_control" draggable="true">
+                      <div class="th_control">
+                         <span>单元格拖拽</span>
+                      </div>
+                  </th>
+                  <th class="th_control" draggable="true">
+                      <div class="th_control">
+                         <span>单元格拖拽</span>
+                      </div>
+                  </th>
+             </tr>
+       </tbody>
+    </table>
+</div>
+</body>
+<script src="../../JavaScript/jquery-3.0.0.min.js"></script>
+<script src="../../JavaScript/axios.min.js"></script>
+<script>
+
+     //表格行添加
+    function append_td(){
+    var table_length = document.getElementById("table_tbody").rows.length + 1;
+    var tr = document.createElement("tr");//新建tr行组件
+    tr.className = "tr_control";
+    tr.id = "tr_control" + table_length;
+    var str = "<th class=\"th_control\" ><div class=\"header_text\"><div class=\"header_text\"><span>新增</span></div></th>";
+    tr.innerHTML = str+str+str;
+    document.getElementById("table_tbody").appendChild(tr);//将组件添加到表格内容后面
+    }
+
+    //网页生成表格
+    function create_table(){
+    clear_table();
+    for(var i=1;i<=10;i++){
+    var tr = document.createElement("tr");
+    tr.className = "tr_control";
+    tr.id = "tr_control"+i;
+    var str = "<th class=\"th_control\" ><div class=\"header_text\"><div class=\"header_text\"><span>网页生成</span></div></th>";
+    tr.innerHTML = str+str+str;
+    document.getElementById("table_tbody").appendChild(tr);
+    }
+    }
+
+    //后端生成表格
+    function python_create(){
+    $.ajax({
+    url: "/test/python_create",
+    headers:{Accept: "application/json; charset=utf-8"},
+    type: "get",
+    dataType: 'json',
+    success: function(msg){
+    clear_table();
+    document.getElementById("table_tbody").innerHTML = msg['data']
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+    if (textStatus === 'timeout') {
+    alert('请求超时，请重试！');
+    }
+    }
+    })
+    }
+
+    //表格清空
+    function clear_table(){
+    document.getElementById("table_tbody").innerHTML = "";
+    }
+
+    //获取表格数据
+    function get_table(){
+    var table_length = document.getElementById("table_tbody").rows.length;//获取表格行数
+    var data = [];
+    for(var i=0;i<table_length;i++){
+    var table_row_length = document.getElementById("table_tbody").rows[i].cells.length;//获取表格行的长度
+    if (!data[i]){
+    data[i] = [];
+    }
+    for (var j=0;j<table_row_length;j++){
+    data[i][j] = document.getElementById("table_tbody").rows[i].cells[j].innerText;
+    }
+    }
+    console.log(data)
+    }
+
+    //表格点击触发
+    function click_test(event){
+    var text = event.target.innerText;
+    if (text == '右键单击'){
+    event.preventDefault();
+    create_collect();
+    }
+    else{
+    alert(text)
+    }
+    }
+
+    //单元格拖拽完成后触发 参考网址：https://www.runoob.com/jsref/event-ondragend.html
+    function drop(event){
+    event.preventDefault();
+    var data = event.target.innerText;
+    alert(data)
+    }
+
+    //表格右键新增组件
+    function create_collect(){
+    close_box();
+    var new_str = "<div id=\"new_box\" class=\"item_control\"><span>新增组件</span></div>";
+    if($('#new_box')[0]==null){
+      $('body').append(new_str);
+    }
+    var event=window.event || arguments[0];
+    console.log(event)
+
+    // 获取鼠标右键按下后的位置,据此定义菜单显示的位置
+    var rightedge=$('#new_box').width()+event.pageX;
+
+    // 判断弹出的菜单是否有溢出浏览器窗口的宽度
+    if(rightedge>$(window).width()){
+      var _left=event.pageX-$('#new_box').width();
+      $('#new_box').css({top:event.pageY+'px',left:_left+'px'});
+    }
+    else{
+      $('#new_box').css({top:event.pageY+'px',left:event.pageX+'px'});
+    }
+    }
+
+    function close_box(){
+    if($('#new_box')[0]!=null){
+      $('#new_box').remove();
+    }
+    }
+</script>
+
+</html>

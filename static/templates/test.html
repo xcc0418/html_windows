@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>测试网页</title>
+<style>
+.item_list{
+    width:90%;
+    height:120px;
+    border:1px solid black;
+    background-color:white;
+    position: relative;
+   	top: 0;
+    bottom: 0;
+}
+.contents_li{
+    width:100px;
+    height:40px;
+    border:1px solid black;
+    backgroundColor: rgb(220, 220, 220);
+}
+
+.contents_e{
+	padding: 10px 0;
+	float:left;
+	width:100px;
+	height:20px;
+	color:black;
+	background-color:white;/*将按钮背景设置为红色，字体设置为白*/
+	border:none;
+	outline:none;/*取消边框和外边框将按钮边框去掉*/
+	text-align: center;
+}
+#item1{
+margin:10px 0px 0px 50px;
+}
+#button_item1{
+margin:10px 0px 0px 50px;
+}
+#button_item2{
+margin:-41px 0px 0px 250px;
+}
+#button_item3{
+margin:-41px 0px 0px 450px;
+}
+</style>
+</head>
+<body>
+<div>
+	<div class="function_item">
+		网页功能测试:
+        <div class="item_list" id="item1">
+			html组件测试:
+			<div class="contents_li" id="button_item1">
+				<a class="contents_a" href="../templates/test/layout_test.html">
+					<span class="contents_e" id="contents_list1">html布局</span>
+				</a>
+			</div>
+			<div class="contents_li" id="button_item2">
+				<a class="contents_a" href="../templates/test/button_test.html">
+					<span class="contents_e" id="contents_list2">按钮</span></a>
+			</div>
+			<div class="contents_li" id="button_item3">
+				<a class="contents_a" href="../templates/test/input_test.html">
+					<span class="contents_e" id="contents_list3">input</span></a>
+			</div>
+		</div>
+	</div>
+</div>
+</body>

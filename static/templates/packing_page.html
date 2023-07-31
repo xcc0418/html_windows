@@ -226,7 +226,7 @@ margin:-42px 0px 42px 150px;
     var flag = 0;
 
     function get_pa(){
-    var url = "/get_pa";
+    var url = "/packing_page/get_pa";
     $.ajax({
     url: url,
     headers:{Accept: "application/json; charset=utf-8"},
@@ -234,8 +234,8 @@ margin:-42px 0px 42px 150px;
     success: function(data){
     var data = JSON.parse(data);
     console.log(data)
-    if (data.success){
-    var pa_name = data['success']
+    if (data['msg'] == 'success'){
+    var pa_name = data['pa_name']
     document.getElementById("span_1").innerHTML = pa_name;
     document.getElementById("span_5").innerHTML = "正在装箱";
     document.getElementById("span_4").innerHTML = 0;
@@ -256,7 +256,7 @@ margin:-42px 0px 42px 150px;
       }
 
     function get_fnsku(){
-    var url = "/get_fnsku"
+    var url = "/packing_page/get_fnsku"
     var fnsku_value = document.getElementById('fnsku').value;
     fnsku_value = fnsku_value.toUpperCase();
     fnsku_value = fnsku_value.replace(/[ ]|[\r\n]/g,"");
@@ -309,7 +309,7 @@ margin:-42px 0px 42px 150px;
     }
     }
     if (msg['msg'] == 'error'){
-    alert(msg['data']);
+    alert(msg['message']);
     }
     },
     error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -343,7 +343,7 @@ margin:-42px 0px 42px 150px;
     var method_value = document.getElementById('method_value').value;
     console.log(method_value)
     if (method_value == "添加物料" || method_value == "删减物料"){
-    var url = "/pa_msg";
+    var url = "/packing_page/pa_msg";
     var pa = document.getElementById('pa_name').value;
     var data = {data: JSON.stringify({'pa_name': pa})};
     $.ajax({
@@ -366,7 +366,7 @@ margin:-42px 0px 42px 150px;
     document.getElementById("span_2").innerHTML = fnsku;
     document.getElementById("span_3").innerHTML = name;
     }
-    if (data['msg'] == 'error'){alert(data['data']);}
+    if (data['msg'] == 'error'){alert(data['message']);}
     },
     error: function(XMLHttpRequest, textStatus, errorThrown) {
             if (textStatus === 'timeout') {
@@ -381,7 +381,7 @@ margin:-42px 0px 42px 150px;
     if (confirm("是否删除"+ pa +"这个箱号")){
     var data = {data: JSON.stringify({'pa_name': pa})};
     $.ajax({
-    url: "/packing/del_pa",
+    url: "/packing_page/del_pa",
     headers:{Accept: "application/json; charset=utf-8"},
     type: "POST",
     dataType: 'json',
@@ -414,7 +414,7 @@ margin:-42px 0px 42px 150px;
     var statues = document.getElementById("span_5").innerHTML;
     var data = {data: JSON.stringify({'pa_name': pa_name, 'fnsku': fnsku, 'name': name, 'num': num, 'statues': statues})}
     $.ajax({
-    url: '/pack_pa',
+    url: '/packing_page/pack_pa',
     headers:{Accept: "application/json; charset=utf-8"},
     type: "POST",
     dataType: 'json',

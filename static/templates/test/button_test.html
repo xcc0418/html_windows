@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>按钮测试</title>
+</head>
+<style>
+.button{
+width:100px;
+height:40px;
+border:1px solid black;/*将按钮边框设置为1个像素大小*/
+background-Color:rgb(252, 252, 252);
+}
+.msg_text{
+width:100px;
+height:40px;
+color: red;
+}
+#button_item1{
+margin:0px 0px 0px 350px;
+}
+#button_item2{
+margin:0px 0px 0px 50px;
+}
+#button_item3{
+margin:0px 0px 0px 50px;
+}
+#msg{
+margin:0px 0px 0px 50px;
+}
+</style>
+<body>
+<button class="button" onclick="test(event)" id="button_item1">左键单击</button>
+<button class="button" ondblclick="test(event)" id="button_item2">双击</button>
+<button class="button" oncontextmenu="test(event)" id="button_item3">右键单机</button>
+<span class="msg_text" id="msg"></span>
+</body>
+<script>
+
+    function test(event){
+    console.log(event) //获取鼠标点击出的组件详细信息，可在浏览器控制台查看
+    document.getElementById("msg").innerHTML = '';
+    event.preventDefault();//取消浏览器自带的右键功能
+    var test_msg = event.target.innerHTML;
+    document.getElementById("msg").innerHTML = test_msg;
+    }
+</script>
+</html>

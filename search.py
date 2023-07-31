@@ -304,27 +304,23 @@ class Quantity (object):
         # print(num_total)
         return num_total
 
-    def delect_box(self, pa_name):
-        self.sql()
-        sql1 = "SELECT `状态` from `storage`.`warehouse` WHERE `箱号` = '%s'" % pa_name
-        self.cursor.execute(sql1)
-        result = self.cursor.fetchall()
-        self.sql_close()
-        if result:
-            if result[0]['状态'] == "已删除":
-                return False, '这箱物料已删除'
-            elif result[0]['状态'] == "已出货":
-                return False, "这箱物料已出货"
-            else:
-                self.sql()
-                status = "已删除"
-                sql2 = "UPDATE `storage`.`warehouse` SET `状态` = '%s' WHERE `箱号` = '%s'" % (status, pa_name)
+    def update_location(self, pa_name, location):
+        try:
+            self.sql()
+            sql1 = "select * from `storage`.`warehouse` where `箱号` = '%s' and `状态` = '已打包'" % pa_name
+            self.cursor.execute(sql1)
+            result = self.cursor.fetchall()
+            if result:
+                sql2 = "UPDATE `storage`.`warehouse` SET `存放位置` = '%s' WHERE `箱号` = '%s'" % (location, pa_name)
                 self.cursor.execute(sql2)
                 self.connection.commit()
                 self.sql_close()
-                return True, '删除成功'
-        else:
-            return False, '请查看箱号是否正确'
+                return True, True
+            else:
+                return False, f'没有找到{pa_name}这个箱号，请检查。'
+        except Exception as e:
+            print(e)
+            return False, str(e)
 
     def get_msg(self, index, index_data):
         self.sql()
@@ -584,10 +580,14 @@ class Quantity (object):
                     continue
                 else:
                     list_fnsku.append(fnsku)
-        list_re = self.get_pa(list_fnsku)
-        # print(list_re)
-        time_now = self.write_re(list_re)
-        return [f'../FNSKU装箱信息/{time_now}-箱号.xlsx', f'{time_now}-箱号']
+        try:
+            list_re = self.get_pa(list_fnsku)
+            # print(list_re)
+            time_now = self.write_re(list_re)
+            return [f'../FNSKU装箱信息/{time_now}-箱号.xlsx', f'{time_now}-箱号']
+        except Exception as e:
+            print(e)
+            return [False, str(e)]
 
 
 ######## AES-128-ECS 加密

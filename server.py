@@ -8,6 +8,14 @@ import ctypes
 kernel32 = ctypes.windll.kernel32
 kernel32.SetConsoleMode(kernel32.GetStdHandle(-10), 128)
 
-s = HTTPServer(WSGIContainer(app))
-s.listen(80)  # 监听80端口
+s1 = HTTPServer(WSGIContainer(app))
+s1.listen(80)  # 监听80端口
+# s1 = HTTPServer(WSGIContainer(app))
+# s1.listen(8081)  # 监听80端口
+# s2 = HTTPServer(WSGIContainer(app))
+# s2.listen(8082)  # 监听80端口
+# s3 = HTTPServer(WSGIContainer(app))
+# s3.listen(8083)  # 监听80端口s1 = HTTPServer(WSGIContainer(app))
+# s4 = HTTPServer(WSGIContainer(app))
+# s4.listen(8084)  # 监听80端口
 IOLoop.current().start()

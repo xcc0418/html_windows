@@ -287,6 +287,7 @@ class Quantity(object):
         self.sql_close()
         return list_id
 
+    # 获取工厂物料对应的辅料
     def get_order_msg(self, list_order, dict_order=None):
         list_sku = {}
         list_id = self.get_product_id(list_order)
@@ -319,7 +320,7 @@ class Quantity(object):
                 for i in result1['data']:
                     warehouse_sku = i['sku']
                     if warehouse_sku.find('GCWL') >= 0:
-                        warehouse_num = dict_order[warehouse_sku]
+                        warehouse_num = int(dict_order[warehouse_sku])
                         if warehouse_sku not in list_sku:
                             list_sku[warehouse_sku] = [warehouse_num, i['product_name']]
                         else:
@@ -332,18 +333,18 @@ class Quantity(object):
                             # print(product_name, product_id)
                             sku = j['sku']
                             if product_name.find('/100码') >= 0:
-                                warehouse_num = int(j['quantity']) * dict_order[warehouse_sku]
+                                warehouse_num = int(j['quantity']) * int(dict_order[warehouse_sku])
                             elif product_name.find('0.01米') >= 0:
                                 if product_name.find('肩带') >= 0 or product_name.find('松紧带') >= 0:
-                                    warehouse_num = int(j['quantity']) * dict_order[warehouse_sku]
+                                    warehouse_num = int(j['quantity']) * int(dict_order[warehouse_sku])
                                 else:
-                                    warehouse_num = int(j['quantity']) * dict_order[warehouse_sku] * 0.01
+                                    warehouse_num = int(j['quantity']) *int( dict_order[warehouse_sku]) * 0.01
                             elif product_name.find('0.001方') >= 0:
-                                warehouse_num = int(j['quantity']) * dict_order[warehouse_sku] * 0.001
+                                warehouse_num = int(j['quantity']) * int(dict_order[warehouse_sku]) * 0.001
                             else:
-                                warehouse_num = int(j['quantity']) * dict_order[warehouse_sku]
+                                warehouse_num = int(j['quantity']) * int(dict_order[warehouse_sku])
                             if sku not in list_sku:
-                                list_sku[sku] = [warehouse_num, product_name]
+                                list_sku[sku] = [int(warehouse_num), product_name]
                             else:
                                 num_order = int(list_sku[sku][0])
                                 list_sku[sku][0] = num_order + int(warehouse_num)
@@ -357,6 +358,7 @@ class Quantity(object):
             print(list_sku)
             return False
 
+    # 获取物料品名
     def get_product_name(self, index, id):
         sql = ''
         if index == 'ID':
@@ -370,6 +372,7 @@ class Quantity(object):
         else:
             return False
 
+    # 查询po号内是否存在这些SKU
     def find_sql(self, list_sku, po_number):
         self.sql()
         list_order = []
@@ -398,6 +401,7 @@ class Quantity(object):
         # print(sql1)
         self.cursor.execute(sql1)
 
+    # 生成领料单
     def writer_pdf(self, po_name, list_order):
         wb = openpyxl.Workbook()
         wb_sheet = wb.active
@@ -412,6 +416,7 @@ class Quantity(object):
         excel_path = f'./static/领料单/{po_name}.xlsx'
         wb.save(excel_path)
 
+    # 提取前端传来的字符串中的SKU
     def find_sku(self, str_html, flag):
         if flag == 'sku':
             index_final = 0
@@ -452,6 +457,7 @@ class Quantity(object):
         else:
             return False
 
+    # 上传生成日程表
     def upload_sql(self, filename):
         try:
             list_error = []
@@ -471,6 +477,7 @@ class Quantity(object):
                 if heard:
                     list_heard.append(heard)
             # print(self.list_wb_heard)
+            # 获取表格中未结束的po订单，且sku不为空
             for i in range(2, row1 + 1):
                 po_id = wb_sheet.cell(row=i, column=(list_heard.index('PO号') + 1)).value
                 if po_id:
@@ -493,6 +500,7 @@ class Quantity(object):
                             if sku.find('#N/A') >= 0:
                                 list_error.append(i)
             dict_gcwl = {}
+            # print(len(dict_sku))
             for i in dict_sku:
                 list_sku = []
                 dict_order = {}
@@ -509,7 +517,10 @@ class Quantity(object):
                     return False, False
                 # print(list_gcwl)
             print(len(dict_gcwl))
+            # 将订单辅料信息写入数据库
+            # print(dict_gcwl)
             msg, message = self.insert_sql(dict_gcwl, dict_sku)
+            # 根据表格SKU列生成SKU异常提示表
             ws = openpyxl.Workbook()
             ws_sheet = ws.active
             ws_sheet.append(['下单日期', 'SKU', 'PO号', '产品型号', '订单数量', '对应表格位置'])
@@ -531,6 +542,7 @@ class Quantity(object):
             print('上传生产日程表错误：', e)
             return False, e
 
+    # 写入数据库
     def insert_sql(self, dict_gcwl, dict_sku):
         try:
             self.sql()
@@ -554,6 +566,7 @@ class Quantity(object):
                                 self.cursor.execute(sql2)
                 else:
                     for j in dict_gcwl[i]:
+                        # print(i,j,dict_gcwl[i][j])
                         sql = "insert into `storage`.`po_order`(`PO`, `SKU`, `订单数量`)values('%s', '%s', %d)" % (i, j, dict_gcwl[i][j][0])
                         self.cursor.execute(sql)
             for i in dict_sku:
@@ -574,11 +587,11 @@ class Quantity(object):
             self.sql_close()
             return True, True
         except Exception as e:
-            print(e)
+            print("数据库写入错误：", e)
             return False, e
 
 
 if __name__ == '__main__':
     quantity = Quantity()
     # quantity.get_order_msg(['GC.410'], {'GC.410': 800})
-    quantity.upload_sql('D:/生产日程表/生产日程表202306211543.xlsx')
+    quantity.upload_sql('D:/网页文件/生产日程表/生产日程表202307250900.xlsx')

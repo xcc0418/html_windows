@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>布局测试</title>
+</head>
+<style>
+
+.button{
+	float:left;             /*左浮动布局，向左向上对齐。参考：https://zhuanlan.zhihu.com/p/90719330 */
+	width:100px;
+	height:40px;
+	color:black;            /*字体颜色设置 */
+	background-color:white; /*背景颜色设置 */
+	border:none;            /*取消按钮边框设置*/
+	outline:none;           /*取消边框和外边框将按钮边框去掉*/
+}
+.button_control{
+    width:100px;
+    height:40px;
+    border:1px solid black; /*将按钮边框设置为1个像素大小*/
+}
+
+.button2{
+width:100px;
+height:40px;
+border:1px solid black;
+background-Color:rgb(252, 252, 252);
+}
+
+.item_control{
+width:500px;
+height:200px;
+border:1px solid black;
+background-Color:rgb(252, 252, 252);
+position: relative;         /*绝对布局，外div使用。参考：https://www.cnblogs.com/wfy680/p/15085142.html */
+}
+
+.msg_item{
+width:300px;
+height:40px;
+color: red;
+}
+
+#button_item1{
+margin:0px 0px 0px 50px;    /*位置布局，常规布局*/
+}
+#button_item2{
+margin:0px 0px 0px 50px;
+}
+
+/*浮动布局正常显示*/
+#item_control1{
+margin:10px 0px 0px 50px;   /*外div布局*/
+}
+#button_control1{
+margin:10px 0px 0px 10px;   /*位置布局，浮动布局*/
+}
+#button_control2{
+margin:10px 0px 0px 10px;
+}
+#button_control3{
+margin:-40px 0px 0px 120px;
+}
+#button_control4{
+margin:-40px 0px 0px 230px;
+}
+
+#msg_item1{
+margin:10px 0px 0px 50px;
+}
+
+/*使用浮动布局的外div在设置与前一个div同行后，布局会有异常*/
+#item_control2{
+margin:-250px 0px 0px 600px;
+}
+#button_control5{
+margin:10px 0px 0px 10px;
+}
+#button_control6{
+margin:10px 0px 0px 10px;
+}
+#button_control7{
+margin:-40px 0px 0px 120px;
+}
+#button_control8{
+margin:-40px 0px 0px 230px;
+}
+
+#msg_item2{
+margin:10px 0px 0px 600px;
+}
+
+/*这里使用相对于外div的绝对布局*/
+#item_control3{
+margin:-250px 0px 0px 1150px;
+}
+#button_control9{
+position: absolute;         /*绝对布局，内div使用。参考：https://www.cnblogs.com/wfy680/p/15085142.html */
+margin:10px 0px 0px 10px;
+}
+#button_control10{
+position: absolute;
+margin:10px 0px 0px 120px;
+}
+#button_control11{
+position: absolute;
+margin:10px 0px 0px 230px;
+}
+#button_control12{
+position: absolute;
+margin:10px 0px 0px 340px;
+}
+
+#msg_item3{
+margin:10px 0px 0px 1150px;
+}
+
+</style>
+<body>
+<button class="button2" onclick="test(event)" id="button_item1">按钮1</button>
+<button class="button2" onclick="test(event)" id="button_item2">按钮2</button>
+<div>
+    <div class="item_control" id="item_control1">
+        <div class="button_control" id="button_control1">
+            <button class="button" onclick="test(event)" id="button_item3">按钮3</button>
+        </div>
+        <div class="button_control" id="button_control2">
+            <button class="button" onclick="test(event)" id="button_item4">按钮4</button>
+        </div>
+        <div class="button_control" id="button_control3">
+            <button class="button" onclick="test(event)" id="button_item5">按钮5</button>
+        </div>
+        <div class="button_control" id="button_control4">
+            <button class="button" onclick="test(event)" id="button_item6">按钮6</button>
+        </div>
+    </div>
+    <div class="msg_item" id="msg_item1"><span>浮动布局正常显示</span></div>
+    <div class="item_control" id="item_control2">
+        <div class="button_control" id="button_control5">
+            <button class="button" onclick="test(event)" id="button_item7">按钮7</button>
+        </div>
+        <div class="button_control" id="button_control6">
+            <button class="button" onclick="test(event)" id="button_item8">按钮8</button>
+        </div>
+        <div class="button_control" id="button_control7">
+            <button class="button" onclick="test(event)" id="button_item9">按钮9</button>
+        </div>
+        <div class="button_control" id="button_control8">
+            <button class="button" onclick="test(event)" id="button_item10">按钮10</button>
+        </div>
+    </div>
+    <div class="msg_item" id="msg_item2"><span>使用浮动布局的外div在设置与前一个div同行后，布局会有异常</span></div>
+    <div class="item_control" id="item_control3">
+        <div class="button_control" id="button_control9">
+            <button class="button" onclick="test(event)" id="button_item13">按钮11</button>
+        </div>
+        <div class="button_control" id="button_control10">
+            <button class="button" onclick="test(event)" id="button_item14">按钮12</button>
+        </div>
+        <div class="button_control" id="button_control11">
+            <button class="button" onclick="test(event)" id="button_item15">按钮13</button>
+        </div>
+        <div class="button_control" id="button_control12">
+            <button class="button" onclick="test(event)" id="button_item16">按钮14</button>
+        </div>
+    </div>
+    <div class="msg_item" id="msg_item3"><span>这里使用相对于外div的绝对布局</span></div>
+</div>
+</body>
+</html>
