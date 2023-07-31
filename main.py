@@ -1055,15 +1055,11 @@ def derive_table():
             list_parent = dict_data['list_msg']['list']
             list_header = dict_data['list_header']
             quantity_parent = parent_message.Quantity()
-            list_header.insert(0, '本地品名')
-            list_header.insert(0, '父体')
             list_table = quantity_parent.get_list_parent(list_parent, len(list_header))
         elif table_name == "amazon_table":
             list_amazon = dict_data['list_msg']['list']
             list_header = dict_data['list_header']
             quantity_parent = parent_message.Quantity()
-            list_header.insert(0, '本地品名')
-            list_header.insert(0, '父体')
             list_table = quantity_parent.get_list_amazon(list_amazon, len(list_header))
         else:
             list_table = dict_data['list_msg']['list']
